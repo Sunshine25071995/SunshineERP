@@ -410,17 +410,17 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Roll No (Auto Continuation)</label>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Roll No</label>
                 <input
                   type="text"
                   value={`#${nextRollNo}`}
                   disabled
-                  className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-blue-700"
+                  className="w-full h-9 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1 font-mono font-bold text-blue-700 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Gross Wt (kg)</label>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Gross Wt (kg)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -428,35 +428,35 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                   value={grossWeight}
                   onChange={(e) => setGrossWeight(e.target.value)}
                   required
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Core Wt (Auto-fill)</label>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Core Wt (Auto-fill)</label>
                 <input
                   type="number"
                   step="0.001"
                   placeholder="0.000"
                   value={coreWeight}
                   onChange={(e) => setCoreWeight(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Net Wt (Auto)</label>
-                <div className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 font-mono font-extrabold text-blue-800">
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Net Wt (Auto)</label>
+                <div className="w-full h-9 bg-blue-50 border border-blue-200 rounded-xl px-3 py-1 font-mono font-extrabold text-blue-800 flex items-center text-xs">
                   {formatWeight(
                     Math.max(0, (parseFloat(grossWeight) || 0) - (parseFloat(coreWeight) || 0))
                   )}
                 </div>
               </div>
 
-              <div className="flex items-end col-span-2 sm:col-span-1">
+              <div className="col-span-2 sm:col-span-1">
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-xs"
+                  className="w-full h-9 bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-xs text-xs"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Slit Roll</span>
@@ -467,7 +467,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
 
           {/* SECTION 3: Slitting Output Rolls Log Table across ALL Shifts */}
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-            <div className="p-3.5 border-b border-slate-200 flex items-center justify-between">
+            <div className="p-3 border-b border-slate-200 flex items-center justify-between">
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                 Full Slitting Output Rolls Log for Job Card #{selectedJobCard.jobCode}
               </h3>
@@ -480,14 +480,14 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-100 text-slate-600 uppercase font-semibold border-b border-slate-200">
                   <tr>
-                    <th className="p-3">Roll No</th>
-                    <th className="p-3">Coil Size</th>
-                    <th className="p-3">Shift</th>
-                    <th className="p-3">Gross Wt</th>
-                    <th className="p-3">Core Wt</th>
-                    <th className="p-3">Net Wt</th>
-                    <th className="p-3">Created By</th>
-                    <th className="p-3 text-right">Actions</th>
+                    <th className="px-3 py-2">Roll No</th>
+                    <th className="px-3 py-2">Coil Size</th>
+                    <th className="px-3 py-2">Shift</th>
+                    <th className="px-3 py-2">Gross Wt</th>
+                    <th className="px-3 py-2">Core Wt</th>
+                    <th className="px-3 py-2">Net Wt</th>
+                    <th className="px-3 py-2">Created By</th>
+                    <th className="px-3 py-2 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-800">
@@ -500,14 +500,14 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
 
                     return (
                       <tr key={roll.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-3 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
+                        <td className="px-3 py-1.5 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
 
-                        <td className="p-3 font-mono">
+                        <td className="px-3 py-1.5 font-mono">
                           {isEditing ? (
                             <select
                               value={editCoilSize}
                               onChange={(e) => setEditCoilSize(e.target.value)}
-                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-1 text-amber-900 font-bold"
+                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-0.5 text-amber-900 font-bold text-xs"
                             >
                               {selectedJobCard.coilSizes?.map((cs, i) => (
                                 <option key={i} value={cs}>
@@ -516,47 +516,47 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                               ))}
                             </select>
                           ) : (
-                            <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-200 font-bold">
+                            <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-200 font-bold text-xs">
                               {roll.coilSize}
                             </span>
                           )}
                         </td>
 
-                        <td className="p-3 font-semibold">
-                          <span className="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded border border-slate-200">
-                            Shift {roll.shift}
+                        <td className="px-3 py-1.5 font-semibold">
+                          <span className="bg-slate-100 text-slate-800 font-extrabold px-2 py-0.5 rounded border border-slate-200 text-xs">
+                            {roll.shift}
                           </span>
                         </td>
 
-                        <td className="p-3 font-mono">
+                        <td className="px-3 py-1.5 font-mono">
                           {isEditing ? (
                             <input
                               type="number"
                               step="0.001"
                               value={editGross}
                               onChange={(e) => setEditGross(e.target.value)}
-                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-1 font-mono text-slate-900 w-24 focus:outline-none"
+                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 w-24 focus:outline-none text-xs"
                             />
                           ) : (
                             formatWeight(roll.grossWeight)
                           )}
                         </td>
 
-                        <td className="p-3 font-mono">
+                        <td className="px-3 py-1.5 font-mono">
                           {isEditing ? (
                             <input
                               type="number"
                               step="0.001"
                               value={editCore}
                               onChange={(e) => setEditCore(e.target.value)}
-                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-1 font-mono text-slate-900 w-24 focus:outline-none"
+                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 w-24 focus:outline-none text-xs"
                             />
                           ) : (
                             formatWeight(roll.coreWeight)
                           )}
                         </td>
 
-                        <td className="p-3 font-mono font-extrabold text-blue-800">
+                        <td className="px-3 py-1.5 font-mono font-extrabold text-blue-800">
                           {isEditing ? (
                             formatWeight(
                               Math.max(
@@ -569,11 +569,11 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                           )}
                         </td>
 
-                        <td className="p-3 font-mono text-[11px] text-slate-500">
+                        <td className="px-3 py-1.5 font-mono text-[11px] text-slate-500">
                           {roll.createdBy}
                         </td>
 
-                        <td className="p-3 text-right">
+                        <td className="px-3 py-1.5 text-right">
                           {isOwner ? (
                             isEditing ? (
                               <div className="flex items-center justify-end gap-1">

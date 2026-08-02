@@ -353,19 +353,19 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
               </h3>
             </div>
 
-            <form onSubmit={handleAddRoll} className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs">
+            <form onSubmit={handleAddRoll} className="grid grid-cols-2 sm:grid-cols-6 gap-3 items-end text-xs">
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Roll No (Auto Continuation)</label>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Roll No</label>
                 <input
                   type="text"
                   value={`#${nextRollNo}`}
                   disabled
-                  className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-emerald-700"
+                  className="w-full h-9 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1 font-mono font-bold text-emerald-700 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Gross Wt (kg)</label>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Gross Wt (kg)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -373,13 +373,13 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
                   value={grossWeight}
                   onChange={(e) => setGrossWeight(e.target.value)}
                   required
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">
+                <label className="block text-slate-600 font-semibold mb-1 truncate">
                   Core Wt (Auto-fill)
                 </label>
                 <input
@@ -388,31 +388,31 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
                   placeholder="0.000"
                   value={coreWeight}
                   onChange={(e) => setCoreWeight(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Net Wt (Auto)</label>
-                <div className="w-full bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-extrabold text-emerald-800">
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Net Wt (Auto)</label>
+                <div className="w-full h-9 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1 font-mono font-extrabold text-emerald-800 flex items-center text-xs">
                   {formatWeight(computedNet)}
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Joints</label>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Joints</label>
                 <input
                   type="number"
                   value={joints}
                   onChange={(e) => setJoints(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs"
                 />
               </div>
 
-              <div className="flex items-end col-span-2 sm:col-span-1">
+              <div className="col-span-2 sm:col-span-1">
                 <button
                   type="submit"
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-xs"
+                  className="w-full h-9 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 rounded-xl flex items-center justify-center gap-1 transition-colors shadow-xs text-xs"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Roll</span>
@@ -423,12 +423,12 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
 
           {/* Roll Entries List Table across ALL Shifts */}
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-            <div className="p-3.5 border-b border-slate-200 flex items-center justify-between">
+            <div className="p-3 border-b border-slate-200 flex items-center justify-between">
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                 Full Production Rolls Log for Job Card #{selectedJobCard.jobCode}
               </h3>
               <span className="text-[11px] text-slate-500 font-medium">
-                Total Rolls across all shifts: {activeJobRolls.length}
+                Total Rolls: {activeJobRolls.length}
               </span>
             </div>
 
@@ -436,14 +436,14 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-100 text-slate-600 uppercase font-semibold border-b border-slate-200">
                   <tr>
-                    <th className="p-3">Roll No</th>
-                    <th className="p-3">Shift</th>
-                    <th className="p-3">Gross Wt (kg)</th>
-                    <th className="p-3">Core Wt (kg)</th>
-                    <th className="p-3">Net Wt (kg)</th>
-                    <th className="p-3">Joints</th>
-                    <th className="p-3">Created By</th>
-                    <th className="p-3 text-right">Actions</th>
+                    <th className="px-3 py-2">Roll No</th>
+                    <th className="px-3 py-2">Shift</th>
+                    <th className="px-3 py-2">Gross Wt (kg)</th>
+                    <th className="px-3 py-2">Core Wt (kg)</th>
+                    <th className="px-3 py-2">Net Wt (kg)</th>
+                    <th className="px-3 py-2">Joints</th>
+                    <th className="px-3 py-2">Created By</th>
+                    <th className="px-3 py-2 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-800">
@@ -456,44 +456,44 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
 
                     return (
                       <tr key={roll.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-3 font-mono font-bold text-emerald-700">
+                        <td className="px-3 py-1.5 font-mono font-bold text-emerald-700">
                           #{roll.rollNo}
                         </td>
-                        <td className="p-3 font-semibold">
-                          <span className="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded border border-slate-200">
-                            Shift {roll.shift}
+                        <td className="px-3 py-1.5 font-semibold">
+                          <span className="bg-slate-100 text-slate-800 font-extrabold px-2 py-0.5 rounded border border-slate-200 text-xs">
+                            {roll.shift}
                           </span>
                         </td>
 
-                        <td className="p-3 font-mono">
+                        <td className="px-3 py-1.5 font-mono">
                           {isEditing ? (
                             <input
                               type="number"
                               step="0.001"
                               value={editGross}
                               onChange={(e) => setEditGross(e.target.value)}
-                              className="bg-slate-50 border border-emerald-500 rounded-lg px-2 py-1 font-mono text-slate-900 w-24 focus:outline-none"
+                              className="bg-slate-50 border border-emerald-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 w-24 focus:outline-none text-xs"
                             />
                           ) : (
                             formatWeight(roll.grossWeight)
                           )}
                         </td>
 
-                        <td className="p-3 font-mono">
+                        <td className="px-3 py-1.5 font-mono">
                           {isEditing ? (
                             <input
                               type="number"
                               step="0.001"
                               value={editCore}
                               onChange={(e) => setEditCore(e.target.value)}
-                              className="bg-slate-50 border border-emerald-500 rounded-lg px-2 py-1 font-mono text-slate-900 w-24 focus:outline-none"
+                              className="bg-slate-50 border border-emerald-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 w-24 focus:outline-none text-xs"
                             />
                           ) : (
                             formatWeight(roll.coreWeight)
                           )}
                         </td>
 
-                        <td className="p-3 font-mono font-extrabold text-emerald-800">
+                        <td className="px-3 py-1.5 font-mono font-extrabold text-emerald-800">
                           {isEditing ? (
                             formatWeight(
                               Math.max(
@@ -506,24 +506,24 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
                           )}
                         </td>
 
-                        <td className="p-3 font-mono">
+                        <td className="px-3 py-1.5 font-mono">
                           {isEditing ? (
                             <input
                               type="number"
                               value={editJoints}
                               onChange={(e) => setEditJoints(e.target.value)}
-                              className="bg-slate-50 border border-emerald-500 rounded-lg px-2 py-1 font-mono text-slate-900 w-16 focus:outline-none"
+                              className="bg-slate-50 border border-emerald-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 w-16 focus:outline-none text-xs"
                             />
                           ) : (
                             roll.joints
                           )}
                         </td>
 
-                        <td className="p-3 font-mono text-[11px] text-slate-500">
+                        <td className="px-3 py-1.5 font-mono text-[11px] text-slate-500">
                           {roll.createdBy}
                         </td>
 
-                        <td className="p-3 text-right">
+                        <td className="px-3 py-1.5 text-right">
                           {isOwner ? (
                             isEditing ? (
                               <div className="flex items-center justify-end gap-1">
