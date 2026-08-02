@@ -1,0 +1,6 @@
+{
+  "name": "Sunshine Polyfilms Production Manager",
+  "description": "Production, slitting, chemical, and job card management system with real-time Firestore synchronization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

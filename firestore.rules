@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper validation functions
+    function isString(val) {
+      return val is string;
+    }
+
+    function isNumber(val) {
+      return val is number || val is int;
+    }
+
+    function isNonNegative(val) {
+      return isNumber(val) && val >= 0;
+    }
+
+    // Default deny for unhandled paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users collection validation
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isString(request.resource.data.loginId)
+                            && request.resource.data.loginId.size() > 0
+                            && isString(request.resource.data.name)
+                            && isString(request.resource.data.department);
+      allow delete: if true;
+    }
+
+    // Job Cards collection
+    match /jobCards/{jobCardId} {
+      allow read: if true;
+      allow create, update: if isString(request.resource.data.jobCode)
+                            && request.resource.data.jobCode.size() > 0
+                            && isString(request.resource.data.partyCode)
+                            && isNonNegative(request.resource.data.totalQuantity);
+      allow delete: if true;
+    }
+
+    // Chemicals collection
+    match /chemicals/{chemicalId} {
+      allow read: if true;
+      allow create, update: if isString(request.resource.data.name)
+                            && isString(request.resource.data.unit);
+      allow delete: if true;
+    }
+
+    // Chemical Purchases collection
+    match /chemicalPurchases/{purchaseId} {
+      allow read: if true;
+      allow create, update: if isString(request.resource.data.chemicalId)
+                            && isNonNegative(request.resource.data.quantity);
+      allow delete: if true;
+    }
+
+    // Chemical Usage collection
+    match /chemicalUsage/{usageId} {
+      allow read: if true;
+      allow create, update: if isString(request.resource.data.chemicalId)
+                            && isNonNegative(request.resource.data.quantityUsed);
+      allow delete: if true;
+    }
+
+    // Production Rolls collection
+    match /productionRolls/{rollId} {
+      allow read: if true;
+      allow create, update: if isString(request.resource.data.rollNo)
+                            && isNonNegative(request.resource.data.netWeight);
+      allow delete: if true;
+    }
+
+    // Slitting Rolls collection
+    match /slittingRolls/{rollId} {
+      allow read: if true;
+      allow create, update: if isString(request.resource.data.rollNo)
+                            && isNonNegative(request.resource.data.netWeight);
+      allow delete: if true;
+    }
+
+    // Production Wastage collection
+    match /productionWastage/{wastageId} {
+      allow read: if true;
+      allow create, update: if isNonNegative(request.resource.data.wastageWeight);
+      allow delete: if true;
+    }
+  }
+}

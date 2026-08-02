@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user account for department access control",
+      "type": "object",
+      "properties": {
+        "loginId": { "type": "string", "description": "Unique login ID code e.g. 090909" },
+        "name": { "type": "string", "description": "User full name" },
+        "department": { "type": "string", "enum": ["admin", "chemical", "production", "slitting"] },
+        "shift": { "type": "string", "enum": ["A", "B", "C"] },
+        "active": { "type": "boolean" }
+      },
+      "required": ["loginId", "name", "department", "active"]
+    },
+    "JobCard": {
+      "title": "JobCard",
+      "description": "Manufacturing job card specification",
+      "type": "object",
+      "properties": {
+        "jobCode": { "type": "string" },
+        "date": { "type": "string" },
+        "partyCode": { "type": "string" },
+        "size": { "type": "string" },
+        "micron": { "type": "string" },
+        "coilSizes": { "type": "array", "items": { "type": "string" } },
+        "totalQuantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "running", "completed", "dispatched"] },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["jobCode", "partyCode", "status"]
+    },
+    "Chemical": {
+      "title": "Chemical",
+      "description": "Chemical master item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "unit": { "type": "string" }
+      },
+      "required": ["name", "unit"]
+    },
+    "ChemicalPurchase": {
+      "title": "ChemicalPurchase",
+      "description": "Chemical stock purchase log",
+      "type": "object",
+      "properties": {
+        "chemicalId": { "type": "string" },
+        "quantity": { "type": "number" },
+        "date": { "type": "string" },
+        "addedBy": { "type": "string" }
+      },
+      "required": ["chemicalId", "quantity", "date"]
+    },
+    "ChemicalUsage": {
+      "title": "ChemicalUsage",
+      "description": "Chemical consumption log",
+      "type": "object",
+      "properties": {
+        "chemicalId": { "type": "string" },
+        "quantityUsed": { "type": "number" },
+        "date": { "type": "string" },
+        "usedBy": { "type": "string" }
+      },
+      "required": ["chemicalId", "quantityUsed", "date"]
+    },
+    "ProductionRoll": {
+      "title": "ProductionRoll",
+      "description": "Production output roll log",
+      "type": "object",
+      "properties": {
+        "jobCardId": { "type": "string" },
+        "rollNo": { "type": "number" },
+        "shift": { "type": "string" },
+        "date": { "type": "string" },
+        "grossWeight": { "type": "number" },
+        "coreWeight": { "type": "number" },
+        "netWeight": { "type": "number" },
+        "joints": { "type": "number" },
+        "takenBySlitting": { "type": "boolean" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["jobCardId", "rollNo", "shift", "netWeight"]
+    },
+    "SlittingRoll": {
+      "title": "SlittingRoll",
+      "description": "Slitting output coil roll log",
+      "type": "object",
+      "properties": {
+        "jobCardId": { "type": "string" },
+        "coilSize": { "type": "string" },
+        "rollNo": { "type": "number" },
+        "shift": { "type": "string" },
+        "date": { "type": "string" },
+        "grossWeight": { "type": "number" },
+        "coreWeight": { "type": "number" },
+        "netWeight": { "type": "number" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["jobCardId", "coilSize", "rollNo", "netWeight"]
+    },
+    "ProductionWastage": {
+      "title": "ProductionWastage",
+      "description": "Manual production wastage log",
+      "type": "object",
+      "properties": {
+        "jobCardId": { "type": "string" },
+        "shift": { "type": "string" },
+        "date": { "type": "string" },
+        "wastageWeight": { "type": "number" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["jobCardId", "wastageWeight"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User accounts" },
+    "/jobCards/{jobCardId}": { "schema": "JobCard", "description": "Job card specifications" },
+    "/chemicals/{chemicalId}": { "schema": "Chemical", "description": "Chemical master items" },
+    "/chemicalPurchases/{purchaseId}": { "schema": "ChemicalPurchase", "description": "Chemical purchase log" },
+    "/chemicalUsage/{usageId}": { "schema": "ChemicalUsage", "description": "Chemical usage log" },
+    "/productionRolls/{rollId}": { "schema": "ProductionRoll", "description": "Production rolls" },
+    "/slittingRolls/{rollId}": { "schema": "SlittingRoll", "description": "Slitting output rolls" },
+    "/productionWastage/{wastageId}": { "schema": "ProductionWastage", "description": "Production wastage entries" }
+  }
+}
