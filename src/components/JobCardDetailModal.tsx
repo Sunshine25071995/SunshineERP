@@ -187,7 +187,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                         <td className="p-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
                           {roll.date || 'N/A'}
                         </td>
-                        <td className="p-2 font-mono font-bold text-emerald-700">#{roll.rollNo}</td>
+                        <td className="p-2 font-mono font-bold text-emerald-700">{roll.rollNo}</td>
                         <td className="p-2 font-semibold">Shift {roll.shift}</td>
                         <td className="p-2 font-mono">{formatWeight(roll.grossWeight)}</td>
                         <td className="p-2 font-mono">{formatWeight(roll.coreWeight)}</td>
@@ -244,7 +244,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                         <td className="p-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
                           {roll.date || 'N/A'}
                         </td>
-                        <td className="p-2 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
+                        <td className="p-2 font-mono font-bold text-blue-700">{roll.rollNo}</td>
                         <td className="p-2 font-mono text-amber-800 font-bold">{roll.coilSize}</td>
                         <td className="p-2 font-semibold">Shift {roll.shift}</td>
                         <td className="p-2 font-mono">{formatWeight(roll.grossWeight)}</td>

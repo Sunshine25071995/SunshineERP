@@ -52,6 +52,9 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
     return `${year}-${month}-${day}`;
   };
 
+  // Active Sub-Tab State
+  const [activeTab, setActiveTab] = useState<'issue' | 'output'>('issue');
+
   // Form State
   const [selectedCoilSize, setSelectedCoilSize] = useState('');
   const [grossWeight, setGrossWeight] = useState('');
@@ -341,59 +344,125 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
             </div>
           </div>
 
-          {/* SECTION 1: Production Rolls Selection (Mark Taken into Slitting) */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <ArrowDown className="w-4 h-4 text-purple-600" />
-                <span>Production Rolls to be Taken into Slitting for #{selectedJobCard.jobCode}</span>
-              </h3>
-              <span className="text-[11px] text-purple-900 bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200 font-mono font-bold">
-                Taken: {formatWeight(takenProdWeight)} kg
-              </span>
-            </div>
+          {/* Sub-Navigation Tabs */}
+          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab('issue')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'issue'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <ArrowDown className="w-4 h-4" />
+              <span>Production</span>
+            </button>
 
-            {activeProdRolls.length === 0 ? (
-              <div className="bg-slate-50 p-4 text-center text-xs text-slate-500 rounded-xl border border-slate-200">
-                No production rolls recorded for this Job Card yet.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {activeProdRolls.map((roll) => (
-                  <button
-                    key={roll.id}
-                    type="button"
-                    onClick={() => toggleTakenBySlitting(roll)}
-                    className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
-                      roll.takenBySlitting
-                        ? 'bg-purple-50 border-purple-300 text-purple-900 shadow-xs'
-                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
-                    }`}
-                  >
-                    <div>
-                      <div className="font-mono font-bold text-xs flex items-center gap-1.5">
-                        <span>Roll #{roll.rollNo}</span>
-                        <span className="text-[10px] text-slate-500 font-normal">
-                          (Shift {roll.shift})
-                        </span>
-                      </div>
-                      <div className="text-[11px] font-mono mt-0.5">
-                        Net: <strong className="text-slate-900">{formatWeight(roll.netWeight)}</strong> kg
-                      </div>
-                    </div>
-
-                    <div>
-                      {roll.takenBySlitting ? (
-                        <CheckSquare className="w-5 h-5 text-purple-600" />
-                      ) : (
-                        <Square className="w-5 h-5 text-slate-300" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setActiveTab('output')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'output'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Scissors className="w-4 h-4" />
+              <span>Slitting</span>
+            </button>
           </div>
+
+          {/* TAB 1: Issue Production Rolls to Slitting */}
+          {activeTab === 'issue' && (
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+              <div className="p-3 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <ArrowDown className="w-4 h-4 text-purple-600" />
+                  <span>Production Rolls to be Taken into Slitting for #{selectedJobCard.jobCode}</span>
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-purple-900 bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200 font-mono font-bold">
+                    Total Taken: {formatWeight(takenProdWeight)} kg
+                  </span>
+                </div>
+              </div>
+
+              {activeProdRolls.length === 0 ? (
+                <div className="p-4 text-center text-xs text-slate-500">
+                  No production rolls recorded for this Job Card yet.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-100 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                      <tr>
+                        <th className="px-3 py-2 w-10 text-center">Select</th>
+                        <th className="px-3 py-2">Date</th>
+                        <th className="px-3 py-2">Roll No</th>
+                        <th className="px-3 py-2">Shift</th>
+                        <th className="px-3 py-2">Gross Wt (kg)</th>
+                        <th className="px-3 py-2">Core Wt (kg)</th>
+                        <th className="px-3 py-2">Net Wt (kg)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-slate-800">
+                      {activeProdRolls.map((roll) => {
+                        const isTaken = roll.takenBySlitting;
+                        return (
+                          <tr
+                            key={roll.id}
+                            onClick={() => toggleTakenBySlitting(roll)}
+                            className={`cursor-pointer transition-colors ${
+                              isTaken ? 'bg-purple-50/70 hover:bg-purple-100/70' : 'hover:bg-slate-50'
+                            }`}
+                          >
+                            <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => toggleTakenBySlitting(roll)}
+                                className="focus:outline-none flex items-center justify-center mx-auto"
+                              >
+                                {isTaken ? (
+                                  <CheckSquare className="w-4 h-4 text-purple-600" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-slate-300 hover:text-slate-400" />
+                                )}
+                              </button>
+                            </td>
+                            <td className="px-3 py-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                              {roll.date || 'N/A'}
+                            </td>
+                            <td className="px-3 py-2 font-mono font-bold text-emerald-700">
+                              {roll.rollNo}
+                            </td>
+                            <td className="px-3 py-2 font-semibold">
+                              <span className="bg-slate-100 text-slate-800 font-extrabold px-2 py-0.5 rounded border border-slate-200 text-xs">
+                                {roll.shift}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 font-mono text-slate-600">
+                              {formatWeight(roll.grossWeight)}
+                            </td>
+                            <td className="px-3 py-2 font-mono text-slate-600">
+                              {formatWeight(roll.coreWeight)}
+                            </td>
+                            <td className="px-3 py-2 font-mono font-extrabold text-emerald-800">
+                              {formatWeight(roll.netWeight)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: Slitting Output Rolls Entry & Log */}
+          {activeTab === 'output' && (
+            <>
 
           {/* SECTION 2: Table-Format Slitting Roll Entry */}
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
@@ -436,7 +505,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                 <label className="block text-slate-600 font-semibold mb-1 truncate">Roll No</label>
                 <input
                   type="text"
-                  value={`#${nextRollNo}`}
+                  value={nextRollNo}
                   disabled
                   className="w-full h-9 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1 font-mono font-bold text-blue-700 text-xs"
                 />
@@ -536,7 +605,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                             roll.date || 'N/A'
                           )}
                         </td>
-                        <td className="px-3 py-1.5 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
+                        <td className="px-3 py-1.5 font-mono font-bold text-blue-700">{roll.rollNo}</td>
 
                         <td className="px-3 py-1.5 font-mono">
                           {isEditing ? (
@@ -657,6 +726,8 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               </table>
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
     </div>

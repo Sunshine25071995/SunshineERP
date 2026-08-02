@@ -381,7 +381,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
                 <label className="block text-slate-600 font-semibold mb-1 truncate">Roll No</label>
                 <input
                   type="text"
-                  value={`#${nextRollNo}`}
+                  value={nextRollNo}
                   disabled
                   className="w-full h-9 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1 font-mono font-bold text-emerald-700 text-xs"
                 />
@@ -493,7 +493,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
                           )}
                         </td>
                         <td className="px-3 py-1.5 font-mono font-bold text-emerald-700">
-                          #{roll.rollNo}
+                          {roll.rollNo}
                         </td>
                         <td className="px-3 py-1.5 font-semibold">
                           <span className="bg-slate-100 text-slate-800 font-extrabold px-2 py-0.5 rounded border border-slate-200 text-xs">
