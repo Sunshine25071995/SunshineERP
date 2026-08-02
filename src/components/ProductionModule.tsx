@@ -120,6 +120,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
       setJoints('0');
     } catch (err) {
       console.error('Error adding production roll:', err);
+      alert('Failed to save production roll. Error: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -139,6 +140,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
       setWastageInput('');
     } catch (err) {
       console.error('Error adding wastage:', err);
+      alert('Failed to save wastage. Error: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -168,6 +170,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
       setEditingRollId(null);
     } catch (err) {
       console.error('Error updating production roll:', err);
+      alert('Failed to update roll. Error: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -177,6 +180,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
         await deleteDoc(doc(db, 'productionRolls', id));
       } catch (err) {
         console.error('Error deleting roll:', err);
+        alert('Failed to delete roll. Error: ' + (err instanceof Error ? err.message : String(err)));
       }
     }
   };

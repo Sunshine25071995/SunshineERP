@@ -102,6 +102,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
       });
     } catch (err) {
       console.error('Error updating taken status:', err);
+      alert('Failed to update status. Error: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -131,6 +132,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
       setGrossWeight('');
     } catch (err) {
       console.error('Error adding slitting roll:', err);
+      alert('Failed to save slitting roll. Error: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -160,6 +162,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
       setEditingRollId(null);
     } catch (err) {
       console.error('Error updating slitting roll:', err);
+      alert('Failed to update slitting roll. Error: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -169,6 +172,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
         await deleteDoc(doc(db, 'slittingRolls', id));
       } catch (err) {
         console.error('Error deleting slitting roll:', err);
+        alert('Failed to delete slitting roll. Error: ' + (err instanceof Error ? err.message : String(err)));
       }
     }
   };
