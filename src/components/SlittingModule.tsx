@@ -43,18 +43,28 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
 
   const selectedJobCard = jobCards.find((j) => j.id === selectedJobCardId);
 
+  // Helper to fetch current local date YYYY-MM-DD
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Form State
   const [selectedCoilSize, setSelectedCoilSize] = useState('');
   const [grossWeight, setGrossWeight] = useState('');
   const [coreWeight, setCoreWeight] = useState('');
   const [linkedProdRollId] = useState('');
-  const [rollDate] = useState(new Date().toISOString().split('T')[0]);
+  const [rollDate, setRollDate] = useState(getTodayString());
 
   // Edit Roll State
   const [editingRollId, setEditingRollId] = useState<string | null>(null);
   const [editCoilSize, setEditCoilSize] = useState('');
   const [editGross, setEditGross] = useState('');
   const [editCore, setEditCore] = useState('');
+  const [editDate, setEditDate] = useState('');
 
   // Auto coil size selection on job card change
   useEffect(() => {
@@ -141,6 +151,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
     setEditCoilSize(r.coilSize);
     setEditGross(String(r.grossWeight));
     setEditCore(String(r.coreWeight));
+    setEditDate(r.date || getTodayString());
   };
 
   const cancelEditRoll = () => {
@@ -158,6 +169,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
         grossWeight: gross,
         coreWeight: core,
         netWeight: net,
+        date: editDate || rollDate,
       });
       setEditingRollId(null);
     } catch (err) {
@@ -392,14 +404,25 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               </h3>
             </div>
 
-            <form onSubmit={handleAddSlitRoll} className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs">
+            <form onSubmit={handleAddSlitRoll} className="grid grid-cols-2 sm:grid-cols-7 gap-2 text-xs">
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Entry Date</label>
+                <input
+                  type="date"
+                  value={rollDate}
+                  onChange={(e) => setRollDate(e.target.value)}
+                  required
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs"
+                />
+              </div>
+
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Coil Size</label>
                 <select
                   value={selectedCoilSize}
                   onChange={(e) => setSelectedCoilSize(e.target.value)}
                   required
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 font-mono text-amber-900 font-bold focus:bg-white focus:outline-none focus:border-blue-500"
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-2 py-1 font-mono text-amber-900 font-bold focus:bg-white focus:outline-none focus:border-blue-500 text-xs"
                 >
                   {selectedJobCard.coilSizes?.map((cs, i) => (
                     <option key={i} value={cs}>
@@ -433,7 +456,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1 truncate">Core Wt (Auto-fill)</label>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Core Wt (Auto)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -480,6 +503,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-100 text-slate-600 uppercase font-semibold border-b border-slate-200">
                   <tr>
+                    <th className="px-3 py-2">Date</th>
                     <th className="px-3 py-2">Roll No</th>
                     <th className="px-3 py-2">Coil Size</th>
                     <th className="px-3 py-2">Shift</th>
@@ -500,6 +524,18 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
 
                     return (
                       <tr key={roll.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-3 py-1.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                          {isEditing ? (
+                            <input
+                              type="date"
+                              value={editDate}
+                              onChange={(e) => setEditDate(e.target.value)}
+                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 focus:outline-none text-xs"
+                            />
+                          ) : (
+                            roll.date || 'N/A'
+                          )}
+                        </td>
                         <td className="px-3 py-1.5 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
 
                         <td className="px-3 py-1.5 font-mono">

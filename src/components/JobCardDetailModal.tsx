@@ -1,7 +1,7 @@
 import React from 'react';
 import { JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
-import { X, Layers, Scissors, Flame, Scale, CheckCircle2 } from 'lucide-react';
+import { X, Layers, Scissors, Flame, Scale, CheckCircle2, Trash2 } from 'lucide-react';
 
 interface JobCardDetailModalProps {
   jobCard: JobCard;
@@ -9,6 +9,7 @@ interface JobCardDetailModalProps {
   slitRolls: SlittingRoll[];
   prodWastages: ProductionWastage[];
   onClose: () => void;
+  onDelete?: (jobCard: JobCard) => void;
 }
 
 export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
@@ -17,6 +18,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
   slitRolls,
   prodWastages,
   onClose,
+  onDelete,
 }) => {
   const wastageSummary = calculateJobCardWastage(jobCard.id, prodRolls, slitRolls, prodWastages);
   const jcProdRolls = prodRolls.filter((r) => r.jobCardId === jobCard.id);
@@ -53,12 +55,24 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
             </span>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onDelete && (
+              <button
+                onClick={() => onDelete(jobCard)}
+                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
+                title="Delete this Job Card"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Job Card</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content Body */}
@@ -157,6 +171,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
                     <tr>
+                      <th className="p-2">Date</th>
                       <th className="p-2">Roll No</th>
                       <th className="p-2">Shift</th>
                       <th className="p-2">Gross (kg)</th>
@@ -169,6 +184,9 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                   <tbody className="divide-y divide-slate-200 text-slate-800">
                     {jcProdRolls.map((roll) => (
                       <tr key={roll.id} className="hover:bg-slate-50">
+                        <td className="p-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                          {roll.date || 'N/A'}
+                        </td>
                         <td className="p-2 font-mono font-bold text-emerald-700">#{roll.rollNo}</td>
                         <td className="p-2 font-semibold">Shift {roll.shift}</td>
                         <td className="p-2 font-mono">{formatWeight(roll.grossWeight)}</td>
@@ -211,6 +229,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
                     <tr>
+                      <th className="p-2">Date</th>
                       <th className="p-2">Roll No</th>
                       <th className="p-2">Coil Size</th>
                       <th className="p-2">Shift</th>
@@ -222,6 +241,9 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                   <tbody className="divide-y divide-slate-200 text-slate-800">
                     {jcSlitRolls.map((roll) => (
                       <tr key={roll.id} className="hover:bg-slate-50">
+                        <td className="p-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                          {roll.date || 'N/A'}
+                        </td>
                         <td className="p-2 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
                         <td className="p-2 font-mono text-amber-800 font-bold">{roll.coilSize}</td>
                         <td className="p-2 font-semibold">Shift {roll.shift}</td>

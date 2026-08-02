@@ -44,11 +44,20 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
   // Selected Job Card
   const selectedJobCard = jobCards.find((j) => j.id === selectedJobCardId);
 
+  // Helper to fetch current local date YYYY-MM-DD
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // New Roll Form State
   const [grossWeight, setGrossWeight] = useState('');
   const [coreWeight, setCoreWeight] = useState('');
   const [joints, setJoints] = useState('0');
-  const [rollDate, setRollDate] = useState(new Date().toISOString().split('T')[0]);
+  const [rollDate, setRollDate] = useState(getTodayString());
 
   // Manual Wastage Form State
   const [wastageInput, setWastageInput] = useState('');
@@ -58,6 +67,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
   const [editGross, setEditGross] = useState('');
   const [editCore, setEditCore] = useState('');
   const [editJoints, setEditJoints] = useState('');
+  const [editDate, setEditDate] = useState('');
 
   // Auto-fill Core Weight feature from first row entry for this job card & shift
   useEffect(() => {
@@ -149,6 +159,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
     setEditGross(String(r.grossWeight));
     setEditCore(String(r.coreWeight));
     setEditJoints(String(r.joints));
+    setEditDate(r.date || getTodayString());
   };
 
   const cancelEditRoll = () => {
@@ -166,6 +177,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
         coreWeight: core,
         netWeight: net,
         joints: parseInt(editJoints, 10) || 0,
+        date: editDate || rollDate,
       });
       setEditingRollId(null);
     } catch (err) {
@@ -353,7 +365,18 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
               </h3>
             </div>
 
-            <form onSubmit={handleAddRoll} className="grid grid-cols-2 sm:grid-cols-6 gap-3 items-end text-xs">
+            <form onSubmit={handleAddRoll} className="grid grid-cols-2 sm:grid-cols-7 gap-2.5 items-end text-xs">
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Entry Date</label>
+                <input
+                  type="date"
+                  value={rollDate}
+                  onChange={(e) => setRollDate(e.target.value)}
+                  required
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs"
+                />
+              </div>
+
               <div>
                 <label className="block text-slate-600 font-semibold mb-1 truncate">Roll No</label>
                 <input
@@ -380,7 +403,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
 
               <div>
                 <label className="block text-slate-600 font-semibold mb-1 truncate">
-                  Core Wt (Auto-fill)
+                  Core Wt (Auto)
                 </label>
                 <input
                   type="number"
@@ -436,6 +459,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-100 text-slate-600 uppercase font-semibold border-b border-slate-200">
                   <tr>
+                    <th className="px-3 py-2">Date</th>
                     <th className="px-3 py-2">Roll No</th>
                     <th className="px-3 py-2">Shift</th>
                     <th className="px-3 py-2">Gross Wt (kg)</th>
@@ -456,6 +480,18 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
 
                     return (
                       <tr key={roll.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-3 py-1.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                          {isEditing ? (
+                            <input
+                              type="date"
+                              value={editDate}
+                              onChange={(e) => setEditDate(e.target.value)}
+                              className="bg-slate-50 border border-emerald-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 focus:outline-none text-xs"
+                            />
+                          ) : (
+                            roll.date || 'N/A'
+                          )}
+                        </td>
                         <td className="px-3 py-1.5 font-mono font-bold text-emerald-700">
                           #{roll.rollNo}
                         </td>

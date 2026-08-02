@@ -31,6 +31,8 @@ import {
   Layers,
   Scissors,
   Check,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import {
   collection,
@@ -40,6 +42,7 @@ import {
   deleteDoc,
   setDoc,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 
@@ -74,6 +77,11 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   // Job Card Create/Edit Modal State
   const [showJobCardModal, setShowJobCardModal] = useState(false);
   const [editingJobCard, setEditingJobCard] = useState<JobCard | null>(null);
+
+  // Job Card Delete Modal State
+  const [deletingJobCard, setDeletingJobCard] = useState<JobCard | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Job Card Form Fields
   const [jcCode, setJcCode] = useState('');
@@ -174,13 +182,48 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     }
   };
 
-  const handleDeleteJobCard = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this Job Card?')) {
-      try {
-        await deleteDoc(doc(db, 'jobCards', id));
-      } catch (err) {
-        console.error('Error deleting job card:', err);
+  const handleConfirmDeleteJobCard = async () => {
+    if (!deletingJobCard) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const batch = writeBatch(db);
+
+      // 1. Delete main job card document
+      batch.delete(doc(db, 'jobCards', deletingJobCard.id));
+
+      // 2. Delete linked production rolls
+      const linkedProd = prodRolls.filter((r) => r.jobCardId === deletingJobCard.id);
+      linkedProd.forEach((r) => {
+        batch.delete(doc(db, 'productionRolls', r.id));
+      });
+
+      // 3. Delete linked slitting rolls
+      const linkedSlit = slitRolls.filter((r) => r.jobCardId === deletingJobCard.id);
+      linkedSlit.forEach((r) => {
+        batch.delete(doc(db, 'slittingRolls', r.id));
+      });
+
+      // 4. Delete linked production wastage
+      const linkedWastage = prodWastages.filter((w) => w.jobCardId === deletingJobCard.id);
+      linkedWastage.forEach((w) => {
+        batch.delete(doc(db, 'productionWastage', w.id));
+      });
+
+      await batch.commit();
+
+      // Reset states
+      setDeletingJobCard(null);
+      setShowJobCardModal(false);
+      if (selectedJobCardForDetail?.id === deletingJobCard.id) {
+        setSelectedJobCardForDetail(null);
       }
+    } catch (err: any) {
+      console.error('Error deleting job card:', err);
+      setDeleteError(err?.message || 'Failed to delete job card from database. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -485,8 +528,8 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDeleteJobCard(jc.id)}
-                          className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => setDeletingJobCard(jc)}
+                          className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
                           title="Delete Job Card"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -983,20 +1026,34 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                 </select>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowJobCardModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-bold shadow-xs"
-                >
-                  Save Job Card
-                </button>
+              <div className="pt-3 flex items-center justify-between border-t border-slate-200">
+                {editingJobCard ? (
+                  <button
+                    type="button"
+                    onClick={() => setDeletingJobCard(editingJobCard)}
+                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-bold flex items-center gap-1.5 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Job Card</span>
+                  </button>
+                ) : (
+                  <div />
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowJobCardModal(false)}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-bold shadow-xs"
+                  >
+                    Save Job Card
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -1117,7 +1174,99 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
           slitRolls={slitRolls}
           prodWastages={prodWastages}
           onClose={() => setSelectedJobCardForDetail(null)}
+          onDelete={(jc) => setDeletingJobCard(jc)}
         />
+      )}
+
+      {/* ========================================================= */}
+      {/* JOB CARD DELETE CONFIRMATION MODAL */}
+      {/* ========================================================= */}
+      {deletingJobCard && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-md p-5 text-slate-900">
+            <div className="flex items-center gap-3 border-b border-slate-200 pb-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 border border-red-200 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Delete Job Card #{deletingJobCard.jobCode}?
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Party Code: <span className="font-semibold text-slate-800">{deletingJobCard.partyCode}</span>
+                </p>
+              </div>
+            </div>
+
+            {deleteError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium mb-3">
+                {deleteError}
+              </div>
+            )}
+
+            <div className="space-y-2 text-xs text-slate-600 mb-5">
+              <p className="font-medium">
+                Are you sure you want to permanently delete this Job Card? This action cannot be undone.
+              </p>
+              
+              {/* Linked items warning */}
+              {(() => {
+                const linkedP = prodRolls.filter((r) => r.jobCardId === deletingJobCard.id).length;
+                const linkedS = slitRolls.filter((r) => r.jobCardId === deletingJobCard.id).length;
+                const linkedW = prodWastages.filter((w) => w.jobCardId === deletingJobCard.id).length;
+
+                if (linkedP > 0 || linkedS > 0 || linkedW > 0) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] space-y-1">
+                      <div className="font-bold flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Associated Factory Logs Will Also Be Deleted:</span>
+                      </div>
+                      <ul className="list-disc list-inside font-mono text-[10px] space-y-0.5 text-amber-800 pl-1">
+                        {linkedP > 0 && <li>{linkedP} Production Roll(s)</li>}
+                        {linkedS > 0 && <li>{linkedS} Slitting Roll(s)</li>}
+                        {linkedW > 0 && <li>{linkedW} Production Wastage Record(s)</li>}
+                      </ul>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeletingJobCard(null);
+                  setDeleteError(null);
+                }}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl font-semibold text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteJobCard}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Confirm Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
