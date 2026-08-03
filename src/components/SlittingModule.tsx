@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, JobCard, ProductionRoll, SlittingRoll } from '../types';
 import { formatWeight } from '../utils/formatters';
-import { Scissors, Plus, Trash2, Edit2, Check, X, ShieldAlert, CheckSquare, Square, ArrowDown, FileText, CheckCircle2 } from 'lucide-react';
+import { Scissors, Plus, Trash2, Edit2, Check, X, ShieldAlert, CheckSquare, Square, ArrowDown, FileText, CheckCircle2, Search } from 'lucide-react';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 
@@ -18,6 +18,8 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
   prodRolls,
   slitRolls,
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Sort Job Cards: 'running' first, then 'pending', then others
   const statusPriority: Record<string, number> = {
     running: 1,
@@ -30,6 +32,19 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
     const pA = statusPriority[a.status?.toLowerCase()] || 99;
     const pB = statusPriority[b.status?.toLowerCase()] || 99;
     return pA - pB;
+  });
+
+  const filteredJobCards = sortedJobCards.filter((jc) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      (jc.jobCode || '').toLowerCase().includes(q) ||
+      (jc.partyCode || '').toLowerCase().includes(q) ||
+      (jc.size || '').toLowerCase().includes(q) ||
+      (jc.status || '').toLowerCase().includes(q) ||
+      (jc.micron || '').toLowerCase().includes(q) ||
+      (jc.coilSizes || []).join(' ').toLowerCase().includes(q)
+    );
   });
 
   const [selectedJobCardId, setSelectedJobCardId] = useState<string>('');
@@ -197,23 +212,46 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
       {/* MAIN VIEW: SHOW ALL JOB CARDS LIST ONLY */}
       {!selectedJobCard ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-600" />
-              <span>All Job Cards List for Slitting (Select to Enter Data)</span>
-            </h3>
-            <span className="text-xs text-slate-500 font-medium">
-              Total Job Cards: {jobCards.length}
-            </span>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-600 shrink-0" />
+              <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                All Job Cards List for Slitting
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search Job Code, Party, Size, Status..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-1.5 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <span className="text-[11px] text-slate-500 font-mono whitespace-nowrap">
+                {filteredJobCards.length}/{jobCards.length}
+              </span>
+            </div>
           </div>
 
-          {sortedJobCards.length === 0 ? (
+          {filteredJobCards.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-xs shadow-xs">
-              No active Job Cards available. Please request Admin to create Job Cards.
+              {searchQuery ? 'No matching Job Cards found for your search.' : 'No active Job Cards available. Please request Admin to create Job Cards.'}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedJobCards.map((jc) => {
+              {filteredJobCards.map((jc) => {
                 const isRunning = jc.status?.toLowerCase() === 'running';
                 const jcSlitRolls = slitRolls.filter((r) => r.jobCardId === jc.id);
                 const totalSlit = jcSlitRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0);
@@ -232,11 +270,19 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-xs font-mono font-extrabold text-blue-800 bg-blue-100 px-2 py-0.5 rounded border border-blue-300">
+                            <span className="text-xs font-mono font-extrabold text-blue-800 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-300">
                               Job: {jc.jobCode}
                             </span>
+                            <span className="text-xs font-mono font-extrabold text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
+                              Size: {jc.size}
+                            </span>
+                            {jc.micron && (
+                              <span className="text-xs font-mono font-extrabold text-purple-900 bg-purple-100 px-2 py-1 rounded-lg border border-purple-300">
+                                {jc.micron}μ
+                              </span>
+                            )}
                             {isRunning && (
-                              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-600 text-white animate-pulse">
+                              <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-blue-600 text-white animate-pulse">
                                 🔥 Running Top
                               </span>
                             )}
@@ -316,8 +362,15 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               <span>←</span>
               <span>Back to All Job Cards</span>
             </button>
-            <div className="text-xs font-bold text-slate-700">
-              Selected Job: <span className="font-mono text-blue-700">#{selectedJobCard.jobCode}</span> (Party: {selectedJobCard.partyCode})
+            <div className="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-700">
+              <span>Selected Job:</span>
+              <span className="font-mono text-xs font-extrabold text-blue-800 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-300">
+                #{selectedJobCard.jobCode}
+              </span>
+              <span className="font-mono text-xs font-extrabold text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
+                Size: {selectedJobCard.size}
+              </span>
+              <span className="text-slate-500 font-normal">(Party: {selectedJobCard.partyCode})</span>
             </div>
           </div>
           {/* Live Slitting Metrics Bar */}

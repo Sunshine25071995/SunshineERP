@@ -28,6 +28,7 @@ import {
   Truck,
   PlusCircle,
   X,
+  Search,
   Layers,
   Scissors,
   Check,
@@ -70,6 +71,22 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   prodWastages,
 }) => {
   const [activeTab, setActiveTab] = useState<'jobCards' | 'users' | 'chemicals' | 'factoryRolls'>('jobCards');
+
+  // Job Card Search Filter State
+  const [jobCardSearch, setJobCardSearch] = useState('');
+
+  const filteredJobCards = jobCards.filter((jc) => {
+    if (!jobCardSearch.trim()) return true;
+    const q = jobCardSearch.toLowerCase().trim();
+    return (
+      (jc.jobCode || '').toLowerCase().includes(q) ||
+      (jc.partyCode || '').toLowerCase().includes(q) ||
+      (jc.size || '').toLowerCase().includes(q) ||
+      (jc.status || '').toLowerCase().includes(q) ||
+      (jc.micron || '').toLowerCase().includes(q) ||
+      (jc.coilSizes || []).join(' ').toLowerCase().includes(q)
+    );
+  });
 
   // Job Card Detail Modal State
   const [selectedJobCardForDetail, setSelectedJobCardForDetail] = useState<JobCard | null>(null);
@@ -384,13 +401,40 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       {/* ========================================================= */}
       {activeTab === 'jobCards' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Active Job Cards Directory
-            </h2>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Active Job Cards Directory
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search Job Code, Party, Size, Status..."
+                  value={jobCardSearch}
+                  onChange={(e) => setJobCardSearch(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-1.5 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                />
+                {jobCardSearch && (
+                  <button
+                    onClick={() => setJobCardSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <span className="text-[11px] text-slate-500 font-mono whitespace-nowrap">
+                {filteredJobCards.length}/{jobCards.length}
+              </span>
+            </div>
+
             <button
               onClick={openJobCardCreate}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-xs shrink-0"
               id="create-job-card-btn"
             >
               <Plus className="w-4 h-4" />
@@ -399,13 +443,13 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
           </div>
 
           {/* Card-Style Display Grid */}
-          {jobCards.length === 0 ? (
+          {filteredJobCards.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-xs shadow-xs">
-              No Job Cards created yet. Click "Create New Job Card" above to start.
+              {jobCardSearch ? 'No matching Job Cards found for your search.' : 'No Job Cards created yet. Click "Create New Job Card" above to start.'}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {jobCards.map((jc) => {
+              {filteredJobCards.map((jc) => {
                 const summary = calculateJobCardWastage(jc.id, prodRolls, slitRolls, prodWastages);
                 const isNearCompletion =
                   jc.status !== 'completed' &&
@@ -422,11 +466,16 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       {/* Top Bar on Card */}
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div>
-                          <div className="font-mono text-base font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-lg border border-amber-200 inline-block">
-                            {jc.jobCode}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="font-mono text-base font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-lg border border-amber-200 inline-block">
+                              {jc.jobCode}
+                            </div>
+                            <div className="font-mono text-base font-bold text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-300 inline-block">
+                              Size: {jc.size}
+                            </div>
                           </div>
-                          <div className="text-xs font-bold text-slate-900 mt-1">
-                            {jc.partyCode}
+                          <div className="text-xs font-bold text-slate-900 mt-1.5">
+                            Party: {jc.partyCode}
                           </div>
                         </div>
 
