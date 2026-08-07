@@ -47,6 +47,14 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
     );
   });
 
+  const handleUpdateStatus = async (jcId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, 'jobCards', jcId), { status: newStatus as any });
+    } catch (err) {
+      console.error('Error updating status in SlittingModule:', err);
+    }
+  };
+
   const [selectedJobCardId, setSelectedJobCardId] = useState<string>('');
 
   // Validate selection
@@ -262,7 +270,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                     onClick={() => setSelectedJobCardId(jc.id)}
                     className={`cursor-pointer rounded-2xl p-4.5 transition-all border shadow-xs relative flex flex-col justify-between ${
                       isRunning
-                        ? 'bg-blue-50/40 border-blue-400 hover:border-blue-500 hover:shadow-md'
+                        ? 'bg-emerald-100/90 border-2 border-emerald-500 ring-2 ring-emerald-500/20 hover:border-emerald-600 hover:shadow-md'
                         : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'
                     }`}
                   >
@@ -282,7 +290,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                               </span>
                             )}
                             {isRunning && (
-                              <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-blue-600 text-white animate-pulse">
+                              <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-lg bg-emerald-600 text-white animate-pulse shadow-xs">
                                 🔥 Running Top
                               </span>
                             )}
@@ -292,11 +300,30 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                           </h4>
                         </div>
 
-                        {!isRunning && (
-                          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
-                            {jc.status}
-                          </span>
-                        )}
+                        {/* Status Selector Dropdown */}
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <select
+                            value={jc.status || 'pending'}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleUpdateStatus(jc.id, e.target.value);
+                            }}
+                            className={`text-xs font-extrabold uppercase rounded-lg px-2 py-1 border transition-all cursor-pointer shadow-xs ${
+                              jc.status?.toLowerCase() === 'running'
+                                ? 'bg-emerald-600 text-white border-emerald-700 animate-pulse'
+                                : jc.status?.toLowerCase() === 'completed'
+                                ? 'bg-blue-600 text-white border-blue-700'
+                                : jc.status?.toLowerCase() === 'dispatched'
+                                ? 'bg-purple-600 text-white border-purple-700'
+                                : 'bg-amber-500 text-slate-950 border-amber-600'
+                            }`}
+                          >
+                            <option value="running" className="bg-white text-slate-900 font-bold">🔥 Running</option>
+                            <option value="pending" className="bg-white text-slate-900 font-bold">⏳ Pending</option>
+                            <option value="completed" className="bg-white text-slate-900 font-bold">✅ Completed</option>
+                            <option value="dispatched" className="bg-white text-slate-900 font-bold">🚚 Dispatched</option>
+                          </select>
+                        </div>
                       </div>
 
                       {/* Card Specs */}
@@ -371,6 +398,28 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                 Size: {selectedJobCard.size}
               </span>
               <span className="text-slate-500 font-normal">(Party: {selectedJobCard.partyCode})</span>
+
+              <div className="flex items-center gap-1.5 ml-2">
+                <span className="text-[10px] text-slate-500 uppercase font-bold">Status:</span>
+                <select
+                  value={selectedJobCard.status || 'pending'}
+                  onChange={(e) => handleUpdateStatus(selectedJobCard.id, e.target.value)}
+                  className={`text-xs font-extrabold uppercase rounded-lg px-2.5 py-1 border transition-all cursor-pointer shadow-xs ${
+                    selectedJobCard.status?.toLowerCase() === 'running'
+                      ? 'bg-emerald-600 text-white border-emerald-700 animate-pulse'
+                      : selectedJobCard.status?.toLowerCase() === 'completed'
+                      ? 'bg-blue-600 text-white border-blue-700'
+                      : selectedJobCard.status?.toLowerCase() === 'dispatched'
+                      ? 'bg-purple-600 text-white border-purple-700'
+                      : 'bg-amber-500 text-slate-950 border-amber-600'
+                  }`}
+                >
+                  <option value="running" className="bg-white text-slate-900 font-bold">🔥 Running</option>
+                  <option value="pending" className="bg-white text-slate-900 font-bold">⏳ Pending</option>
+                  <option value="completed" className="bg-white text-slate-900 font-bold">✅ Completed</option>
+                  <option value="dispatched" className="bg-white text-slate-900 font-bold">🚚 Dispatched</option>
+                </select>
+              </div>
             </div>
           </div>
           {/* Live Slitting Metrics Bar */}

@@ -72,10 +72,23 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'jobCards' | 'users' | 'chemicals' | 'factoryRolls'>('jobCards');
 
-  // Job Card Search Filter State
+  // Job Card Search Filter & Priority Sorting State
   const [jobCardSearch, setJobCardSearch] = useState('');
 
-  const filteredJobCards = jobCards.filter((jc) => {
+  const statusPriority: Record<string, number> = {
+    running: 1,
+    pending: 2,
+    completed: 3,
+    dispatched: 4,
+  };
+
+  const sortedJobCards = [...jobCards].sort((a, b) => {
+    const pA = statusPriority[a.status?.toLowerCase()] || 99;
+    const pB = statusPriority[b.status?.toLowerCase()] || 99;
+    return pA - pB;
+  });
+
+  const filteredJobCards = sortedJobCards.filter((jc) => {
     if (!jobCardSearch.trim()) return true;
     const q = jobCardSearch.toLowerCase().trim();
     return (
@@ -456,11 +469,16 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                   jc.status !== 'dispatched' &&
                   summary.slittingOutputWeight >= jc.totalQuantity * 0.95 &&
                   jc.totalQuantity > 0;
+                const isRunning = jc.status?.toLowerCase() === 'running';
 
                 return (
                   <div
                     key={jc.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between"
+                    className={`rounded-2xl p-4 shadow-xs transition-all flex flex-col justify-between border ${
+                      isRunning
+                        ? 'bg-emerald-100/90 border-2 border-emerald-500 ring-2 ring-emerald-500/20 shadow-md'
+                        : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'
+                    }`}
                   >
                     <div>
                       {/* Top Bar on Card */}
@@ -473,6 +491,11 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                             <div className="font-mono text-base font-bold text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-300 inline-block">
                               Size: {jc.size}
                             </div>
+                            {isRunning && (
+                              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-lg bg-emerald-600 text-white animate-pulse shadow-xs">
+                                🔥 Running Top
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs font-bold text-slate-900 mt-1.5">
                             Party: {jc.partyCode}
@@ -482,16 +505,24 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                         {/* Status Changer */}
                         <div className="flex flex-col items-end gap-1">
                           <select
-                            value={jc.status}
+                            value={jc.status || 'pending'}
                             onChange={(e) =>
                               handleUpdateStatus(jc.id, e.target.value as JobCardStatus)
                             }
-                            className="bg-slate-50 text-xs font-bold uppercase rounded-lg px-2 py-1 border border-slate-300 text-slate-800 focus:outline-none focus:border-amber-500"
+                            className={`text-xs font-extrabold uppercase rounded-lg px-2 py-1 border transition-all cursor-pointer shadow-xs ${
+                              jc.status?.toLowerCase() === 'running'
+                                ? 'bg-emerald-600 text-white border-emerald-700 animate-pulse'
+                                : jc.status?.toLowerCase() === 'completed'
+                                ? 'bg-blue-600 text-white border-blue-700'
+                                : jc.status?.toLowerCase() === 'dispatched'
+                                ? 'bg-purple-600 text-white border-purple-700'
+                                : 'bg-amber-500 text-slate-950 border-amber-600'
+                            }`}
                           >
-                            <option value="pending">Pending</option>
-                            <option value="running">Running</option>
-                            <option value="completed">Completed</option>
-                            <option value="dispatched">Dispatched</option>
+                            <option value="running" className="bg-white text-slate-900 font-bold">🔥 Running</option>
+                            <option value="pending" className="bg-white text-slate-900 font-bold">⏳ Pending</option>
+                            <option value="completed" className="bg-white text-slate-900 font-bold">✅ Completed</option>
+                            <option value="dispatched" className="bg-white text-slate-900 font-bold">🚚 Dispatched</option>
                           </select>
 
                           {/* Auto Completion Suggestion Badge */}
