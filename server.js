@@ -136,6 +136,74 @@ app.post('/api/bulk-save-to-sheet', async (req, res) => {
   }
 });
 
+app.post('/api/update-sheet-row', async (req, res) => {
+  try {
+    const {
+      jobCode,
+      partyCode,
+      micron,
+      date,
+      rollNo,
+      coilSize,
+      meter,
+      grossWeight,
+      coreWeight,
+      netWeight,
+    } = req.body;
+
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+    if (!sheetId) return res.status(500).json({ error: 'Missing GOOGLE_SHEET_ID' });
+
+    const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
+    await doc.loadInfo();
+
+    const sheet = doc.sheetsByTitle[jobCode];
+    if (sheet) {
+      const rows = await sheet.getRows();
+      const rowToUpdate = rows.find(r => parseInt(r.get('Sr.No')) === parseInt(rollNo));
+      if (rowToUpdate) {
+        rowToUpdate.set('Date', date);
+        rowToUpdate.set('Size', coilSize);
+        rowToUpdate.set('Meter', meter || 0);
+        rowToUpdate.set('Micron', micron);
+        rowToUpdate.set('Gross Wt.', grossWeight);
+        rowToUpdate.set('Core Wt.', coreWeight);
+        rowToUpdate.set('Net Wt.', netWeight);
+        rowToUpdate.set('Party Code', partyCode);
+        await rowToUpdate.save();
+      }
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating sheet row:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/delete-sheet-row', async (req, res) => {
+  try {
+    const { jobCode, rollNo } = req.body;
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+    if (!sheetId) return res.status(500).json({ error: 'Missing GOOGLE_SHEET_ID' });
+
+    const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
+    await doc.loadInfo();
+
+    const sheet = doc.sheetsByTitle[jobCode];
+    if (sheet) {
+      const rows = await sheet.getRows();
+      const rowToDelete = rows.find(r => parseInt(r.get('Sr.No')) === parseInt(rollNo));
+      if (rowToDelete) {
+        await rowToDelete.delete();
+      }
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting sheet row:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);

@@ -226,6 +226,28 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
         netWeight: net,
         date: editDate || rollDate,
       });
+
+      // Update in Google Sheets
+      const rollToUpdate = slitRolls.find(r => r.id === id);
+      if (selectedJobCard && rollToUpdate) {
+        fetch('http://localhost:3001/api/update-sheet-row', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobCode: selectedJobCard.jobCode,
+            partyCode: selectedJobCard.partyCode,
+            micron: selectedJobCard.micron,
+            date: editDate || rollDate,
+            rollNo: rollToUpdate.rollNo,
+            coilSize: editCoilSize,
+            meter: m,
+            grossWeight: gross,
+            coreWeight: core,
+            netWeight: net
+          })
+        }).catch(err => console.error('Failed to update sheet', err));
+      }
+
       setEditingRollId(null);
     } catch (err) {
       console.error('Error updating slitting roll:', err);
@@ -235,8 +257,22 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
 
   const handleDeleteRoll = async (id: string) => {
     if (window.confirm('Delete this slitting output roll?')) {
+      const rollToDelete = slitRolls.find(r => r.id === id);
       try {
         await deleteDoc(doc(db, 'slittingRolls', id));
+
+        // Delete from Google Sheets
+        if (selectedJobCard && rollToDelete) {
+          fetch('http://localhost:3001/api/delete-sheet-row', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jobCode: selectedJobCard.jobCode,
+              rollNo: rollToDelete.rollNo
+            })
+          }).catch(err => console.error('Failed to delete from sheet', err));
+        }
+
       } catch (err) {
         console.error('Error deleting slitting roll:', err);
         alert('Failed to delete slitting roll. Error: ' + (err instanceof Error ? err.message : String(err)));
