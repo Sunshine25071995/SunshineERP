@@ -66,12 +66,12 @@ app.post('/api/save-to-sheet', async (req, res) => {
       'Date': date,
       'Sr.No': rollNo,
       'Size': coilSize,
-      'Meter': meter || 0,
+      'Meter': meter ? Math.ceil(Number(meter) / 10) * 10 : 0,
       'Micron': micron,
-      'Gross Wt.': grossWeight,
-      'Core Wt.': coreWeight,
-      'Net Wt.': netWeight,
-      'Party Code': partyCode
+      'Gross Wt.': Number(grossWeight || 0).toFixed(3),
+      'Core Wt.': Number(coreWeight || 0).toFixed(3),
+      'Net Wt.': Number(netWeight || 0).toFixed(3),
+      'Party Code': String(partyCode || '').padStart(3, '0')
     });
 
     res.json({ success: true });
@@ -118,12 +118,12 @@ app.post('/api/bulk-save-to-sheet', async (req, res) => {
         'Date': item.date,
         'Sr.No': item.rollNo,
         'Size': item.coilSize,
-        'Meter': item.meter || 0,
+        'Meter': item.meter ? Math.ceil(Number(item.meter) / 10) * 10 : 0,
         'Micron': item.micron,
-        'Gross Wt.': item.grossWeight,
-        'Core Wt.': item.coreWeight,
-        'Net Wt.': item.netWeight,
-        'Party Code': item.partyCode
+        'Gross Wt.': Number(item.grossWeight || 0).toFixed(3),
+        'Core Wt.': Number(item.coreWeight || 0).toFixed(3),
+        'Net Wt.': Number(item.netWeight || 0).toFixed(3),
+        'Party Code': String(item.partyCode || '').padStart(3, '0')
       }));
       
       await sheet.addRows(rows);
@@ -164,12 +164,12 @@ app.post('/api/update-sheet-row', async (req, res) => {
       if (rowToUpdate) {
         rowToUpdate.set('Date', date);
         rowToUpdate.set('Size', coilSize);
-        rowToUpdate.set('Meter', meter || 0);
+        rowToUpdate.set('Meter', meter ? Math.ceil(Number(meter) / 10) * 10 : 0);
         rowToUpdate.set('Micron', micron);
-        rowToUpdate.set('Gross Wt.', grossWeight);
-        rowToUpdate.set('Core Wt.', coreWeight);
-        rowToUpdate.set('Net Wt.', netWeight);
-        rowToUpdate.set('Party Code', partyCode);
+        rowToUpdate.set('Gross Wt.', Number(grossWeight || 0).toFixed(3));
+        rowToUpdate.set('Core Wt.', Number(coreWeight || 0).toFixed(3));
+        rowToUpdate.set('Net Wt.', Number(netWeight || 0).toFixed(3));
+        rowToUpdate.set('Party Code', String(partyCode || '').padStart(3, '0'));
         await rowToUpdate.save();
       }
     }

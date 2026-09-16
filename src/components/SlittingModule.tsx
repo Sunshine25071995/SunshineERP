@@ -106,6 +106,34 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
     }
   }, [selectedJobCardId, slitRolls, currentUser.shift]);
 
+  useEffect(() => {
+    if (grossWeight && coreWeight !== undefined && selectedJobCard?.micron && selectedCoilSize) {
+      const g = parseFloat(grossWeight) || 0;
+      const c = parseFloat(coreWeight) || 0;
+      const n = Math.max(0, g - c);
+      const mic = parseFloat(selectedJobCard.micron) || 0;
+      const cs = parseFloat(selectedCoilSize) || 0;
+      if (n > 0 && mic > 0 && cs > 0) {
+        const m = (n / mic / 0.00139 / cs) * 1000;
+        setMeter(String(Math.ceil(m / 10) * 10));
+      }
+    }
+  }, [grossWeight, coreWeight, selectedJobCard?.micron, selectedCoilSize]);
+
+  useEffect(() => {
+    if (editGross && editCore !== undefined && selectedJobCard?.micron && editCoilSize) {
+      const g = parseFloat(editGross) || 0;
+      const c = parseFloat(editCore) || 0;
+      const n = Math.max(0, g - c);
+      const mic = parseFloat(selectedJobCard.micron) || 0;
+      const cs = parseFloat(editCoilSize) || 0;
+      if (n > 0 && mic > 0 && cs > 0) {
+        const m = (n / mic / 0.00139 / cs) * 1000;
+        setEditMeter(String(Math.ceil(m / 10) * 10));
+      }
+    }
+  }, [editGross, editCore, selectedJobCard?.micron, editCoilSize]);
+
   const activeProdRolls = prodRolls.filter(r => r.jobCardId === selectedJobCardId);
   const activeSlitRolls = slitRolls.filter(r => r.jobCardId === selectedJobCardId);
   const maxRollNo = activeSlitRolls.reduce((max, r) => Math.max(max, Number(r.rollNo) || 0), 0);

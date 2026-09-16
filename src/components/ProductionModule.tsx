@@ -90,6 +90,13 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
   const [editJoints, setEditJoints] = useState('');
   const [editDate, setEditDate] = useState('');
 
+  const [activeTab, setActiveTab] = useState<'rolls' | 'wastage'>('rolls');
+  const [wastageWeight, setWastageWeight] = useState('');
+  const [wastageDate, setWastageDate] = useState(getTodayString());
+  const [editingWastageId, setEditingWastageId] = useState<string | null>(null);
+  const [editWastageWeight, setEditWastageWeight] = useState('');
+  const [editWastageDate, setEditWastageDate] = useState('');
+
   const activeProdRolls = prodRolls.filter(r => r.jobCardId === selectedJobCardId);
   const maxRollNo = activeProdRolls.reduce((max, r) => Math.max(max, Number(r.rollNo) || 0), 0);
   const nextRollNo = maxRollNo + 1;
@@ -137,6 +144,38 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
   const handleDeleteRoll = async (id: string) => {
     if (window.confirm('Delete this production roll?')) {
       try { await deleteDoc(doc(db, 'productionRolls', id)); }
+      catch (err) { alert('Failed: ' + String(err)); }
+    }
+  };
+
+  const handleAddWastage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedJobCardId || !wastageWeight) return;
+    try {
+      await addDoc(collection(db, 'productionWastage'), {
+        jobCardId: selectedJobCardId,
+        wastageWeight: parseFloat(wastageWeight) || 0,
+        date: wastageDate,
+        shift: currentUser.shift || 'A',
+        createdBy: currentUser.loginId,
+      });
+      setWastageWeight('');
+    } catch (err) { alert('Error: ' + String(err)); }
+  };
+
+  const handleUpdateWastage = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'productionWastage', id), {
+        wastageWeight: parseFloat(editWastageWeight) || 0,
+        date: editWastageDate || wastageDate,
+      });
+      setEditingWastageId(null);
+    } catch (err) { alert('Failed: ' + String(err)); }
+  };
+
+  const handleDeleteWastage = async (id: string) => {
+    if (window.confirm('Delete this wastage entry?')) {
+      try { await deleteDoc(doc(db, 'productionWastage', id)); }
       catch (err) { alert('Failed: ' + String(err)); }
     }
   };
@@ -245,82 +284,163 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
         </div>
       </div>
 
-      {/* Add Roll Form */}
-      <div className="app-card p-4">
-        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Plus className="w-4 h-4 text-emerald-600" />
-          Add Production Roll · <span className="font-mono text-emerald-600">#{nextRollNo}</span>
-        </h3>
-        <form onSubmit={handleAddRoll} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Gross Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} required className={inputCls} /></FormField>
-            <FormField label="Core Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={coreWeight} onChange={e => setCoreWeight(e.target.value)} className={inputCls} /></FormField>
-            <FormField label="Joints"><input type="number" min="0" placeholder="0" value={joints} onChange={e => setJoints(e.target.value)} className={inputCls} /></FormField>
-            <FormField label="Date"><input type="date" value={rollDate} onChange={e => setRollDate(e.target.value)} className={inputCls} /></FormField>
-          </div>
-          {grossWeight && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between">
-              <span className="text-sm font-semibold text-emerald-700">Net Weight</span>
-              <span className="font-mono text-lg font-black text-emerald-900">
-                {formatWeight(Math.max(0, (parseFloat(grossWeight) || 0) - (parseFloat(coreWeight) || 0)))} kg
-              </span>
-            </div>
-          )}
-          <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors btn-press shadow-sm">
-            <Plus className="w-4 h-4" /><span>Add Roll #{nextRollNo}</span>
+      {/* Tab Switcher */}
+      <div className="bg-gray-100 p-1 rounded-2xl flex gap-1">
+        {(['rolls', 'wastage'] as const).map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === tab ? 'segment-active text-gray-900' : 'text-gray-500 hover:text-gray-700'
+            }`}>
+            {tab === 'rolls' ? '📦 Production Rolls' : '🗑️ Wastage'}
           </button>
-        </form>
+        ))}
       </div>
 
-      {/* Rolls List */}
-      {activeProdRolls.length > 0 && (
-        <div className="app-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-gray-900">Production Rolls</h3>
-            <span className="text-xs font-semibold text-gray-500">{activeProdRolls.length} rolls · {formatWeight(totalProdOutput)} kg</span>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {[...activeProdRolls].reverse().map(roll => {
-              const isEditing = editingRollId === roll.id;
-              if (isEditing) {
-                return (
-                  <div key={roll.id} className="p-4 bg-emerald-50 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-emerald-800">Editing Roll #{roll.rollNo}</span>
-                      <button onClick={() => setEditingRollId(null)} className="text-gray-500"><X className="w-4 h-4" /></button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField>
-                      <FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField>
-                      <FormField label="Joints"><input type="number" value={editJoints} onChange={e => setEditJoints(e.target.value)} className={inputCls} /></FormField>
-                      <FormField label="Date"><input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className={inputCls} /></FormField>
-                    </div>
-                    <button onClick={() => handleUpdateRoll(roll.id)} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 btn-press">
-                      <Check className="w-4 h-4" /><span>Save Changes</span>
-                    </button>
-                  </div>
-                );
-              }
-              return (
-                <div key={roll.id} className="px-4 py-3.5 flex items-center gap-3">
-                  <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <span className="font-mono text-sm font-black text-emerald-700">#{roll.rollNo}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-sm font-bold text-gray-900">{formatWeight(roll.netWeight)} kg</span>
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">Shift {roll.shift}</span>
-                      {roll.joints > 0 && <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg">{roll.joints} joints</span>}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">G:{formatWeight(roll.grossWeight)} · C:{formatWeight(roll.coreWeight)} · {roll.date}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => startEditRoll(roll)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => handleDeleteRoll(roll.id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
+      {activeTab === 'rolls' && (
+        <div className="space-y-4 animate-fade-in">
+          {/* Add Roll Form */}
+          <div className="app-card p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-emerald-600" />
+              Add Production Roll · <span className="font-mono text-emerald-600">#{nextRollNo}</span>
+            </h3>
+            <form onSubmit={handleAddRoll} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="Gross Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} required className={inputCls} /></FormField>
+                <FormField label="Core Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={coreWeight} onChange={e => setCoreWeight(e.target.value)} className={inputCls} /></FormField>
+                <FormField label="Joints"><input type="number" min="0" placeholder="0" value={joints} onChange={e => setJoints(e.target.value)} className={inputCls} /></FormField>
+                <FormField label="Date"><input type="date" value={rollDate} onChange={e => setRollDate(e.target.value)} className={inputCls} /></FormField>
+              </div>
+              {grossWeight && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-emerald-700">Net Weight</span>
+                  <span className="font-mono text-lg font-black text-emerald-900">
+                    {formatWeight(Math.max(0, (parseFloat(grossWeight) || 0) - (parseFloat(coreWeight) || 0)))} kg
+                  </span>
                 </div>
-              );
-            })}
+              )}
+              <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors btn-press shadow-sm">
+                <Plus className="w-4 h-4" /><span>Add Roll #{nextRollNo}</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Rolls List */}
+          {activeProdRolls.length > 0 && (
+            <div className="app-card overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-900">Production Rolls</h3>
+                <span className="text-xs font-semibold text-gray-500">{activeProdRolls.length} rolls · {formatWeight(totalProdOutput)} kg</span>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {[...activeProdRolls].reverse().map(roll => {
+                  const isEditing = editingRollId === roll.id;
+                  if (isEditing) {
+                    return (
+                      <div key={roll.id} className="p-4 bg-emerald-50 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-emerald-800">Editing Roll #{roll.rollNo}</span>
+                          <button onClick={() => setEditingRollId(null)} className="text-gray-500"><X className="w-4 h-4" /></button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField>
+                          <FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField>
+                          <FormField label="Joints"><input type="number" value={editJoints} onChange={e => setEditJoints(e.target.value)} className={inputCls} /></FormField>
+                          <FormField label="Date"><input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className={inputCls} /></FormField>
+                        </div>
+                        <button onClick={() => handleUpdateRoll(roll.id)} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 btn-press">
+                          <Check className="w-4 h-4" /><span>Save Changes</span>
+                        </button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={roll.id} className="px-4 py-3.5 flex items-center gap-3">
+                      <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                        <span className="font-mono text-sm font-black text-emerald-700">#{roll.rollNo}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-sm font-bold text-gray-900">{formatWeight(roll.netWeight)} kg</span>
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">Shift {roll.shift}</span>
+                          {roll.joints > 0 && <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg">{roll.joints} joints</span>}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">G:{formatWeight(roll.grossWeight)} · C:{formatWeight(roll.coreWeight)} · {roll.date}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => startEditRoll(roll)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteRoll(roll.id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'wastage' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="app-card p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-amber-600" /> Record Wastage
+            </h3>
+            <form onSubmit={handleAddWastage} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="Wastage (kg)"><input type="number" step="0.001" placeholder="0.000" value={wastageWeight} onChange={e => setWastageWeight(e.target.value)} required className={inputCls} /></FormField>
+                <FormField label="Date"><input type="date" value={wastageDate} onChange={e => setWastageDate(e.target.value)} className={inputCls} /></FormField>
+              </div>
+              <button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors btn-press shadow-sm">
+                <Plus className="w-4 h-4" /><span>Add Wastage</span>
+              </button>
+            </form>
+          </div>
+
+          <div className="app-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900">Wastage Logs</h3>
+            </div>
+            {prodWastages.filter(w => w.jobCardId === selectedJobCardId).length === 0 ? (
+              <div className="p-6 text-center text-sm text-gray-400">No wastage recorded yet.</div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {[...prodWastages.filter(w => w.jobCardId === selectedJobCardId)].reverse().map(w => {
+                  const isEditing = editingWastageId === w.id;
+                  if (isEditing) {
+                    return (
+                      <div key={w.id} className="p-4 bg-amber-50 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-amber-800">Edit Wastage</span>
+                          <button onClick={() => setEditingWastageId(null)} className="text-gray-500"><X className="w-4 h-4" /></button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField label="Wastage (kg)"><input type="number" step="0.001" value={editWastageWeight} onChange={e => setEditWastageWeight(e.target.value)} className={inputCls} /></FormField>
+                          <FormField label="Date"><input type="date" value={editWastageDate} onChange={e => setEditWastageDate(e.target.value)} className={inputCls} /></FormField>
+                        </div>
+                        <button onClick={() => handleUpdateWastage(w.id)} className="w-full bg-amber-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 btn-press">
+                          <Check className="w-4 h-4" /><span>Save Changes</span>
+                        </button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={w.id} className="px-4 py-3.5 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono font-bold text-amber-700 bg-amber-50 inline-block px-2.5 py-1 rounded-lg border border-amber-200">
+                          {formatWeight(w.wastageWeight)} kg
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">Shift {w.shift} · {w.date}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => { setEditingWastageId(w.id); setEditWastageWeight(String(w.wastageWeight)); setEditWastageDate(w.date); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteWastage(w.id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

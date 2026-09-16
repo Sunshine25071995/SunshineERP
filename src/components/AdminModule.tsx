@@ -118,8 +118,9 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   const handleSaveJobCard = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!jcCode.trim() || !jcPartyCode.trim()) return;
+    const formattedPartyCode = jcPartyCode.trim().padStart(3, '0');
     const data = {
-      jobCode: jcCode.trim(), date: jcDate, partyCode: jcPartyCode.trim(),
+      jobCode: jcCode.trim(), date: jcDate, partyCode: formattedPartyCode,
       size: jcSize.trim(), micron: jcMicron.trim(), coilSizes: jcCoilSizesList,
       totalQuantity: parseFloat(jcTotalQty) || 0, status: jcStatus,
       createdBy: currentUser.loginId, createdAt: serverTimestamp(),
