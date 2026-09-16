@@ -1,1 +1,145 @@
 @import "tailwindcss";
+
+/* ============================================================
+   SUNSHINE ERP - Global Design System
+   Mobile-First, Professional App Design
+   ============================================================ */
+
+@layer base {
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    height: 100%;
+  }
+
+  body {
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    overscroll-behavior: none;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Better focus ring - accessibility */
+  :focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  /* Remove focus ring on mouse click */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Smooth number inputs */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  /* Better date inputs on iOS */
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+
+/* ============================================================
+   SCROLLBAR STYLES - Thin, Modern
+   ============================================================ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+/* Safe area padding */
+.pb-safe { padding-bottom: max(16px, var(--safe-bottom)); }
+.pt-safe { padding-top: max(0px, var(--safe-top)); }
+
+/* Card style */
+.app-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.04);
+}
+
+/* Primary button press animation */
+.btn-press {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* Segment control active indicator */
+.segment-active {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+/* Status badge animations */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.live-dot {
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Slide up entrance animation for views */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slideUp 0.18s ease-out both;
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out both;
+}
+
+/* Running job card shimmer border */
+@keyframes shimmer-border {
+  0%   { border-color: #10b981; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  50%  { border-color: #059669; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+  100% { border-color: #10b981; box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+.running-card {
+  animation: shimmer-border 2s ease-in-out infinite;
+}
+
+/* Table row hover */
+tbody tr {
+  transition: background-color 0.1s ease;
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 640px) {
+  button, select, input, a {
+    min-height: 44px;
+  }
+  select, input[type="text"], input[type="number"], input[type="date"] {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
-import { X, Layers, Scissors, Flame, Scale, CheckCircle2, Trash2 } from 'lucide-react';
+import { X, Layers, Scissors, Scale, CheckCircle2, Trash2 } from 'lucide-react';
 
 interface JobCardDetailModalProps {
   jobCard: JobCard;
@@ -11,6 +11,22 @@ interface JobCardDetailModalProps {
   onClose: () => void;
   onDelete?: (jobCard: JobCard) => void;
 }
+
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  const map: Record<string, string> = {
+    running: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    pending: 'bg-amber-100 text-amber-800 border-amber-200',
+    completed: 'bg-blue-100 text-blue-800 border-blue-200',
+    dispatched: 'bg-purple-100 text-purple-800 border-purple-200',
+  };
+  const emoji: Record<string, string> = { running: '🔥', pending: '⏳', completed: '✅', dispatched: '🚚' };
+  const s = status?.toLowerCase() || 'pending';
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${map[s] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+      <span>{emoji[s] || ''}</span><span className="capitalize">{status}</span>
+    </span>
+  );
+};
 
 export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
   jobCard,
@@ -24,253 +40,200 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
   const jcProdRolls = prodRolls.filter((r) => r.jobCardId === jobCard.id);
   const jcSlitRolls = slitRolls.filter((r) => r.jobCardId === jobCard.id);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-      case 'running':
-        return 'bg-amber-100 text-amber-900 border-amber-300';
-      case 'dispatched':
-        return 'bg-blue-100 text-blue-800 border-blue-300';
-      default:
-        return 'bg-slate-100 text-slate-700 border-slate-300';
-    }
-  };
-
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col text-slate-900 my-auto">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="font-mono text-3xl font-black text-amber-900 bg-amber-100 px-4 py-1.5 rounded-xl border border-amber-300 shadow-sm">
-              {jobCard.jobCode}
-            </span>
-            <span className="font-mono text-lg font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-xl border border-slate-300">
-              Size: {jobCard.size}
-            </span>
-            <span
-              className={`text-sm px-3 py-1 rounded-full border font-bold uppercase tracking-wider shadow-sm ${getStatusColor(
-                jobCard.status
-              )}`}
-            >
-              {jobCard.status}
-            </span>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
 
-          <div className="flex items-center gap-2">
+      {/* Modal Sheet */}
+      <div className="relative bg-white w-full max-w-3xl max-h-[92vh] sm:max-h-[90vh] flex flex-col rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
+
+        {/* Drag handle (mobile) */}
+        <div className="flex justify-center pt-2 pb-1 sm:hidden">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-3 shrink-0">
+          <div>
+            <div className="flex items-center gap-2.5 flex-wrap mb-1">
+              <span className="font-mono text-3xl font-black text-amber-900 bg-amber-100 px-4 py-1.5 rounded-xl border border-amber-300 shadow-sm">
+                {jobCard.jobCode}
+              </span>
+              <StatusBadge status={jobCard.status} />
+            </div>
+            <p className="text-sm text-gray-600">
+              <span className="font-semibold">{jobCard.partyCode}</span> · Size {jobCard.size} · {jobCard.micron}μ
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             {onDelete && (
               <button
                 onClick={() => onDelete(jobCard)}
-                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
-                title="Delete this Job Card"
+                className="flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-bold text-xs transition-colors btn-press"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Job Card</span>
+                <span className="hidden sm:inline">Delete</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Content Body */}
-        <div className="p-5 space-y-6 overflow-y-auto">
-          {/* Metadata Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-            <div>
-              <div className="text-slate-500 font-medium">Party Code</div>
-              <div className="font-bold text-slate-900 text-sm">{jobCard.partyCode}</div>
-            </div>
-            <div>
-              <div className="text-slate-500 font-medium">Size / Micron</div>
-              <div className="font-bold text-slate-900 text-sm">
-                {jobCard.size} ({jobCard.micron} μ)
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+
+          {/* Meta grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'Party', value: jobCard.partyCode },
+              { label: 'Size / Micron', value: `${jobCard.size} (${jobCard.micron}μ)` },
+              { label: 'Target Qty', value: `${formatWeight(jobCard.totalQuantity)} kg` },
+              { label: 'Date', value: jobCard.date || '—' },
+            ].map(item => (
+              <div key={item.label} className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{item.label}</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">{item.value}</p>
               </div>
-            </div>
+            ))}
+          </div>
+
+          {/* Coil Sizes */}
+          {jobCard.coilSizes && jobCard.coilSizes.length > 0 && (
             <div>
-              <div className="text-slate-500 font-medium">Coil Sizes</div>
-              <div className="flex flex-wrap gap-1 mt-0.5">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Coil Sizes</p>
+              <div className="flex flex-wrap gap-2">
                 {jobCard.coilSizes.map((c, i) => (
-                  <span
-                    key={i}
-                    className="bg-amber-50 text-amber-900 font-mono text-[11px] font-bold px-1.5 py-0.5 rounded border border-amber-200"
-                  >
+                  <span key={i} className="font-mono text-xs font-bold text-amber-900 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
                     {c}
                   </span>
                 ))}
               </div>
             </div>
-            <div>
-              <div className="text-slate-500 font-medium">Total Quantity</div>
-              <div className="font-mono font-extrabold text-slate-900 text-sm">
-                {formatWeight(jobCard.totalQuantity)} kg
-              </div>
+          )}
+
+          {/* Wastage Summary */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Scale className="w-3.5 h-3.5" /> Output & Wastage
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {[
+                { label: 'Prod Output', value: formatWeight(wastageSummary.totalProdOutputWeight), color: 'emerald' },
+                { label: 'Slit Output', value: formatWeight(wastageSummary.slittingOutputWeight), color: 'blue' },
+                { label: 'Prod Wastage', value: formatWeight(wastageSummary.productionWastage), color: 'amber' },
+                { label: 'Slit Wastage', value: formatWeight(wastageSummary.slittingWastage), color: 'purple' },
+                { label: 'Final Wastage', value: formatWeight(wastageSummary.finalWastage), color: 'red', wide: true },
+              ].map(item => (
+                <div key={item.label} className={`bg-${item.color}-50 border border-${item.color}-200 rounded-xl p-3 text-center ${(item as any).wide ? 'col-span-2 sm:col-span-1' : ''}`}>
+                  <p className={`text-[10px] font-semibold text-${item.color}-600 uppercase`}>{item.label}</p>
+                  <p className={`text-base font-black font-mono text-${item.color}-900 mt-0.5`}>{item.value}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Wastage Summary Bar (0.000 format) */}
+          {/* Production Rolls */}
           <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-amber-600" />
-              <span>Job Card Output & Wastage Breakdown</span>
-            </h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
-              <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-200">
-                <div className="text-[11px] text-emerald-700 font-medium">Total Prod Output</div>
-                <div className="font-mono font-extrabold text-emerald-800 text-base mt-1">
-                  {formatWeight(wastageSummary.totalProdOutputWeight)}
-                </div>
-              </div>
-
-              <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-200">
-                <div className="text-[11px] text-blue-700 font-medium">Total Slit Output</div>
-                <div className="font-mono font-extrabold text-blue-800 text-base mt-1">
-                  {formatWeight(wastageSummary.slittingOutputWeight)}
-                </div>
-              </div>
-
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <div className="text-[11px] text-slate-500 font-medium">Production Wastage</div>
-                <div className="font-mono font-bold text-amber-800 text-base mt-1">
-                  {formatWeight(wastageSummary.productionWastage)}
-                </div>
-              </div>
-
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <div className="text-[11px] text-slate-500 font-medium">Slitting Wastage</div>
-                <div className="font-mono font-bold text-purple-800 text-base mt-1">
-                  {formatWeight(wastageSummary.slittingWastage)}
-                </div>
-              </div>
-
-              <div className="bg-amber-100/70 p-3 rounded-xl border border-amber-300 col-span-2 sm:col-span-1">
-                <div className="text-[11px] text-amber-900 font-bold">Final Wastage</div>
-                <div className="font-mono font-black text-amber-950 text-lg mt-0.5">
-                  {formatWeight(wastageSummary.finalWastage)}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Production Rolls Table */}
-          <div>
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Production Rolls ({jcProdRolls.length})</span>
-            </h4>
-
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-emerald-600" /> Production Rolls ({jcProdRolls.length})
+            </p>
             {jcProdRolls.length === 0 ? (
-              <div className="bg-slate-50 p-4 text-center text-xs text-slate-500 rounded-xl border border-slate-200">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center text-sm text-gray-400">
                 No production rolls recorded yet.
               </div>
             ) : (
-              <div className="overflow-x-auto border border-slate-200 rounded-xl">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="p-2">Date</th>
-                      <th className="p-2">Roll No</th>
-                      <th className="p-2">Shift</th>
-                      <th className="p-2">Gross (kg)</th>
-                      <th className="p-2">Core (kg)</th>
-                      <th className="p-2">Net (kg)</th>
-                      <th className="p-2">Joints</th>
-                      <th className="p-2">Slitting Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 text-slate-800">
-                    {jcProdRolls.map((roll) => (
-                      <tr key={roll.id} className="hover:bg-slate-50">
-                        <td className="p-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                          {roll.date || 'N/A'}
-                        </td>
-                        <td className="p-2 font-mono font-bold text-emerald-700">{roll.rollNo}</td>
-                        <td className="p-2 font-semibold">Shift {roll.shift}</td>
-                        <td className="p-2 font-mono">{formatWeight(roll.grossWeight)}</td>
-                        <td className="p-2 font-mono">{formatWeight(roll.coreWeight)}</td>
-                        <td className="p-2 font-mono font-extrabold text-emerald-800">
-                          {formatWeight(roll.netWeight)}
-                        </td>
-                        <td className="p-2 font-mono">{roll.joints}</td>
-                        <td className="p-2">
-                          {roll.takenBySlitting ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded border border-purple-200">
-                              <CheckCircle2 className="w-3 h-3 text-purple-600" />
-                              Taken
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 italic font-mono">Pending</span>
-                          )}
-                        </td>
+              <div className="app-card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-200">
+                      <tr>
+                        {['Date', 'Roll', 'Shift', 'Gross', 'Core', 'Net', 'Joints', 'Slitting'].map(h => (
+                          <th key={h} className="px-3 py-2.5 whitespace-nowrap">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {jcProdRolls.map((roll) => (
+                        <tr key={roll.id} className="hover:bg-gray-50">
+                          <td className="px-3 py-2.5 font-mono text-gray-500 whitespace-nowrap">{roll.date || '—'}</td>
+                          <td className="px-3 py-2.5 font-mono font-bold text-emerald-700">#{roll.rollNo}</td>
+                          <td className="px-3 py-2.5 font-semibold">Shift {roll.shift}</td>
+                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-3 py-2.5 font-mono font-bold text-emerald-800">{formatWeight(roll.netWeight)}</td>
+                          <td className="px-3 py-2.5 font-mono">{roll.joints}</td>
+                          <td className="px-3 py-2.5">
+                            {roll.takenBySlitting ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded-full border border-purple-200">
+                                <CheckCircle2 className="w-3 h-3" /> Taken
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-gray-400 italic">Pending</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Slitting Rolls Table */}
+          {/* Slitting Rolls */}
           <div>
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Scissors className="w-3.5 h-3.5 text-blue-600" />
-              <span>Slitting Output Rolls ({jcSlitRolls.length})</span>
-            </h4>
-
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Scissors className="w-3.5 h-3.5 text-blue-600" /> Slitting Output ({jcSlitRolls.length})
+            </p>
             {jcSlitRolls.length === 0 ? (
-              <div className="bg-slate-50 p-4 text-center text-xs text-slate-500 rounded-xl border border-slate-200">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center text-sm text-gray-400">
                 No slitting rolls recorded yet.
               </div>
             ) : (
-              <div className="overflow-x-auto border border-slate-200 rounded-xl">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="p-2">Date</th>
-                      <th className="p-2">Roll No</th>
-                      <th className="p-2">Coil Size</th>
-                      <th className="p-2">Shift</th>
-                      <th className="p-2">Gross (kg)</th>
-                      <th className="p-2">Core (kg)</th>
-                      <th className="p-2">Net (kg)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 text-slate-800">
-                    {jcSlitRolls.map((roll) => (
-                      <tr key={roll.id} className="hover:bg-slate-50">
-                        <td className="p-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                          {roll.date || 'N/A'}
-                        </td>
-                        <td className="p-2 font-mono font-bold text-blue-700">{roll.rollNo}</td>
-                        <td className="p-2 font-mono text-amber-800 font-bold">{roll.coilSize}</td>
-                        <td className="p-2 font-semibold">Shift {roll.shift}</td>
-                        <td className="p-2 font-mono">{formatWeight(roll.grossWeight)}</td>
-                        <td className="p-2 font-mono">{formatWeight(roll.coreWeight)}</td>
-                        <td className="p-2 font-mono font-extrabold text-blue-800">
-                          {formatWeight(roll.netWeight)}
-                        </td>
+              <div className="app-card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-200">
+                      <tr>
+                        {['Date', 'Roll', 'Coil Size', 'Meter', 'Shift', 'Gross', 'Core', 'Net'].map(h => (
+                          <th key={h} className="px-3 py-2.5 whitespace-nowrap">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {jcSlitRolls.map((roll) => (
+                        <tr key={roll.id} className="hover:bg-gray-50">
+                          <td className="px-3 py-2.5 font-mono text-gray-500 whitespace-nowrap">{roll.date || '—'}</td>
+                          <td className="px-3 py-2.5 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
+                          <td className="px-3 py-2.5 font-mono font-bold text-amber-800">{roll.coilSize}</td>
+                          <td className="px-3 py-2.5 font-mono">{roll.meter ? `${roll.meter}m` : '—'}</td>
+                          <td className="px-3 py-2.5 font-semibold">Shift {roll.shift}</td>
+                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-3 py-2.5 font-mono font-bold text-blue-800">{formatWeight(roll.netWeight)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 flex justify-end shrink-0">
+        <div className="px-5 py-4 border-t border-gray-100 flex justify-end shrink-0" style={{ paddingBottom: 'max(16px, var(--safe-bottom))' }}>
           <button
             onClick={onClose}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl border border-slate-300 transition-colors"
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm px-6 py-2.5 rounded-xl border border-gray-200 transition-colors btn-press"
           >
-            Close Detail View
+            Close
           </button>
         </div>
       </div>

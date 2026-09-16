@@ -173,12 +173,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-white">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col font-sans antialiased">
       {/* Top Header Navbar */}
       <Navbar currentUser={currentUser} onLogout={handleLogout} isLive={isLive} />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-4 py-4 pb-safe">
         {!currentUser ? (
           <LoginModal users={users} onLogin={handleLogin} />
         ) : (

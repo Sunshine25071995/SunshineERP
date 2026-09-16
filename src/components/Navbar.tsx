@@ -8,48 +8,64 @@ interface NavbarProps {
   isLive: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentUser, onLogout }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentUser, onLogout, isLive }) => {
+  const deptColor: Record<string, string> = {
+    admin: 'bg-purple-100 text-purple-800',
+    production: 'bg-emerald-100 text-emerald-800',
+    slitting: 'bg-blue-100 text-blue-800',
+    chemical: 'bg-amber-100 text-amber-800',
+  };
+
+  const dept = currentUser?.department || '';
+
   return (
-    <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-white border-b border-blue-950 sticky top-0 z-40 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between min-h-[56px]">
-        
-        {/* App Branding */}
-        <div className="flex items-center gap-2">
-          <div className="bg-amber-400 p-1.5 rounded-lg shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-900" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 4.22a1 1 0 011.415 0l.708.708a1 1 0 01-1.414 1.414l-.708-.708a1 1 0 010-1.414zM16 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zm-4.22 4.22a1 1 0 010 1.415l-.708.708a1 1 0 01-1.414-1.414l.708-.708a1 1 0 011.414 0zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4.22-4.22a1 1 0 01-1.415 0l-.708-.708a1 1 0 011.414-1.414l.708.708a1 1 0 010 1.414zM4 10a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm4.22-4.22a1 1 0 010-1.415l.708-.708a1 1 0 011.414 1.414l-.708.708a1 1 0 01-1.414 0z" clipRule="evenodd" />
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40" style={{ paddingTop: 'var(--safe-top)' }}>
+      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+
+        {/* Brand */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm">
+            <svg viewBox="0 0 24 24" className="w-4.5 h-4.5 text-white fill-white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
             </svg>
           </div>
-          <div>
-            <h1 className="text-lg font-black tracking-wide leading-tight text-white drop-shadow-sm">SUNSHINE</h1>
-            <p className="text-[10px] font-bold text-blue-200 tracking-widest uppercase">ERP System</p>
+          <div className="leading-tight">
+            <div className="text-sm font-black text-gray-900 tracking-tight">Sunshine</div>
+            <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest -mt-0.5">ERP System</div>
           </div>
         </div>
 
-        {/* User Actions */}
-        <div className="flex items-center gap-3">
-          {currentUser && (
-            <div className="flex items-center gap-3 bg-white/10 rounded-2xl p-1 pr-3 border border-white/20 backdrop-blur-sm shadow-inner hidden sm:flex">
-               <div className="bg-blue-800 text-blue-100 font-bold px-2 py-1 rounded-xl text-xs uppercase tracking-wider">
-                 {currentUser.department}
-               </div>
-               <span className="text-sm font-semibold text-white drop-shadow-sm">{currentUser.name}</span>
+        {/* Live dot */}
+        {isLive && (
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-full">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></div>
+            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Live</span>
+          </div>
+        )}
+
+        {/* Right: user + logout */}
+        {currentUser && (
+          <div className="flex items-center gap-2 ml-auto">
+            {/* User chip — hidden on very small screens */}
+            <div className="hidden sm:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
+              <div className={`text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wider ${deptColor[dept] || 'bg-gray-100 text-gray-700'}`}>
+                {dept}
+              </div>
+              <span className="text-sm font-semibold text-gray-800 max-w-[120px] truncate">{currentUser.name}</span>
             </div>
-          )}
-          
-          {currentUser && (
+
+            {/* Logout button */}
             <button
               onClick={onLogout}
-              className="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/20 transition-all flex items-center justify-center shadow-sm backdrop-blur-sm"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-500 border border-gray-200 transition-colors btn-press"
               title="Log Out"
               id="logout-btn"
             >
-              <LogOut className="w-5 h-5 text-white" />
+              <LogOut className="w-4 h-4" />
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </header>
   );
 };
-
