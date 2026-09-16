@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, JobCard, ProductionRoll, ProductionWastage } from '../types';
-import { formatWeight } from '../utils/formatters';
+import { User, JobCard, ProductionRoll, ProductionWastage, SlittingRoll } from '../types';
+import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { Layers, Plus, Trash2, Edit2, Check, X, Search, ChevronRight, FileText } from 'lucide-react';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
@@ -11,6 +11,7 @@ interface ProductionModuleProps {
   jobCards: JobCard[];
   prodRolls: ProductionRoll[];
   prodWastages: ProductionWastage[];
+  slitRolls: SlittingRoll[];
 }
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -38,9 +39,7 @@ const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ lab
 
 const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono font-semibold text-gray-900 placeholder:text-gray-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
 
-export const ProductionModule: React.FC<ProductionModuleProps> = ({
-  currentUser, jobCards, prodRolls, prodWastages,
-}) => {
+export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser, jobCards, prodRolls, prodWastages, slitRolls }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
@@ -210,31 +209,56 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {filteredJobCards.map(jc => {
+              const summary = calculateJobCardWastage(jc.id, prodRolls, slitRolls, prodWastages);
               const isRunning = jc.status?.toLowerCase() === 'running';
-              const jcRolls = prodRolls.filter(r => r.jobCardId === jc.id);
-              const totalProd = jcRolls.reduce((s, r) => s + (r.netWeight || 0), 0);
               return (
-                <button key={jc.id} onClick={() => setSelectedJobCardId(jc.id)}
-                  className={`w-full text-left app-card p-4 flex items-center gap-4 transition-all btn-press hover:shadow-md ${
+                <div key={jc.id} onClick={() => setSelectedJobCardId(jc.id)}
+                  className={`w-full text-left app-card p-4 flex flex-col gap-3 cursor-pointer transition-all btn-press hover:shadow-md ${
                     isRunning ? 'border-emerald-300 bg-emerald-50/50 running-card' : ''
-                  }`}
-                >
-                  <div className="shrink-0 text-center px-3 py-2.5 rounded-xl border bg-emerald-600 border-emerald-700 text-white">
-                    <div className="text-xl font-black font-mono leading-tight">{jc.jobCode}</div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <StatusBadge status={jc.status} />
-                      <span className="text-xs font-mono font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-lg">{jc.size}</span>
-                      {jc.micron && <span className="text-xs font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg">{jc.micron}μ</span>}
+                  }`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`font-mono text-2xl font-black px-3 py-1.5 rounded-xl border shadow-sm ${
+                        isRunning ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-amber-100 border-amber-300 text-amber-900'
+                      }`}>{jc.jobCode}</span>
                     </div>
-                    <p className="text-sm font-semibold text-gray-800 truncate">{jc.partyCode}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{jcRolls.length} rolls · {formatWeight(totalProd)} kg produced</p>
+                    <StatusBadge status={jc.status} />
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
-                </button>
+
+                  <div className="text-sm font-semibold text-gray-700">{jc.partyCode}</div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 font-semibold">Size</p>
+                      <p className="text-xs font-bold text-gray-900">{jc.size}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 font-semibold">Micron</p>
+                      <p className="text-xs font-bold text-gray-900">{jc.micron}μ</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 font-semibold">Target</p>
+                      <p className="text-xs font-bold font-mono text-gray-900">{formatWeight(jc.totalQuantity)}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100">
+                      <p className="text-[10px] text-emerald-600 font-semibold">Prod Out</p>
+                      <p className="text-xs font-black font-mono text-emerald-800">{formatWeight(summary.totalProdOutputWeight)}</p>
+                    </div>
+                    <div className="bg-blue-50 rounded-xl p-2 border border-blue-100">
+                      <p className="text-[10px] text-blue-600 font-semibold">Slit Out</p>
+                      <p className="text-xs font-black font-mono text-blue-800">{formatWeight(summary.slittingOutputWeight)}</p>
+                    </div>
+                    <div className="bg-red-50 rounded-xl p-2 border border-red-100">
+                      <p className="text-[10px] text-red-600 font-semibold">Wastage</p>
+                      <p className="text-xs font-black font-mono text-red-800">{formatWeight(summary.finalWastage)}</p>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -328,52 +352,73 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
           {/* Rolls List */}
           {activeProdRolls.length > 0 && (
             <div className="app-card overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                 <h3 className="text-sm font-bold text-gray-900">Production Rolls</h3>
                 <span className="text-xs font-semibold text-gray-500">{activeProdRolls.length} rolls · {formatWeight(totalProdOutput)} kg</span>
               </div>
-              <div className="divide-y divide-gray-100">
-                {[...activeProdRolls].reverse().map(roll => {
-                  const isEditing = editingRollId === roll.id;
-                  if (isEditing) {
-                    return (
-                      <div key={roll.id} className="p-4 bg-emerald-50 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono font-bold text-emerald-800">Editing Roll #{roll.rollNo}</span>
-                          <button onClick={() => setEditingRollId(null)} className="text-gray-500"><X className="w-4 h-4" /></button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField>
-                          <FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField>
-                          <FormField label="Joints"><input type="number" value={editJoints} onChange={e => setEditJoints(e.target.value)} className={inputCls} /></FormField>
-                          <FormField label="Date"><input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className={inputCls} /></FormField>
-                        </div>
-                        <button onClick={() => handleUpdateRoll(roll.id)} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 btn-press">
-                          <Check className="w-4 h-4" /><span>Save Changes</span>
-                        </button>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div key={roll.id} className="px-4 py-3.5 flex items-center gap-3">
-                      <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                        <span className="font-mono text-sm font-black text-emerald-700">#{roll.rollNo}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono text-sm font-bold text-gray-900">{formatWeight(roll.netWeight)} kg</span>
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">Shift {roll.shift}</span>
-                          {roll.joints > 0 && <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg">{roll.joints} joints</span>}
-                        </div>
-                        <p className="text-xs text-gray-400 mt-0.5">G:{formatWeight(roll.grossWeight)} · C:{formatWeight(roll.coreWeight)} · {roll.date}</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => startEditRoll(roll)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDeleteRoll(roll.id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold">Roll No</th>
+                      <th className="px-4 py-3 font-semibold">Date</th>
+                      <th className="px-4 py-3 font-semibold">Shift</th>
+                      <th className="px-4 py-3 font-semibold text-right">Gross (kg)</th>
+                      <th className="px-4 py-3 font-semibold text-right">Core (kg)</th>
+                      <th className="px-4 py-3 font-semibold text-right text-emerald-600">Net (kg)</th>
+                      <th className="px-4 py-3 font-semibold text-center">Joints</th>
+                      <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {[...activeProdRolls].reverse().map(roll => {
+                      const isEditing = editingRollId === roll.id;
+                      if (isEditing) {
+                        return (
+                          <tr key={roll.id} className="bg-emerald-50">
+                            <td colSpan={8} className="p-3">
+                              <div className="flex flex-wrap gap-2 items-end">
+                                <div className="flex-1 min-w-[100px]"><FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField></div>
+                                <div className="flex-1 min-w-[100px]"><FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField></div>
+                                <div className="w-20"><FormField label="Joints"><input type="number" value={editJoints} onChange={e => setEditJoints(e.target.value)} className={inputCls} /></FormField></div>
+                                <div className="w-32"><FormField label="Date"><input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className={inputCls} /></FormField></div>
+                                <div className="flex gap-1">
+                                  <button onClick={() => handleUpdateRoll(roll.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-lg btn-press"><Check className="w-4 h-4" /></button>
+                                  <button onClick={() => setEditingRollId(null)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 p-2.5 rounded-lg btn-press"><X className="w-4 h-4" /></button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return (
+                        <tr key={roll.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-2.5">
+                            <span className="font-mono font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">#{roll.rollNo}</span>
+                          </td>
+                          <td className="px-4 py-2.5 text-gray-500">{roll.date}</td>
+                          <td className="px-4 py-2.5">
+                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Shift {roll.shift}</span>
+                          </td>
+                          <td className="px-4 py-2.5 font-mono text-gray-600 text-right">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-4 py-2.5 font-mono text-gray-600 text-right">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-4 py-2.5 font-mono font-bold text-emerald-600 text-right">{formatWeight(roll.netWeight)}</td>
+                          <td className="px-4 py-2.5 text-center">
+                            {roll.joints > 0 ? (
+                              <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-200">{roll.joints} joints</span>
+                            ) : '-'}
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button onClick={() => startEditRoll(roll)} className="p-1.5 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleDeleteRoll(roll.id)} className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

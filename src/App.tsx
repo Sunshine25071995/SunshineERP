@@ -212,6 +212,7 @@ export default function App() {
                 jobCards={jobCards}
                 prodRolls={prodRolls}
                 prodWastages={prodWastages}
+                slitRolls={slitRolls}
               />
             )}
 
@@ -221,6 +222,7 @@ export default function App() {
                 jobCards={jobCards}
                 prodRolls={prodRolls}
                 slitRolls={slitRolls}
+                prodWastages={prodWastages}
               />
             )}
           </div>
