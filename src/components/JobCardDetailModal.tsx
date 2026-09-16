@@ -43,14 +43,14 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="font-mono text-lg font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-xl border border-amber-200">
+            <span className="font-mono text-3xl font-black text-amber-900 bg-amber-100 px-4 py-1.5 rounded-xl border border-amber-300 shadow-sm">
               {jobCard.jobCode}
             </span>
             <span className="font-mono text-lg font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-xl border border-slate-300">
               Size: {jobCard.size}
             </span>
             <span
-              className={`text-xs px-2.5 py-1 rounded-full border font-bold uppercase tracking-wider ${getStatusColor(
+              className={`text-sm px-3 py-1 rounded-full border font-bold uppercase tracking-wider shadow-sm ${getStatusColor(
                 jobCard.status
               )}`}
             >
