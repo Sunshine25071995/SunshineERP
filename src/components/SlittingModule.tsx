@@ -80,6 +80,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
 
   // Form State
   const [selectedCoilSize, setSelectedCoilSize] = useState('');
+  const [meter, setMeter] = useState('');
   const [grossWeight, setGrossWeight] = useState('');
   const [coreWeight, setCoreWeight] = useState('');
   const [linkedProdRollId] = useState('');
@@ -88,6 +89,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
   // Edit Roll State
   const [editingRollId, setEditingRollId] = useState<string | null>(null);
   const [editCoilSize, setEditCoilSize] = useState('');
+  const [editMeter, setEditMeter] = useState('');
   const [editGross, setEditGross] = useState('');
   const [editCore, setEditCore] = useState('');
   const [editDate, setEditDate] = useState('');
@@ -150,11 +152,13 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
     const gross = parseFloat(grossWeight) || 0;
     const core = parseFloat(coreWeight) || 0;
     const net = Math.max(0, gross - core);
+    const m = parseFloat(meter) || 0;
 
     try {
       await addDoc(collection(db, 'slittingRolls'), {
         jobCardId: selectedJobCardId,
         coilSize: selectedCoilSize,
+        meter: m,
         rollNo: nextRollNo,
         shift: currentUser.shift || 'A',
         date: rollDate,
@@ -165,7 +169,29 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
         createdBy: currentUser.loginId,
       });
 
+      // Save to Google Sheets
+      if (selectedJobCard) {
+        fetch('http://localhost:3001/api/save-to-sheet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobCardId: selectedJobCardId,
+            jobCode: selectedJobCard.jobCode,
+            partyCode: selectedJobCard.partyCode,
+            micron: selectedJobCard.micron,
+            date: rollDate,
+            rollNo: nextRollNo,
+            coilSize: selectedCoilSize,
+            meter: m,
+            grossWeight: gross,
+            coreWeight: core,
+            netWeight: net
+          })
+        }).catch(err => console.error('Failed to sync to sheets', err));
+      }
+
       setGrossWeight('');
+      setMeter('');
     } catch (err) {
       console.error('Error adding slitting roll:', err);
       alert('Failed to save slitting roll. Error: ' + (err instanceof Error ? err.message : String(err)));
@@ -175,6 +201,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
   const startEditRoll = (r: SlittingRoll) => {
     setEditingRollId(r.id);
     setEditCoilSize(r.coilSize);
+    setEditMeter(String(r.meter || ''));
     setEditGross(String(r.grossWeight));
     setEditCore(String(r.coreWeight));
     setEditDate(r.date || getTodayString());
@@ -188,10 +215,12 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
     const gross = parseFloat(editGross) || 0;
     const core = parseFloat(editCore) || 0;
     const net = Math.max(0, gross - core);
+    const m = parseFloat(editMeter) || 0;
 
     try {
       await updateDoc(doc(db, 'slittingRolls', id), {
         coilSize: editCoilSize,
+        meter: m,
         grossWeight: gross,
         coreWeight: core,
         netWeight: net,
@@ -575,7 +604,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
               </h3>
             </div>
 
-            <form onSubmit={handleAddSlitRoll} className="grid grid-cols-2 sm:grid-cols-7 gap-2 text-xs">
+            <form onSubmit={handleAddSlitRoll} className="grid grid-cols-2 sm:grid-cols-8 gap-2 text-xs">
               <div>
                 <label className="block text-slate-600 font-semibold mb-1 truncate">Entry Date</label>
                 <input
@@ -610,6 +639,17 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                   value={nextRollNo}
                   disabled
                   className="w-full h-9 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1 font-mono font-bold text-blue-700 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1 truncate">Meter</label>
+                <input
+                  type="number"
+                  value={meter}
+                  onChange={(e) => setMeter(e.target.value)}
+                  placeholder="0"
+                  className="w-full h-9 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs"
                 />
               </div>
 
@@ -677,6 +717,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                     <th className="px-3 py-2">Date</th>
                     <th className="px-3 py-2">Roll No</th>
                     <th className="px-3 py-2">Coil Size</th>
+                    <th className="px-3 py-2">Meter</th>
                     <th className="px-3 py-2">Shift</th>
                     <th className="px-3 py-2">Gross Wt</th>
                     <th className="px-3 py-2">Core Wt</th>
@@ -726,6 +767,19 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({
                             <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-200 font-bold text-xs">
                               {roll.coilSize}
                             </span>
+                          )}
+                        </td>
+
+                        <td className="px-3 py-1.5 font-mono">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editMeter}
+                              onChange={(e) => setEditMeter(e.target.value)}
+                              className="bg-slate-50 border border-blue-500 rounded-lg px-2 py-0.5 font-mono text-slate-900 w-16 focus:outline-none text-xs"
+                            />
+                          ) : (
+                            roll.meter || '-'
                           )}
                         </td>
 

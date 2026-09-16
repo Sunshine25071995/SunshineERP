@@ -65,6 +65,7 @@ export interface SlittingRoll {
   id: string;
   jobCardId: string;
   coilSize: string;
+  meter?: number;
   rollNo: number;
   shift: 'A' | 'B';
   date: string;
