@@ -917,12 +917,55 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             </div>
           </div>
 
-          {/* Slitting Rolls */}
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Scissors className="w-4 h-4 text-blue-600" />
-              <span>All Slitting Department Rolls</span>
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <Scissors className="w-4 h-4 text-blue-600" />
+                <span>All Slitting Department Rolls</span>
+              </h3>
+              <button
+                onClick={async () => {
+                  try {
+                    const items = slitRolls.map(roll => {
+                      const jc = jobCards.find(j => j.id === roll.jobCardId);
+                      return {
+                        jobCardId: roll.jobCardId,
+                        jobCode: jc?.jobCode || 'UNKNOWN',
+                        partyCode: jc?.partyCode || '',
+                        micron: jc?.micron || '',
+                        date: roll.date,
+                        rollNo: roll.rollNo,
+                        coilSize: roll.coilSize,
+                        meter: roll.meter || 0,
+                        grossWeight: roll.grossWeight,
+                        coreWeight: roll.coreWeight,
+                        netWeight: roll.netWeight
+                      };
+                    });
+
+                    const res = await fetch('http://localhost:3001/api/bulk-save-to-sheet', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ items })
+                    });
+                    
+                    if (res.ok) {
+                      const data = await res.json();
+                      alert(`Successfully synced ${data.count} slitting rolls to Google Sheets!`);
+                    } else {
+                      const err = await res.json();
+                      alert('Failed to sync: ' + err.error);
+                    }
+                  } catch (e) {
+                    alert('Error syncing to Google Sheets. Make sure backend is running.');
+                    console.error(e);
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+              >
+                Sync All to Sheets
+              </button>
+            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">

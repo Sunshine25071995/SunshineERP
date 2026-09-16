@@ -81,6 +81,61 @@ app.post('/api/save-to-sheet', async (req, res) => {
   }
 });
 
+app.post('/api/bulk-save-to-sheet', async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!items || !Array.isArray(items)) {
+      return res.status(400).json({ error: 'Invalid items array' });
+    }
+
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+    if (!sheetId || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+      console.log('Google Sheets credentials missing in .env');
+      return res.status(500).json({ error: 'Server misconfigured: missing Google Sheets credentials.' });
+    }
+
+    const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
+    await doc.loadInfo();
+
+    // Group items by jobCode
+    const groups = {};
+    for (const item of items) {
+      if (!groups[item.jobCode]) groups[item.jobCode] = [];
+      groups[item.jobCode].push(item);
+    }
+
+    // Process each group
+    for (const [jobCode, groupItems] of Object.entries(groups)) {
+      let sheet = doc.sheetsByTitle[jobCode];
+      if (!sheet) {
+        sheet = await doc.addSheet({ title: jobCode });
+        await sheet.setHeaderRow([
+          'Date', 'Sr.No', 'Size', 'Meter', 'Micron', 'Gross Wt.', 'Core Wt.', 'Net Wt.', 'Party Code'
+        ]);
+      }
+      
+      const rows = groupItems.map(item => ({
+        'Date': item.date,
+        'Sr.No': item.rollNo,
+        'Size': item.coilSize,
+        'Meter': item.meter || 0,
+        'Micron': item.micron,
+        'Gross Wt.': item.grossWeight,
+        'Core Wt.': item.coreWeight,
+        'Net Wt.': item.netWeight,
+        'Party Code': item.partyCode
+      }));
+      
+      await sheet.addRows(rows);
+    }
+
+    res.json({ success: true, count: items.length });
+  } catch (error) {
+    console.error('Error in bulk sync:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
