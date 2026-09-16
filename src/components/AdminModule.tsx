@@ -485,10 +485,10 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <div className="font-mono text-base font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-lg border border-amber-200 inline-block">
+                            <div className="font-mono text-2xl font-black text-blue-900 bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 inline-block shadow-sm">
                               {jc.jobCode}
                             </div>
-                            <div className="font-mono text-base font-bold text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-300 inline-block">
+                            <div className="font-mono text-sm font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 inline-block">
                               Size: {jc.size}
                             </div>
                             {isRunning && (

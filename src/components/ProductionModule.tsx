@@ -4,6 +4,7 @@ import { formatWeight } from '../utils/formatters';
 import { Layers, Plus, Trash2, Edit2, Check, X, ShieldAlert, Scale, CheckCircle2, FileText, Search } from 'lucide-react';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
+import { useBackButton } from '../utils/useBackButton';
 
 interface ProductionModuleProps {
   currentUser: User;
@@ -56,6 +57,8 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
   };
 
   const [selectedJobCardId, setSelectedJobCardId] = useState<string>('');
+
+  useBackButton(!!selectedJobCardId, () => setSelectedJobCardId(''));
 
   // Validate selection
   useEffect(() => {
@@ -283,8 +286,8 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-xs font-mono font-extrabold text-emerald-900 bg-emerald-200/90 px-2.5 py-1 rounded-lg border border-emerald-400">
-                              Job: {jc.jobCode}
+                            <span className="text-2xl font-mono font-black text-emerald-900 bg-emerald-200/90 px-3 py-1 rounded-xl border border-emerald-400 shadow-sm">
+                              {jc.jobCode}
                             </span>
                             <span className="text-xs font-mono font-extrabold text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
                               Size: {jc.size}
@@ -383,21 +386,14 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
           )}
         </div>
       ) : (
-        /* SELECTED JOB CARD DATA ENTRY WORKSPACE */
+        /* SELECTED JOB CARD PRODUCTION WORKSPACE */
         <div className="space-y-4">
-          {/* Simple Back Navigation Header */}
+          {/* Simple Back Navigation Header (Hidden since we use hardware back button) */}
           <div className="flex items-center justify-between bg-white border border-slate-200 p-3 rounded-2xl shadow-xs">
-            <button
-              onClick={() => setSelectedJobCardId('')}
-              className="bg-slate-100 hover:bg-emerald-50 text-slate-800 hover:text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors border border-slate-200 flex items-center gap-1.5"
-            >
-              <span>←</span>
-              <span>Back to All Job Cards</span>
-            </button>
-            <div className="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-700">
-              <span>Selected Job:</span>
-              <span className="font-mono text-xs font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300">
-                #{selectedJobCard.jobCode}
+            <div className="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-700 w-full">
+              <span className="text-sm text-slate-500">Selected Job:</span>
+              <span className="font-mono text-2xl font-black text-blue-900 bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-400 shadow-sm uppercase tracking-wider">
+                {selectedJobCard.jobCode}
               </span>
               <span className="font-mono text-xs font-extrabold text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
                 Size: {selectedJobCard.size}
