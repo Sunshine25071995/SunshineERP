@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User, JobCard, Chemical, ChemicalPurchase, ChemicalUsage,
   ProductionRoll, SlittingRoll, ProductionWastage, Department, Shift, JobCardStatus,
@@ -40,8 +40,27 @@ const selectCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages,
 }) => {
-  const [activeTab, setActiveTab] = useState<'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker'>('jobCards');
+  const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker'>('home');
   const [jobCardSearch, setJobCardSearch] = useState('');
+
+  // Handle hardware back button for tab navigation
+  useEffect(() => {
+    window.history.replaceState({ tab: 'home' }, '');
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && e.state.tab) {
+        setActiveTab(e.state.tab);
+      } else {
+        setActiveTab('home');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateToTab = (tabId: 'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker') => {
+    setActiveTab(tabId);
+    window.history.pushState({ tab: tabId }, '');
+  };
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
   const sortedJobCards = [...jobCards].sort((a, b) =>
@@ -227,31 +246,29 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   return (
     <div className="space-y-3 animate-fade-in">
 
-      {/* Tab Bar — 2 rows on mobile, 1 row on desktop */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-        {tabs.map(tab => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`relative rounded-2xl py-3 px-2 flex flex-col items-center justify-center gap-1.5 overflow-hidden transition-all duration-300 shadow-sm border ${
-                isActive
-                  ? `bg-gradient-to-br ${tab.gradient} text-white border-transparent shadow-lg scale-[1.03]`
-                  : `${tab.lightBg} ${tab.lightText} border-gray-100 hover:scale-[1.02]`
-              }`}
+      {/* HOME DASHBOARD */}
+      {activeTab === 'home' && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 p-1 sm:p-2">
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => navigateToTab(tab.id)}
+              className={`relative rounded-[2rem] py-8 sm:py-10 px-4 flex flex-col items-center justify-center gap-3 overflow-hidden transition-all duration-300 shadow-lg border-0 bg-gradient-to-br ${tab.gradient} text-white hover:scale-[1.03] active:scale-95`}
             >
-              <tab.icon className={`w-6 h-6 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow' : ''}`} />
-              <span className={`text-[11px] text-center leading-tight ${isActive ? 'font-black' : 'font-bold'}`}>
-                {tab.label}
-              </span>
+              {/* Decorative circle */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-6 -mt-6 pointer-events-none"></div>
+              
+              <tab.icon className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md relative z-10" />
+              <span className="text-sm sm:text-base font-black tracking-wide drop-shadow-md relative z-10">{tab.label}</span>
+              
               {tab.count !== undefined && (
-                <span className={`absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none ${
-                  isActive ? 'bg-white/25 text-white' : 'bg-white text-gray-600 shadow-sm'
-                }`}>{tab.count}</span>
+                <span className="absolute top-4 right-4 text-[10px] sm:text-xs font-black px-2 py-1 rounded-full bg-white/20 backdrop-blur-md shadow-sm border border-white/10">
+                  {tab.count}
+                </span>
               )}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* ── TAB: JOB CARDS ────────────────────────────────────── */}
       {activeTab === 'jobCards' && (
