@@ -6,6 +6,13 @@ import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestor
 import { db } from '../firebaseClient';
 import { useBackButton } from '../utils/useBackButton';
 
+const formatToDDMM = (dateStr: string) => {
+  if (!dateStr) return '—';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}`;
+  return dateStr;
+};
+
 interface SlittingModuleProps {
   currentUser: User;
   jobCards: JobCard[];
@@ -374,38 +381,32 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
             </div>
           ) : (
             <div className="app-card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider">
+              <div className="overflow-x-auto border border-black bg-white">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-[#FFD966] text-black font-bold text-center">
                     <tr>
-                      <th className="px-4 py-3 font-semibold">Select</th>
-                      <th className="px-4 py-3 font-semibold">Roll No</th>
-                      <th className="px-4 py-3 font-semibold">Shift</th>
-                      <th className="px-4 py-3 font-semibold">Date</th>
-                      <th className="px-4 py-3 font-semibold text-right text-blue-600">Net (kg)</th>
+                      <th className="px-1 py-1 border border-black text-[10px] sm:text-xs">Select</th>
+                      <th className="px-1 py-1 border border-black text-[10px] sm:text-xs">Date</th>
+                      <th className="px-1 py-1 border border-black text-[10px] sm:text-xs">Sr. No.</th>
+                      <th className="px-1 py-1 border border-black text-[10px] sm:text-xs">Net Wt.</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {activeProdRolls.map(roll => (
                       <tr key={roll.id} onClick={() => toggleTakenBySlitting(roll)}
-                        className={`cursor-pointer transition-colors ${
-                          roll.takenBySlitting ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-gray-50'
+                        className={`cursor-pointer transition-colors text-center ${
+                          roll.takenBySlitting ? 'bg-[#C6E0B4]' : 'bg-white'
                         }`}>
-                        <td className="px-4 py-2.5">
-                          <div className={`w-5 h-5 rounded flex items-center justify-center ${
-                            roll.takenBySlitting ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 text-transparent'
+                        <td className="px-1 py-1 border border-black">
+                          <div className={`mx-auto w-4 h-4 sm:w-5 sm:h-5 rounded-sm flex items-center justify-center ${
+                            roll.takenBySlitting ? 'bg-green-700 text-white' : 'bg-white border border-gray-400 text-transparent'
                           }`}>
-                            <CheckSquare className="w-3.5 h-3.5" />
+                            <CheckSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </div>
                         </td>
-                        <td className="px-4 py-2.5">
-                          <span className="font-mono font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">#{roll.rollNo}</span>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">Shift {roll.shift}</span>
-                        </td>
-                        <td className="px-4 py-2.5 text-gray-500">{roll.date}</td>
-                        <td className="px-4 py-2.5 font-mono font-bold text-gray-900 text-right">{formatWeight(roll.netWeight)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatToDDMM(roll.date)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.rollNo}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs font-bold">{formatWeight(roll.netWeight)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -467,27 +468,28 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                 <h3 className="text-sm font-bold text-gray-900">Output Rolls</h3>
                 <span className="text-xs font-semibold text-gray-500">{activeSlitRolls.length} rolls · {formatWeight(totalSlittingOutputWeight)} kg</span>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider">
+              <div className="overflow-x-auto bg-white border border-black">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-[#FFD966] text-black font-bold text-center">
                     <tr>
-                      <th className="px-4 py-3 font-semibold">Roll No</th>
-                      <th className="px-4 py-3 font-semibold">Size</th>
-                      <th className="px-4 py-3 font-semibold">Date</th>
-                      <th className="px-4 py-3 font-semibold text-right">Meter</th>
-                      <th className="px-4 py-3 font-semibold text-right">Gross (kg)</th>
-                      <th className="px-4 py-3 font-semibold text-right">Core (kg)</th>
-                      <th className="px-4 py-3 font-semibold text-right text-blue-600">Net (kg)</th>
-                      <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Date</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Sr. No.</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Size</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Meter</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Micron</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Gross Wt.</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Core Wt.</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Net Wt.</th>
+                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {[...activeSlitRolls].reverse().map(roll => {
                       const isEditing = editingRollId === roll.id;
                       if (isEditing) {
                         return (
-                          <tr key={roll.id} className="bg-blue-50">
-                            <td colSpan={8} className="p-3">
+                          <tr key={roll.id} className="bg-blue-50 border border-black">
+                            <td colSpan={9} className="p-2 border border-black">
                               <div className="flex flex-wrap gap-2 items-end">
                                 <div className="flex-1 min-w-[120px]">
                                   <FormField label="Coil Size">
@@ -510,27 +512,32 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                         );
                       }
                       return (
-                        <tr key={roll.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-2.5">
-                            <span className="font-mono font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">#{roll.rollNo}</span>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono font-medium">{roll.coilSize}</span>
-                          </td>
-                          <td className="px-4 py-2.5 text-gray-500">{roll.date}</td>
-                          <td className="px-4 py-2.5 font-mono text-gray-600 text-right">{roll.meter || '-'}</td>
-                          <td className="px-4 py-2.5 font-mono text-gray-600 text-right">{formatWeight(roll.grossWeight)}</td>
-                          <td className="px-4 py-2.5 font-mono text-gray-600 text-right">{formatWeight(roll.coreWeight)}</td>
-                          <td className="px-4 py-2.5 font-mono font-bold text-blue-600 text-right">{formatWeight(roll.netWeight)}</td>
-                          <td className="px-4 py-2.5 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => startEditRoll(roll)} className="p-1.5 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => handleDeleteRoll(roll.id)} className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <tr key={roll.id} className="text-center">
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.rollNo}</td>
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.coilSize}</td>
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.meter || '—'}</td>
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{selectedJobCard.micron}</td>
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs font-bold">{formatWeight(roll.netWeight)}</td>
+                          <td className="px-1 py-1 border border-black text-[10px] sm:text-xs">
+                            <div className="flex items-center justify-center gap-1">
+                              <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
                             </div>
                           </td>
                         </tr>
                       );
                     })}
+                    {/* Total Row */}
+                    <tr className="bg-[#C6E0B4] text-black font-bold text-center">
+                      <td colSpan={5} className="px-1 py-1 border border-black text-[10px] sm:text-xs">TOTAL</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-black"></td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

@@ -1,7 +1,15 @@
 import React from 'react';
 import { JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
-import { X, Layers, Scissors, Scale, CheckCircle2, Trash2 } from 'lucide-react';
+import { getPartyName } from '../utils/parties';
+import { X, Layers, Scissors, Scale, Trash2 } from 'lucide-react';
+
+const formatToDDMM = (dateStr: string) => {
+  if (!dateStr) return '—';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}`;
+  return dateStr;
+};
 
 interface JobCardDetailModalProps {
   jobCard: JobCard;
@@ -63,7 +71,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
               <StatusBadge status={jobCard.status} />
             </div>
             <p className="text-sm text-gray-600">
-              <span className="font-semibold">{jobCard.partyCode}</span> · Size {jobCard.size} · {jobCard.micron}μ
+              <span className="font-semibold">{getPartyName(jobCard.partyCode)}</span> · Size {jobCard.size} · {jobCard.micron}μ
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -91,7 +99,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
           {/* Meta grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Party', value: jobCard.partyCode },
+              { label: 'Party', value: getPartyName(jobCard.partyCode) },
               { label: 'Size / Micron', value: `${jobCard.size} (${jobCard.micron}μ)` },
               { label: 'Target Qty', value: `${formatWeight(jobCard.totalQuantity)} kg` },
               { label: 'Date', value: jobCard.date || '—' },
@@ -148,40 +156,38 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                 No production rolls recorded yet.
               </div>
             ) : (
-              <div className="app-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-200">
-                      <tr>
-                        {['Date', 'Roll', 'Shift', 'Gross', 'Core', 'Net', 'Joints', 'Slitting'].map(h => (
-                          <th key={h} className="px-3 py-2.5 whitespace-nowrap">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {jcProdRolls.map((roll) => (
-                        <tr key={roll.id} className="hover:bg-gray-50">
-                          <td className="px-3 py-2.5 font-mono text-gray-500 whitespace-nowrap">{roll.date || '—'}</td>
-                          <td className="px-3 py-2.5 font-mono font-bold text-emerald-700">#{roll.rollNo}</td>
-                          <td className="px-3 py-2.5 font-semibold">Shift {roll.shift}</td>
-                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.grossWeight)}</td>
-                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.coreWeight)}</td>
-                          <td className="px-3 py-2.5 font-mono font-bold text-emerald-800">{formatWeight(roll.netWeight)}</td>
-                          <td className="px-3 py-2.5 font-mono">{roll.joints}</td>
-                          <td className="px-3 py-2.5">
-                            {roll.takenBySlitting ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded-full border border-purple-200">
-                                <CheckCircle2 className="w-3 h-3" /> Taken
-                              </span>
-                            ) : (
-                              <span className="text-[10px] text-gray-400 italic">Pending</span>
-                            )}
-                          </td>
-                        </tr>
+              <div className="overflow-x-auto border border-black bg-white">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-[#FFD966] text-black font-bold text-center">
+                    <tr>
+                      {['Date', 'Sr. No.', 'Gross Wt.', 'Core Wt.', 'Net Wt.', 'Joints', 'Slitting'].map(h => (
+                        <th key={h} className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">{h}</th>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jcProdRolls.map((roll) => (
+                      <tr key={roll.id} className="text-center">
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.rollNo}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.grossWeight)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.coreWeight)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs font-bold">{formatWeight(roll.netWeight)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.joints}</td>
+                        <td className="px-1 py-1 border border-black text-[10px] sm:text-xs">
+                          {roll.takenBySlitting ? 'Taken' : 'Pending'}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-[#C6E0B4] text-black font-bold text-center">
+                      <td colSpan={2} className="px-1 py-1 border border-black text-[10px] sm:text-xs">TOTAL</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                      <td colSpan={2} className="px-1 py-1 border border-black text-[10px] sm:text-xs"></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -196,32 +202,36 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                 No slitting rolls recorded yet.
               </div>
             ) : (
-              <div className="app-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-200">
-                      <tr>
-                        {['Date', 'Roll', 'Coil Size', 'Meter', 'Shift', 'Gross', 'Core', 'Net'].map(h => (
-                          <th key={h} className="px-3 py-2.5 whitespace-nowrap">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {jcSlitRolls.map((roll) => (
-                        <tr key={roll.id} className="hover:bg-gray-50">
-                          <td className="px-3 py-2.5 font-mono text-gray-500 whitespace-nowrap">{roll.date || '—'}</td>
-                          <td className="px-3 py-2.5 font-mono font-bold text-blue-700">#{roll.rollNo}</td>
-                          <td className="px-3 py-2.5 font-mono font-bold text-amber-800">{roll.coilSize}</td>
-                          <td className="px-3 py-2.5 font-mono">{roll.meter ? `${roll.meter}m` : '—'}</td>
-                          <td className="px-3 py-2.5 font-semibold">Shift {roll.shift}</td>
-                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.grossWeight)}</td>
-                          <td className="px-3 py-2.5 font-mono">{formatWeight(roll.coreWeight)}</td>
-                          <td className="px-3 py-2.5 font-mono font-bold text-blue-800">{formatWeight(roll.netWeight)}</td>
-                        </tr>
+              <div className="overflow-x-auto border border-black bg-white">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-[#FFD966] text-black font-bold text-center">
+                    <tr>
+                      {['Date', 'Sr. No.', 'Size', 'Meter', 'Micron', 'Gross Wt.', 'Core Wt.', 'Net Wt.'].map(h => (
+                        <th key={h} className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">{h}</th>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jcSlitRolls.map((roll) => (
+                      <tr key={roll.id} className="text-center">
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.rollNo}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.coilSize}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.meter || '—'}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{jobCard.micron}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.grossWeight)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.coreWeight)}</td>
+                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs font-bold">{formatWeight(roll.netWeight)}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-[#C6E0B4] text-black font-bold text-center">
+                      <td colSpan={5} className="px-1 py-1 border border-black text-[10px] sm:text-xs">TOTAL</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

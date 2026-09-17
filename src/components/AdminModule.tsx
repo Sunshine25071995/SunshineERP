@@ -4,6 +4,7 @@ import {
   ProductionRoll, SlittingRoll, ProductionWastage, Department, Shift, JobCardStatus,
 } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
+import { PARTIES, getPartyName } from '../utils/parties';
 import { JobCardDetailModal } from './JobCardDetailModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
@@ -318,7 +319,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-sm font-semibold text-gray-700">{jc.partyCode}</div>
+                    <div className="text-sm font-semibold text-gray-700">{getPartyName(jc.partyCode)}</div>
 
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
@@ -570,7 +571,14 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                 <FormField label="Job Code"><input type="text" value={jcCode} onChange={e => setJcCode(e.target.value)} required className={inputCls} /></FormField>
                 <FormField label="Date"><input type="date" value={jcDate} onChange={e => setJcDate(e.target.value)} className={inputCls} /></FormField>
                 <div className="col-span-2">
-                  <FormField label="Party Code"><input type="text" placeholder="e.g. PARTY001" value={jcPartyCode} onChange={e => setJcPartyCode(e.target.value)} required className={inputCls} /></FormField>
+                  <FormField label="Party">
+                    <select value={jcPartyCode} onChange={e => setJcPartyCode(e.target.value)} required className={selectCls}>
+                      <option value="">-- Select Party --</option>
+                      {Object.entries(PARTIES).map(([code, name]) => (
+                        <option key={code} value={code}>{name} ({code})</option>
+                      ))}
+                    </select>
+                  </FormField>
                 </div>
                 <FormField label="Size"><input type="text" placeholder="e.g. 1000mm" value={jcSize} onChange={e => setJcSize(e.target.value)} className={inputCls} /></FormField>
                 <FormField label="Micron"><input type="text" placeholder="e.g. 12" value={jcMicron} onChange={e => setJcMicron(e.target.value)} className={inputCls} /></FormField>
