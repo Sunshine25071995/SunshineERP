@@ -34,8 +34,8 @@ const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ lab
   </div>
 );
 
-const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
-const selectCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
+const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-black text-black placeholder:text-gray-400 placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
+const selectCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-black text-black focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
 
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages,
@@ -226,11 +226,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Page Header */}
-      <div>
-        <h2 className="text-xl font-black text-gray-900">Admin Panel</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Manage job cards, users & more</p>
-      </div>
+
 
       {/* Tab Bar */}
       <div className="flex justify-between items-center bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hide-scrollbar gap-1 sm:gap-2">

@@ -37,7 +37,7 @@ const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ lab
   </div>
 );
 
-const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono font-semibold text-gray-900 placeholder:text-gray-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
+const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono font-black text-black placeholder:text-gray-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
 
 export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, jobCards, prodRolls, slitRolls, prodWastages }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -230,10 +230,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-black text-gray-900">Slitting</h2>
-            <p className="text-sm text-gray-500 mt-0.5">Select a job card to start</p>
-          </div>
+
           <div className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-full">
             Shift {currentUser.shift || 'A'}
           </div>
