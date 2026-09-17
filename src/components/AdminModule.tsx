@@ -9,6 +9,7 @@ import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
   Search, Layers, Scissors, Check, RefreshCw,
 } from 'lucide-react';
+import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
 import {
   collection, addDoc, doc, updateDoc, deleteDoc, setDoc, serverTimestamp, writeBatch,
 } from 'firebase/firestore';
@@ -39,7 +40,7 @@ const selectCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages,
 }) => {
-  const [activeTab, setActiveTab] = useState<'jobCards' | 'users' | 'chemicals' | 'factoryRolls'>('jobCards');
+  const [activeTab, setActiveTab] = useState<'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker'>('jobCards');
   const [jobCardSearch, setJobCardSearch] = useState('');
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
@@ -100,10 +101,11 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   };
 
   const openJobCardEdit = (jc: JobCard) => {
-    setEditingJobCard(jc); setJcCode(jc.jobCode);
+    setEditingJobCard(jc);
+    setJcCode(jc.jobCode);
     setJcDate(jc.date || new Date().toISOString().split('T')[0]);
-    setJcPartyCode(jc.partyCode); setJcSize(jc.size); setJcMicron(jc.micron);
-    setJcCoilSizesList(jc.coilSizes || []); setJcCoilSizesInput('');
+    setJcPartyCode(jc.partyCode); setJcSize(jc.size); setJcMicron(jc.micron || '');
+    setJcCoilSizesList(jc.coilSizes || []); setJcCoilSizesInput((jc.coilSizes || []).join(', '));
     setJcTotalQty(String(jc.totalQuantity || '')); setJcStatus(jc.status);
     setShowJobCardModal(true);
   };
@@ -219,6 +221,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     { id: 'users' as const, label: 'Users', icon: Users, count: users.length },
     { id: 'chemicals' as const, label: 'Chemicals', icon: FlaskConical, count: chemicals.length },
     { id: 'factoryRolls' as const, label: 'Rolls', icon: Layers, count: undefined },
+    { id: 'paymentTracker' as const, label: 'Payments', icon: FileText, count: undefined },
   ];
 
   return (
@@ -523,6 +526,13 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ── TAB: PAYMENT TRACKER ──────────────────────────────── */}
+      {activeTab === 'paymentTracker' && (
+        <div className="animate-fade-in">
+          <PaymentTrackerModule />
         </div>
       )}
 
