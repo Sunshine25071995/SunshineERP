@@ -364,13 +364,13 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
-                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Date</th>
-                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Sr. No.</th>
-                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Gross Wt.</th>
-                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Core Wt.</th>
-                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Net Wt.</th>
-                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Joints</th>
-                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Actions</th>
+                      <th className="px-1.5 py-[2px] border border-gray-400/60 whitespace-nowrap text-sm sm:text-base">Date</th>
+                      <th className="px-1.5 py-[2px] border border-gray-400/60 whitespace-nowrap text-sm sm:text-base">Sr. No.</th>
+                      <th className="px-1.5 py-[2px] border border-gray-400/60 whitespace-nowrap text-sm sm:text-base">Gross Wt.</th>
+                      <th className="px-1.5 py-[2px] border border-gray-400/60 whitespace-nowrap text-sm sm:text-base">Core Wt.</th>
+                      <th className="px-1.5 py-[2px] border border-gray-400/60 whitespace-nowrap text-sm sm:text-base">Net Wt.</th>
+                      <th className="px-1.5 py-[2px] border border-gray-400/60 whitespace-nowrap text-sm sm:text-base">Joints</th>
+                      <th className="px-1.5 py-[2px] border border-gray-400/60 whitespace-nowrap text-sm sm:text-base">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -396,13 +396,13 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       }
                       return (
                         <tr key={roll.id} className="text-center">
-                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm whitespace-nowrap">{formatToDDMM(roll.date)}</td>
-                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.rollNo}</td>
-                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.grossWeight)}</td>
-                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.coreWeight)}</td>
-                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm font-bold">{formatWeight(roll.netWeight)}</td>
-                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.joints > 0 ? roll.joints : '-'}</td>
-                          <td className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm">
+                          <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono text-sm sm:text-base whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                          <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono font-semibold text-sm sm:text-base">{roll.rollNo}</td>
+                          <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono font-semibold text-sm sm:text-base">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono font-semibold text-sm sm:text-base">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono text-sm sm:text-base font-bold">{formatWeight(roll.netWeight)}</td>
+                          <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono font-semibold text-sm sm:text-base">{roll.joints > 0 ? roll.joints : '-'}</td>
+                          <td className="px-1.5 py-[2px] border border-gray-400/60 text-sm sm:text-base">
                             <div className="flex items-center justify-center gap-1">
                               <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
                               <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -412,11 +412,11 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       );
                     })}
                     <tr className="bg-[#C6E0B4] text-black font-black text-center">
-                      <td colSpan={2} className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm">TOTAL</td>
-                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
-                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
-                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
-                      <td colSpan={2} className="px-1.5 py-[3px] border border-gray-400/60"></td>
+                      <td colSpan={2} className="px-1.5 py-[2px] border border-gray-400/60 text-sm sm:text-base">TOTAL</td>
+                      <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono font-semibold text-sm sm:text-base">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono font-semibold text-sm sm:text-base">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[2px] border border-gray-400/60 font-mono font-semibold text-sm sm:text-base">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                      <td colSpan={2} className="px-1.5 py-[2px] border border-gray-400/60"></td>
                     </tr>
                   </tbody>
                 </table>
