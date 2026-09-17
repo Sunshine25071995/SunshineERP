@@ -7,7 +7,7 @@ import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { JobCardDetailModal } from './JobCardDetailModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
-  Search, Layers, Scissors, Check, RefreshCw,
+  Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase,
 } from 'lucide-react';
 import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
 import {
@@ -217,46 +217,39 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   };
 
   const tabs = [
-    { id: 'jobCards' as const, label: 'Job Cards', icon: FileText, count: jobCards.length },
-    { id: 'users' as const, label: 'Users', icon: Users, count: users.length },
-    { id: 'chemicals' as const, label: 'Chemicals', icon: FlaskConical, count: chemicals.length },
-    { id: 'factoryRolls' as const, label: 'Rolls', icon: Layers, count: undefined },
-    { id: 'paymentTracker' as const, label: 'Payments', icon: FileText, count: undefined },
+    { id: 'jobCards' as const, label: 'Job Cards', icon: FileText, count: jobCards.length, gradient: 'from-blue-500 to-blue-700', lightBg: 'bg-blue-50', lightText: 'text-blue-600' },
+    { id: 'users' as const, label: 'Users', icon: Users, count: users.length, gradient: 'from-violet-500 to-violet-700', lightBg: 'bg-violet-50', lightText: 'text-violet-600' },
+    { id: 'chemicals' as const, label: 'Chemicals', icon: FlaskConical, count: chemicals.length, gradient: 'from-emerald-500 to-emerald-700', lightBg: 'bg-emerald-50', lightText: 'text-emerald-600' },
+    { id: 'factoryRolls' as const, label: 'Rolls', icon: Layers, count: undefined, gradient: 'from-amber-500 to-amber-700', lightBg: 'bg-amber-50', lightText: 'text-amber-600' },
+    { id: 'paymentTracker' as const, label: 'Payments', icon: CreditCard, count: undefined, gradient: 'from-rose-500 to-rose-700', lightBg: 'bg-rose-50', lightText: 'text-rose-600' },
   ];
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
 
-
-      {/* Tab Bar */}
-      <div className="flex justify-between items-center bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hide-scrollbar gap-1 sm:gap-2">
+      {/* Tab Bar — 2 rows on mobile, 1 row on desktop */}
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
         {tabs.map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`relative flex-1 min-w-[70px] sm:min-w-[100px] py-2.5 sm:py-3.5 px-1 rounded-xl transition-all duration-300 flex flex-col items-center justify-center gap-1 sm:gap-2 overflow-hidden group ${
-                isActive 
-                  ? 'text-white shadow-md transform scale-[1.02]' 
-                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              className={`relative rounded-2xl py-3 px-2 flex flex-col items-center justify-center gap-1.5 overflow-hidden transition-all duration-300 shadow-sm border ${
+                isActive
+                  ? `bg-gradient-to-br ${tab.gradient} text-white border-transparent shadow-lg scale-[1.03]`
+                  : `${tab.lightBg} ${tab.lightText} border-gray-100 hover:scale-[1.02]`
               }`}
             >
-              {isActive && (
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 opacity-100" />
-              )}
-              
-              <tab.icon className={`w-5 h-5 sm:w-6 sm:h-6 relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 text-white drop-shadow-sm' : 'group-hover:scale-110'}`} />
-              
-              <span className={`relative z-10 text-[10px] sm:text-xs tracking-tight text-center leading-none ${isActive ? 'font-black drop-shadow-sm' : 'font-bold'}`}>
+              <tab.icon className={`w-6 h-6 transition-transform duration-300 ${isActive ? 'scale-110 drop-shadow' : ''}`} />
+              <span className={`text-[11px] text-center leading-tight ${isActive ? 'font-black' : 'font-bold'}`}>
                 {tab.label}
               </span>
-              
               {tab.count !== undefined && (
-                <span className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 text-[9px] font-black px-1.5 py-0.5 rounded-full z-10 shadow-sm ${
-                  isActive ? 'bg-white/20 text-white backdrop-blur-sm' : 'bg-gray-100 text-gray-500'
+                <span className={`absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none ${
+                  isActive ? 'bg-white/25 text-white' : 'bg-white text-gray-600 shadow-sm'
                 }`}>{tab.count}</span>
               )}
             </button>
-          )
+          );
         })}
       </div>
 
