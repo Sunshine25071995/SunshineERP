@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { User, JobCard, ProductionRoll, ProductionWastage, SlittingRoll } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { Layers, Plus, Trash2, Edit2, Check, X, Search, ChevronRight, FileText } from 'lucide-react';
@@ -360,17 +360,17 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                 <h3 className="text-sm font-bold text-gray-900">Production Rolls</h3>
                 <span className="text-xs font-semibold text-gray-500">{activeProdRolls.length} rolls · {formatWeight(totalProdOutput)} kg</span>
               </div>
-              <div className="overflow-x-auto bg-white border border-black">
+              <div className="overflow-x-auto bg-white border border-gray-400/60">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-[#FFD966] text-black font-bold text-center">
+                  <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
-                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Date</th>
-                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Sr. No.</th>
-                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Gross Wt.</th>
-                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Core Wt.</th>
-                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Net Wt.</th>
-                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Joints</th>
-                      <th className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">Actions</th>
+                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Date</th>
+                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Sr. No.</th>
+                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Gross Wt.</th>
+                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Core Wt.</th>
+                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Net Wt.</th>
+                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Joints</th>
+                      <th className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -378,8 +378,8 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       const isEditing = editingRollId === roll.id;
                       if (isEditing) {
                         return (
-                          <tr key={roll.id} className="bg-emerald-50 border border-black">
-                            <td colSpan={7} className="p-2 border border-black">
+                          <tr key={roll.id} className="bg-emerald-50 border border-gray-400/60">
+                            <td colSpan={7} className="p-2 border border-gray-400/60">
                               <div className="flex flex-wrap gap-2 items-end">
                                 <div className="flex-1 min-w-[100px]"><FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField></div>
                                 <div className="flex-1 min-w-[100px]"><FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField></div>
@@ -396,13 +396,13 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       }
                       return (
                         <tr key={roll.id} className="text-center">
-                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs whitespace-nowrap">{formatToDDMM(roll.date)}</td>
-                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.rollNo}</td>
-                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.grossWeight)}</td>
-                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.coreWeight)}</td>
-                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs font-bold">{formatWeight(roll.netWeight)}</td>
-                          <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.joints > 0 ? roll.joints : '-'}</td>
-                          <td className="px-1 py-1 border border-black text-[10px] sm:text-xs">
+                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.rollNo}</td>
+                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm font-bold">{formatWeight(roll.netWeight)}</td>
+                          <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.joints > 0 ? roll.joints : '-'}</td>
+                          <td className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm">
                             <div className="flex items-center justify-center gap-1">
                               <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
                               <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -411,12 +411,12 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                         </tr>
                       );
                     })}
-                    <tr className="bg-[#C6E0B4] text-black font-bold text-center">
-                      <td colSpan={2} className="px-1 py-1 border border-black text-[10px] sm:text-xs">TOTAL</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
-                      <td colSpan={2} className="px-1 py-1 border border-black"></td>
+                    <tr className="bg-[#C6E0B4] text-black font-black text-center">
+                      <td colSpan={2} className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm">TOTAL</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                      <td colSpan={2} className="px-1.5 py-[3px] border border-gray-400/60"></td>
                     </tr>
                   </tbody>
                 </table>

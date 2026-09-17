@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { getPartyName } from '../utils/parties';
@@ -156,35 +156,35 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                 No production rolls recorded yet.
               </div>
             ) : (
-              <div className="overflow-x-auto border border-black bg-white">
+              <div className="overflow-x-auto border border-gray-400/60 bg-white">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-[#FFD966] text-black font-bold text-center">
+                  <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
                       {['Date', 'Sr. No.', 'Gross Wt.', 'Core Wt.', 'Net Wt.', 'Joints', 'Slitting'].map(h => (
-                        <th key={h} className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">{h}</th>
+                        <th key={h} className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {jcProdRolls.map((roll) => (
                       <tr key={roll.id} className="text-center">
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs whitespace-nowrap">{formatToDDMM(roll.date)}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.rollNo}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.grossWeight)}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.coreWeight)}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs font-bold">{formatWeight(roll.netWeight)}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.joints}</td>
-                        <td className="px-1 py-1 border border-black text-[10px] sm:text-xs">
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.rollNo}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.grossWeight)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.coreWeight)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm font-bold">{formatWeight(roll.netWeight)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.joints}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm">
                           {roll.takenBySlitting ? 'Taken' : 'Pending'}
                         </td>
                       </tr>
                     ))}
-                    <tr className="bg-[#C6E0B4] text-black font-bold text-center">
-                      <td colSpan={2} className="px-1 py-1 border border-black text-[10px] sm:text-xs">TOTAL</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
-                      <td colSpan={2} className="px-1 py-1 border border-black text-[10px] sm:text-xs"></td>
+                    <tr className="bg-[#C6E0B4] text-black font-black text-center">
+                      <td colSpan={2} className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm">TOTAL</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(jcProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                      <td colSpan={2} className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm"></td>
                     </tr>
                   </tbody>
                 </table>
@@ -202,33 +202,33 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
                 No slitting rolls recorded yet.
               </div>
             ) : (
-              <div className="overflow-x-auto border border-black bg-white">
+              <div className="overflow-x-auto border border-gray-400/60 bg-white">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-[#FFD966] text-black font-bold text-center">
+                  <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
                       {['Date', 'Sr. No.', 'Size', 'Meter', 'Micron', 'Gross Wt.', 'Core Wt.', 'Net Wt.'].map(h => (
-                        <th key={h} className="px-1 py-1 border border-black whitespace-nowrap text-[10px] sm:text-xs">{h}</th>
+                        <th key={h} className="px-1.5 py-[3px] border border-gray-400/60 whitespace-nowrap text-xs sm:text-sm">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {jcSlitRolls.map((roll) => (
                       <tr key={roll.id} className="text-center">
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs whitespace-nowrap">{formatToDDMM(roll.date)}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.rollNo}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.coilSize}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{roll.meter || '—'}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{jobCard.micron}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.grossWeight)}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(roll.coreWeight)}</td>
-                        <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs font-bold">{formatWeight(roll.netWeight)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.rollNo}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.coilSize}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{roll.meter || '—'}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{jobCard.micron}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.grossWeight)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(roll.coreWeight)}</td>
+                        <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono text-xs sm:text-sm font-bold">{formatWeight(roll.netWeight)}</td>
                       </tr>
                     ))}
-                    <tr className="bg-[#C6E0B4] text-black font-bold text-center">
-                      <td colSpan={5} className="px-1 py-1 border border-black text-[10px] sm:text-xs">TOTAL</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-black font-mono text-[10px] sm:text-xs">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                    <tr className="bg-[#C6E0B4] text-black font-black text-center">
+                      <td colSpan={5} className="px-1.5 py-[3px] border border-gray-400/60 text-xs sm:text-sm">TOTAL</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1.5 py-[3px] border border-gray-400/60 font-mono font-semibold text-xs sm:text-sm">{formatWeight(jcSlitRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
                     </tr>
                   </tbody>
                 </table>
