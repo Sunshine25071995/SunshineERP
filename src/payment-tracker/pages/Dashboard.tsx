@@ -69,69 +69,22 @@ export function Dashboard() {
 
   const chartData = Array.from(monthlyDataMap.values()).slice(-6);
 
-  const handleWhatsApp = async () => {
-    if (!dashboardRef.current) return;
-    setIsExporting(true);
-    
-    const actionButtons = dashboardRef.current.querySelector('.action-buttons-container');
-    if (actionButtons) (actionButtons as HTMLElement).style.display = 'none';
-
-    try {
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#f8fafc',
-        logging: false,
-        allowTaint: true,
+  const handleWhatsApp = () => {
+    let msg = `*Business Dashboard Summary*\n`;
+    msg += `-------------------------\n`;
+    msg += `Total Sales: ₹${totalSales.toLocaleString('en-IN')}\n`;
+    msg += `Total Collection: ₹${totalReceived.toLocaleString('en-IN')}\n`;
+    msg += `Total Outstanding: ₹${totalOutstanding.toLocaleString('en-IN')}\n`;
+    msg += `This Month Sales: ₹${monthSales.toLocaleString('en-IN')}\n`;
+    msg += `-------------------------\n`;
+    if (partyOutstanding.length > 0) {
+      msg += `*Top Receivables:*\n`;
+      partyOutstanding.forEach((p, i) => {
+        msg += `${i+1}. ${p.name}: ₹${p.outstanding.toLocaleString('en-IN')}\n`;
       });
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-      
-      if (blob) {
-        const file = new File([blob], `Dashboard_Report.png`, { type: 'image/png' });
-        
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: `Business Dashboard`,
-            text: `Please find the latest dashboard report attached.`,
-            files: [file]
-          });
-        } else {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Dashboard_Report.png`;
-          a.click();
-          URL.revokeObjectURL(url);
-
-          let text = `*📊 Business Dashboard Report*\n\n`;
-          text += `*Receivable (Outstanding):* ${formatCurrency(totalOutstanding)}\n`;
-          text += `*Total Received:* ${formatCurrency(totalReceived)}\n`;
-          text += `*Total Sales:* ${formatCurrency(totalSales)}\n`;
-          text += `*This Month Sales:* ${formatCurrency(monthSales)}\n\n`;
-          
-          if (partyOutstanding.length > 0) {
-            text += `*Top Receivables:*\n`;
-            partyOutstanding.forEach((p, i) => {
-              text += `${i+1}. ${p.name}: ${formatCurrency(p.outstanding)}\n`;
-            });
-          }
-
-          const encoded = encodeURIComponent(text);
-          window.open(`https://wa.me/?text=${encoded}`, '_blank');
-        }
-      }
-    } catch (error) {
-      console.error("Export failed", error);
-      let text = `*📊 Business Dashboard Report*\n\n`;
-      text += `*Receivable (Outstanding):* ${formatCurrency(totalOutstanding)}\n`;
-      text += `*Total Received:* ${formatCurrency(totalReceived)}\n`;
-      text += `*Total Sales:* ${formatCurrency(totalSales)}\n`;
-      const encoded = encodeURIComponent(text);
-      window.open(`https://wa.me/?text=${encoded}`, '_blank');
-    } finally {
-      if (actionButtons) (actionButtons as HTMLElement).style.display = 'flex';
-      setIsExporting(false);
     }
+    const encoded = encodeURIComponent(msg);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
   };
 
   return (

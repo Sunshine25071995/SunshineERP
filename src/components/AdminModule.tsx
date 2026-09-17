@@ -233,22 +233,35 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       </div>
 
       {/* Tab Bar */}
-      <div className="bg-gray-100 p-1 rounded-2xl flex gap-1">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-0 py-2.5 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-0.5 ${
-              activeTab === tab.id ? 'segment-active text-gray-900' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            <span className="truncate w-full text-center px-1">{tab.label}</span>
-            {tab.count !== undefined && (
-              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
-                activeTab === tab.id ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
-              }`}>{tab.count}</span>
-            )}
-          </button>
-        ))}
+      <div className="flex justify-between items-center bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hide-scrollbar gap-1 sm:gap-2">
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`relative flex-1 min-w-[70px] sm:min-w-[100px] py-2.5 sm:py-3.5 px-1 rounded-xl transition-all duration-300 flex flex-col items-center justify-center gap-1 sm:gap-2 overflow-hidden group ${
+                isActive 
+                  ? 'text-white shadow-md transform scale-[1.02]' 
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              }`}
+            >
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 opacity-100" />
+              )}
+              
+              <tab.icon className={`w-5 h-5 sm:w-6 sm:h-6 relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 text-white drop-shadow-sm' : 'group-hover:scale-110'}`} />
+              
+              <span className={`relative z-10 text-[10px] sm:text-xs tracking-tight text-center leading-none ${isActive ? 'font-black drop-shadow-sm' : 'font-bold'}`}>
+                {tab.label}
+              </span>
+              
+              {tab.count !== undefined && (
+                <span className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 text-[9px] font-black px-1.5 py-0.5 rounded-full z-10 shadow-sm ${
+                  isActive ? 'bg-white/20 text-white backdrop-blur-sm' : 'bg-gray-100 text-gray-500'
+                }`}>{tab.count}</span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* ── TAB: JOB CARDS ────────────────────────────────────── */}

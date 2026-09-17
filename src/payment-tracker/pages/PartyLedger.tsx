@@ -104,71 +104,34 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
   const totalReceivedAmount = payments.reduce((sum, p) => sum + p.amount, 0);
   const totalPendingAmount = bills.reduce((sum, b) => sum + b.outstanding_amount, 0);
 
-  const handleWhatsApp = async () => {
-    if (!reportRef.current) return;
-    setIsExporting(true);
-    
-    // We temporally hide the action buttons inside the reportRef during capture
-    const actionButtons = reportRef.current.querySelector('.action-buttons-container');
-    if (actionButtons) (actionButtons as HTMLElement).style.display = 'none';
-
-    try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-      
-      if (blob) {
-        const file = new File([blob], `Ledger_${party.party_name}.png`, { type: 'image/png' });
-        
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: `Ledger: ${party.party_name}`,
-            text: `Please find the ledger statement for ${party.party_name} attached.`,
-            files: [file]
-          });
-        } else {
-          // Fallback to downloading
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Ledger_${party.party_name}.png`;
-          a.click();
-          URL.revokeObjectURL(url);
-          alert('Image downloaded! You can now share it via WhatsApp.');
-        }
-      }
-    } catch (error) {
-      console.error("Export failed", error);
-      alert('Failed to generate image');
-    } finally {
-      if (actionButtons) (actionButtons as HTMLElement).style.display = 'flex';
-      setIsExporting(false);
+  const handleWhatsApp = () => {
+    let msg = `*Ledger Statement: ${party.party_name}*\n`;
+    msg += `-------------------------\n`;
+    msg += `Total Bills: ₹${totalBillsAmount.toLocaleString('en-IN')}\n`;
+    msg += `Total Received: ₹${totalReceivedAmount.toLocaleString('en-IN')}\n`;
+    msg += `Total Pending: ₹${totalPendingAmount.toLocaleString('en-IN')}\n`;
+    if (party.advance_balance > 0) {
+      msg += `Advance Bal: ₹${party.advance_balance.toLocaleString('en-IN')}\n`;
     }
+    msg += `-------------------------\n`;
+    msg += `*Recent Entries:*\n`;
+    const recent = [...ledgerEntries].reverse().slice(0, 10);
+    recent.forEach(e => {
+      msg += `📅 ${formatDate(e.date)} - ${e.type === 'bill' ? '🧾 Bill' : '💸 Receipt'}\n`;
+      if (e.type === 'bill') {
+        msg += `Amt: ₹${e.billAmount.toLocaleString('en-IN')} | Bal: ₹${e.balance.toLocaleString('en-IN')}\n\n`;
+      } else {
+        msg += `Amt: ₹${e.receivedAmount.toLocaleString('en-IN')} | Bal: ₹${e.balance.toLocaleString('en-IN')}\n\n`;
+      }
+    });
+    
+    const encoded = encodeURIComponent(msg);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
   };
 
-  const handleDownloadPDF = async () => {
-    if (!reportRef.current) return;
-    setIsExporting(true);
-    
-    const actionButtons = reportRef.current.querySelector('.action-buttons-container');
-    if (actionButtons) (actionButtons as HTMLElement).style.display = 'none';
-
-    try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Ledger_${party.party_name}.pdf`);
-    } catch (error) {
-      console.error("PDF generation failed", error);
-      alert('Failed to generate PDF');
-    } finally {
-      if (actionButtons) (actionButtons as HTMLElement).style.display = 'flex';
-      setIsExporting(false);
-    }
+  const handleDownloadPDF = () => {
+    // On mobile and desktop, print dialog provides robust 'Save as PDF'
+    window.print();
   };
 
   return (
