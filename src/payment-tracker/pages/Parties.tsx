@@ -175,11 +175,11 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
                     <div className="flex items-center justify-end gap-3">
                       {profile?.role === 'admin' && (
                         <>
-                          <button onClick={() => setEditingParty(party)} className="text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
-                          <button onClick={() => handleDeleteParty(party.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                          <button onClick={() => setEditingParty(party)} className="flex items-center text-slate-600 hover:text-indigo-600"><Edit2 className="w-4 h-4 mr-1" /> Edit</button>
+                          <button onClick={() => handleDeleteParty(party.id)} className="flex items-center text-slate-600 hover:text-red-600"><Trash2 className="w-4 h-4 mr-1" /> Delete</button>
                         </>
                       )}
-                      <button onClick={() => onNavigate('partyLedger', party.id)} className="text-indigo-600 hover:text-indigo-900 flex items-center">
+                      <button onClick={() => onNavigate('partyLedger', party.id)} className="text-indigo-600 hover:text-indigo-900 flex items-center bg-indigo-50 px-2 py-1 rounded">
                         Ledger <ChevronRight className="h-4 w-4 ml-1" />
                       </button>
                     </div>
@@ -234,16 +234,16 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
                 </div>
               </div>
               
-              <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
-                <div className="flex gap-2">
+              <div className="mt-4 pt-3 border-t border-slate-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="flex gap-2 w-full sm:w-auto">
                   {profile?.role === 'admin' && (
                     <>
-                      <button onClick={() => setEditingParty(party)} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded bg-slate-50"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => handleDeleteParty(party.id)} className="p-1.5 text-slate-400 hover:text-red-600 rounded bg-slate-50"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => setEditingParty(party)} className="flex-1 flex justify-center items-center p-2 text-slate-600 hover:text-indigo-600 rounded bg-slate-50 border border-slate-200"><Edit2 className="w-4 h-4 mr-1" /> Edit</button>
+                      <button onClick={() => handleDeleteParty(party.id)} className="flex-1 flex justify-center items-center p-2 text-slate-600 hover:text-red-600 rounded bg-slate-50 border border-slate-200"><Trash2 className="w-4 h-4 mr-1" /> Delete</button>
                     </>
                   )}
                 </div>
-                <button onClick={() => onNavigate('partyLedger', party.id)} className="inline-flex items-center text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100">
+                <button onClick={() => onNavigate('partyLedger', party.id)} className="inline-flex justify-center items-center text-sm font-medium text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 border border-indigo-100">
                   View Ledger <ChevronRight className="h-4 w-4 ml-1" />
                 </button>
               </div>
