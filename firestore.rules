@@ -86,5 +86,22 @@ service cloud.firestore {
       allow create, update: if isNonNegative(request.resource.data.wastageWeight);
       allow delete: if true;
     }
+
+    // Payment Tracker Collections
+    match /parties/{partyId} {
+      allow read, write: if true;
+    }
+    
+    match /bills/{billId} {
+      allow read, write: if true;
+    }
+    
+    match /payments/{paymentId} {
+      allow read, write: if true;
+    }
+    
+    match /allocations/{allocationId} {
+      allow read, write: if true;
+    }
   }
 }

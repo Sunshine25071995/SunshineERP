@@ -69,20 +69,21 @@ export const dbService = {
     const newPaymentRef = doc(collection(db, 'payments'));
     const paymentId = newPaymentRef.id;
     
+    // 1. Fetch all unpaid bills for this party BEFORE transaction
+    const partyBillsQuery = query(collection(db, 'bills'), where('party_id', '==', paymentData.party_id));
+    const partyBillsSnap = await getDocs(partyBillsQuery); 
+    
+    let bills = partyBillsSnap.docs.map(d => d.data() as Bill)
+      .filter(b => b.status !== 'PAID');
+    
+    // Perform allocation logic
+    const { updatedBills, remainingAdvance } = allocatePaymentFIFO(
+      paymentData.amount,
+      bills,
+      paymentData.payment_date
+    );
+
     await runTransaction(db, async (transaction) => {
-      // 1. Fetch all unpaid bills for this party
-      const partyBillsQuery = query(collection(db, 'bills'), where('party_id', '==', paymentData.party_id));
-      const partyBillsSnap = await getDocs(partyBillsQuery); 
-      
-      let bills = partyBillsSnap.docs.map(d => d.data() as Bill)
-        .filter(b => b.status !== 'PAID');
-      
-      // Perform allocation logic
-      const { updatedBills, remainingAdvance } = allocatePaymentFIFO(
-        paymentData.amount,
-        bills,
-        paymentData.payment_date
-      );
 
       // --- 1. PERFORM ALL READS ---
       // Read all bills involved
