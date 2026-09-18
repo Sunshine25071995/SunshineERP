@@ -70,19 +70,20 @@ export function Dashboard() {
   const chartData = Array.from(monthlyDataMap.values()).slice(-6);
 
   const handleWhatsApp = () => {
-    let msg = `*Business Dashboard Summary*\n`;
-    msg += `-------------------------\n`;
-    msg += `Total Sales: ₹${totalSales.toLocaleString('en-IN')}\n`;
-    msg += `Total Collection: ₹${totalReceived.toLocaleString('en-IN')}\n`;
-    msg += `Total Outstanding: ₹${totalOutstanding.toLocaleString('en-IN')}\n`;
-    msg += `This Month Sales: ₹${monthSales.toLocaleString('en-IN')}\n`;
-    msg += `-------------------------\n`;
+    let msg = `📊 *BUSINESS DASHBOARD SUMMARY* 📊\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    msg += `📈 *Total Sales:* ₹${totalSales.toLocaleString('en-IN')}\n`;
+    msg += `💰 *Total Collection:* ₹${totalReceived.toLocaleString('en-IN')}\n`;
+    msg += `🚨 *Total Outstanding:* ₹${totalOutstanding.toLocaleString('en-IN')}\n`;
+    msg += `📅 *This Month Sales:* ₹${monthSales.toLocaleString('en-IN')}\n\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     if (partyOutstanding.length > 0) {
-      msg += `*Top Receivables:*\n`;
+      msg += `\n⚠️ *TOP 3 RECEIVABLES:* ⚠️\n`;
       partyOutstanding.forEach((p, i) => {
-        msg += `${i+1}. ${p.name}: ₹${p.outstanding.toLocaleString('en-IN')}\n`;
+        msg += `${i+1}. *${p.name}:* ₹${p.outstanding.toLocaleString('en-IN')}\n`;
       });
     }
+    msg += `\n_Generated via Sunshine ERP_`;
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
   };

@@ -105,25 +105,27 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
   const totalPendingAmount = bills.reduce((sum, b) => sum + b.outstanding_amount, 0);
 
   const handleWhatsApp = () => {
-    let msg = `*Ledger Statement: ${party.party_name}*\n`;
-    msg += `-------------------------\n`;
-    msg += `Total Bills: ₹${totalBillsAmount.toLocaleString('en-IN')}\n`;
-    msg += `Total Received: ₹${totalReceivedAmount.toLocaleString('en-IN')}\n`;
-    msg += `Total Pending: ₹${totalPendingAmount.toLocaleString('en-IN')}\n`;
+    let msg = `📄 *LEDGER STATEMENT* 📄\n`;
+    msg += `👤 *Party:* ${party.party_name}\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    msg += `🧾 *Total Bills:* ₹${totalBillsAmount.toLocaleString('en-IN')}\n`;
+    msg += `💸 *Total Received:* ₹${totalReceivedAmount.toLocaleString('en-IN')}\n`;
+    msg += `🚨 *Total Pending:* ₹${totalPendingAmount.toLocaleString('en-IN')}\n`;
     if (party.advance_balance > 0) {
-      msg += `Advance Bal: ₹${party.advance_balance.toLocaleString('en-IN')}\n`;
+      msg += `💰 *Advance Bal:* ₹${party.advance_balance.toLocaleString('en-IN')}\n`;
     }
-    msg += `-------------------------\n`;
-    msg += `*Recent Entries:*\n`;
+    msg += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `*Recent Entries:*\n\n`;
     const recent = [...ledgerEntries].reverse().slice(0, 10);
     recent.forEach(e => {
-      msg += `📅 ${formatDate(e.date)} - ${e.type === 'bill' ? '🧾 Bill' : '💸 Receipt'}\n`;
+      msg += `📅 *${formatDate(e.date)}* - ${e.type === 'bill' ? '🧾 Bill' : '💸 Receipt'}\n`;
       if (e.type === 'bill') {
-        msg += `Amt: ₹${e.billAmount.toLocaleString('en-IN')} | Bal: ₹${e.balance.toLocaleString('en-IN')}\n\n`;
+        msg += `Amt: ₹${e.billAmount.toLocaleString('en-IN')} | Bal: *₹${e.balance.toLocaleString('en-IN')}*\n\n`;
       } else {
-        msg += `Amt: ₹${e.receivedAmount.toLocaleString('en-IN')} | Bal: ₹${e.balance.toLocaleString('en-IN')}\n\n`;
+        msg += `Amt: ₹${e.receivedAmount.toLocaleString('en-IN')} | Bal: *₹${e.balance.toLocaleString('en-IN')}*\n\n`;
       }
     });
+    msg += `_Generated via Sunshine ERP_`;
     
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/?text=${encoded}`, '_blank');

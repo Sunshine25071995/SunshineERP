@@ -1,8 +1,12 @@
-import { doc, getDoc, collection, query, where, getDocs, deleteDoc, runTransaction } from 'firebase/firestore';
+﻿import { doc, getDoc, collection, query, where, getDocs, deleteDoc, runTransaction } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { Party, Bill, Payment, PaymentAllocation } from './types';
 
 export const adminDbService = {
+  async deleteParty(partyId: string) {
+    // Basic delete party
+    await deleteDoc(doc(db, 'parties', partyId));
+  },
   async deletePayment(paymentId: string) {
     await runTransaction(db, async (transaction) => {
       // 1. READ ALL DATA FIRST

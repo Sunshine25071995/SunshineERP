@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'user';
+﻿export type UserRole = 'admin' | 'user';
 
 export interface UserProfile {
   id: string;
@@ -32,6 +32,7 @@ export interface Bill {
   status: 'PAID' | 'PARTIALLY PAID' | 'DUE' | 'OVERDUE';
   fully_paid_date?: number | null;
   notes: string;
+  job_card_ids?: string[];
   created_by: string;
   created_at: number;
 }
@@ -44,6 +45,7 @@ export interface Payment {
   payment_mode: string;
   reference_number: string;
   notes: string;
+  job_card_ids?: string[];
   created_by: string;
   created_at: number;
 }

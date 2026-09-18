@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { dbService } from '../db';
 import { Party, Bill } from '../types';
 import { formatCurrency, calculateDueDays } from '../utils';
-import { Plus, Search, ChevronRight } from 'lucide-react';
-
+import { Edit2, Trash2, Plus, Search, ChevronRight } from 'lucide-react';
 import { useAuth } from '../auth';
+import { adminDbService } from '../db-admin';
 
 export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string) => void }) {
   const [parties, setParties] = useState<Party[]>([]);
@@ -12,6 +12,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingParty, setEditingParty] = useState<Party | null>(null);
   const { profile } = useAuth();
 
   useEffect(() => {
@@ -72,6 +73,28 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
     
     await dbService.addParty(newParty);
     setIsAddModalOpen(false);
+    loadData();
+  }
+
+  async function handleEditParty(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!editingParty) return;
+    const formData = new FormData(e.currentTarget);
+    await dbService.updateParty(editingParty.id, {
+      party_name: formData.get('party_name') as string,
+      mobile: formData.get('mobile') as string,
+      email: formData.get('email') as string,
+      address: formData.get('address') as string,
+      gst_number: formData.get('gst_number') as string,
+      opening_balance: Number(formData.get('opening_balance')) || 0,
+    });
+    setEditingParty(null);
+    loadData();
+  }
+
+  async function handleDeleteParty(id: string) {
+    if (!window.confirm("Are you sure you want to delete this party? All related data will be orphaned.")) return;
+    await adminDbService.deleteParty(id);
     loadData();
   }
 
@@ -149,9 +172,17 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => onNavigate('partyLedger', party.id)} className="text-indigo-600 hover:text-indigo-900 flex items-center justify-end">
-                      Ledger <ChevronRight className="h-4 w-4 ml-1" />
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      {profile?.role === 'admin' && (
+                        <>
+                          <button onClick={() => setEditingParty(party)} className="text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDeleteParty(party.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                        </>
+                      )}
+                      <button onClick={() => onNavigate('partyLedger', party.id)} className="text-indigo-600 hover:text-indigo-900 flex items-center">
+                        Ledger <ChevronRight className="h-4 w-4 ml-1" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -203,7 +234,15 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
                 </div>
               </div>
               
-              <div className="mt-4 pt-3 border-t border-slate-50 flex justify-end">
+              <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
+                <div className="flex gap-2">
+                  {profile?.role === 'admin' && (
+                    <>
+                      <button onClick={() => setEditingParty(party)} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded bg-slate-50"><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteParty(party.id)} className="p-1.5 text-slate-400 hover:text-red-600 rounded bg-slate-50"><Trash2 className="w-4 h-4" /></button>
+                    </>
+                  )}
+                </div>
                 <button onClick={() => onNavigate('partyLedger', party.id)} className="inline-flex items-center text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100">
                   View Ledger <ChevronRight className="h-4 w-4 ml-1" />
                 </button>
@@ -218,50 +257,50 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
         </div>
       </div>
 
-      {isAddModalOpen && (
+      {(isAddModalOpen || editingParty) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="text-lg font-semibold text-slate-900">Add New Party</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-500">
+              <h3 className="text-lg font-semibold text-slate-900">{editingParty ? 'Edit Party' : 'Add New Party'}</h3>
+              <button onClick={() => { setIsAddModalOpen(false); setEditingParty(null); }} className="text-slate-400 hover:text-slate-500">
                 &times;
               </button>
             </div>
-            <form onSubmit={handleAddParty} className="p-6 space-y-4">
+            <form onSubmit={editingParty ? handleEditParty : handleAddParty} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Party Name *</label>
-                <input required name="party_name" type="text" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                <input required name="party_name" defaultValue={editingParty?.party_name} type="text" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Mobile</label>
-                  <input name="mobile" type="text" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                  <input name="mobile" defaultValue={editingParty?.mobile} type="text" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">GST Number</label>
-                  <input name="gst_number" type="text" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                  <input name="gst_number" defaultValue={editingParty?.gst_number} type="text" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Email</label>
-                <input name="email" type="email" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                <input name="email" defaultValue={editingParty?.email} type="email" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Address</label>
-                <textarea name="address" rows={2} className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+                <textarea name="address" defaultValue={editingParty?.address} rows={2} className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Opening Balance / Advance (₹)</label>
-                <input name="opening_balance" type="number" step="0.01" defaultValue={0} className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                <input name="opening_balance" defaultValue={editingParty?.opening_balance || 0} type="number" step="0.01" className="mt-1 block w-full rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                 <p className="text-xs text-slate-500 mt-1">Positive amount acts as an advance credit.</p>
               </div>
               
               <div className="mt-6 flex justify-end space-x-3">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">
+                <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingParty(null); }} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">
                   Cancel
                 </button>
                 <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700">
-                  Save Party
+                  {editingParty ? 'Update Party' : 'Save Party'}
                 </button>
               </div>
             </form>

@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, writeBatch, getDoc, runTransaction } from 'firebase/firestore';
+﻿import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, writeBatch, getDoc, runTransaction } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { Party, Bill, Payment, PaymentAllocation } from './types';
 import { allocatePaymentFIFO, allocateAdvanceToNewBill } from './logic';
@@ -166,6 +166,7 @@ export const dbService = {
     await updateDoc(ref, {
       ...(data.bill_number && { bill_number: data.bill_number }),
       ...(data.bill_date && { bill_date: data.bill_date }),
+      ...(data.job_card_ids !== undefined && { job_card_ids: data.job_card_ids }),
       ...(data.notes !== undefined && { notes: data.notes })
     });
   },

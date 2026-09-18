@@ -36,7 +36,6 @@ export function Reports() {
 
   if (loading) return <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
 
-  // Generate data based on report type
   let reportData: any[] = [];
   let tableHeaders: string[] = [];
   
@@ -53,9 +52,10 @@ export function Reports() {
         received: formatCurrency(received),
         outstanding: formatCurrency(outstanding),
         advance: formatCurrency(party.advance_balance || 0),
-        rawOut: outstanding
+        rawOut: outstanding,
+        rawAdv: party.advance_balance || 0
       };
-    }).filter(p => p.rawOut > 0 || p.advance !== '₹0.00'); // only show those with balance
+    }).filter(p => p.rawOut > 0 || p.rawAdv > 0);
   } else if (reportType === 'sales') {
     tableHeaders = ['Date', 'Bill No', 'Party', 'Amount', 'Status'];
     reportData = bills.map(b => ({
@@ -81,17 +81,13 @@ export function Reports() {
     doc.text(`Payment & Sales Tracker - ${reportType.toUpperCase()} REPORT`, 14, 15);
     doc.text(`Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 22);
     
-    // Only include visible columns (exclude internal fields like rawOut)
     const visibleKeys = tableHeaders.length;
     autoTable(doc, {
       startY: 30,
       head: [tableHeaders],
-      body: reportData.map(row => {
-        const values = Object.values(row);
-        return values.slice(0, visibleKeys);
-      }),
+      body: reportData.map(row => Object.values(row).slice(0, visibleKeys)),
       styles: { fontSize: 9 },
-      headStyles: { fillColor: [79, 70, 229] } // indigo-600
+      headStyles: { fillColor: [79, 70, 229] }
     });
     
     doc.save(`${reportType}-report.pdf`);
@@ -102,21 +98,25 @@ export function Reports() {
   };
 
   const shareWhatsApp = () => {
-    let text = `*Payment & Sales Tracker - ${reportType.toUpperCase()} REPORT*\n`;
-    text += `Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}\n\n`;
+    let text = `📄 *REPORT: ${reportType.toUpperCase()}*\n`;
+    text += `📅 *Generated:* ${format(new Date(), 'dd/MM/yyyy HH:mm')}\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    // Add header row
-    text += tableHeaders.join(' | ') + '\n';
-    text += '─'.repeat(40) + '\n';
-
-    reportData.forEach(row => {
+    reportData.forEach((row, i) => {
+      text += `🔹 *Entry ${i+1}:*\n`;
       const values = Object.values(row).slice(0, tableHeaders.length);
-      text += values.join(' | ') + '\n';
+      tableHeaders.forEach((header, index) => {
+        text += `▪️ *${header}:* ${values[index]}\n`;
+      });
+      text += `\n`;
     });
 
     if (reportData.length === 0) {
-      text += 'No data available.\n';
+      text += 'No data available.\n\n';
     }
+    
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `_Generated via Sunshine ERP_`;
 
     const encoded = encodeURIComponent(text);
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
@@ -145,39 +145,40 @@ export function Reports() {
           <select 
             value={reportType} 
             onChange={(e) => setReportType(e.target.value)}
-            className="block w-64 rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="block w-full sm:w-64 rounded-lg border-slate-300 py-2 px-3 text-sm border focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="outstanding">Party Outstanding Report</option>
             <option value="sales">Sales Register</option>
-            <option value="collections">Collection Report</option>
+            <option value="collections">Collection Register</option>
           </select>
         </div>
       </div>
 
-      {/* Printable Area */}
-      <div className="bg-white shadow-sm rounded-2xl border border-slate-100 overflow-hidden" id="printable-area">
-        {/* Desktop Table View */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
                 {tableHeaders.map((h, i) => (
-                  <th key={i} scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th key={i} scope="col" className={`px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider ${i === 0 ? 'text-left' : 'text-right'}`}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
-              {reportData.map((row, idx) => (
-                <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                  {Object.values(row).slice(0, tableHeaders.length).map((val: any, j) => (
-                    <td key={j} className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                      {val}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+              {reportData.map((row, idx) => {
+                const values = Object.values(row).slice(0, tableHeaders.length);
+                return (
+                  <tr key={idx} className="hover:bg-slate-50">
+                    {values.map((v: any, i) => (
+                      <td key={i} className={`px-6 py-4 whitespace-nowrap text-sm ${i === 0 ? 'text-slate-900 font-medium text-left' : 'text-slate-500 text-right'}`}>
+                        {v}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
               {reportData.length === 0 && (
                 <tr>
                   <td colSpan={tableHeaders.length} className="px-6 py-12 text-center text-sm text-slate-500">
@@ -189,18 +190,22 @@ export function Reports() {
           </table>
         </div>
 
-        {/* Mobile Card View */}
         <div className="md:hidden divide-y divide-slate-100">
           {reportData.map((row, idx) => {
             const values = Object.values(row).slice(0, tableHeaders.length);
             return (
-              <div key={idx} className="p-4 bg-white hover:bg-slate-50 transition-colors space-y-2">
-                {tableHeaders.map((h, j) => (
-                  <div key={j} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
-                    <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">{h}</span>
-                    <span className="font-semibold text-slate-900 text-sm text-right">{values[j] as string}</span>
-                  </div>
-                ))}
+              <div key={idx} className="p-4 hover:bg-slate-50">
+                <div className="font-semibold text-slate-900 text-base mb-3 border-b border-slate-100 pb-2">
+                  {values[0]}
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {tableHeaders.slice(1).map((header, i) => (
+                    <div key={i}>
+                      <p className="text-slate-500 text-xs">{header}</p>
+                      <p className="font-medium text-slate-900">{values[i + 1]}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })}
