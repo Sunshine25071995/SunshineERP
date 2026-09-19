@@ -24,7 +24,7 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
     { role: 'assistant', text: '🎤 Namaste! Bolein kya karna hai.\n\nExamples:\n• "67.500 ka roll add karo"\n• "35.500 wastage add karo"\n• "Label Graphic ke 50000 aaye"\n• "Label Graphic ka WhatsApp report bhejo"', ts: Date.now() }
   ]);
   const [parties, setParties] = useState<any[]>([]);
-  const { state, setState, transcript, setTranscript, isSupported, startListening, stopListening, speak } = useVoiceAssistant();
+  const { state, setState, startListening, stopListening, playAudioBase64 } = useVoiceAssistant();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isListening = state === 'listening';
   const isProcessing = state === 'processing';
@@ -52,12 +52,10 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
 
     try {
       setState('listening');
-      const userText = await startListening();
-      if (!userText.trim()) return;
+      const base64Audio = await startListening();
+      if (!base64Audio) return;
 
-      addMessage('user', `🎤 ${userText}`);
       setState('processing');
-      setTranscript('');
 
       const context: VoiceContext = {
         currentUser: {
@@ -71,19 +69,30 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
         paymentParties: parties,
       };
 
-      const action = await parseVoiceCommand(userText, context);
-      const result = await executeAction(action, context);
+      // Import the new audio parsing function
+      const { parseVoiceCommandAudio, generateAudioResponse } = await import('../services/voiceAgent');
+      
+      const { action, transcript } = await parseVoiceCommandAudio(base64Audio, 'audio/webm', context);
+      addMessage('user', `🎤 ${transcript}`);
 
+      const result = await executeAction(action, context);
       addMessage('assistant', result);
-      speak(result.replace(/[*✅❌📤➡️]/gu, ''));
+
+      // Generate and play audio response
+      const responseAudio = await generateAudioResponse(result);
+      if (responseAudio) {
+        playAudioBase64(responseAudio);
+      } else {
+        setState('idle');
+      }
     } catch (err: any) {
       const errMsg = err?.message?.includes('not-allowed')
-        ? '❌ Microphone permission denied. Please allow microphone access in browser settings.'
+        ? '❌ Microphone permission denied.'
         : `❌ Error: ${err?.message || 'Unknown error'}`;
       addMessage('assistant', errMsg);
       setState('idle');
     }
-  }, [isListening, isProcessing, startListening, stopListening, setState, currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties]);
+  }, [isListening, isProcessing, startListening, stopListening, setState, playAudioBase64, currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties]);
 
   const handleTextSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,8 +115,18 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
     const action = await parseVoiceCommand(text, context);
     const result = await executeAction(action, context);
     addMessage('assistant', result);
-    setState('idle');
-  }, [currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties]);
+    
+    // Play text-to-speech
+    const { generateAudioResponse } = await import('../services/voiceAgent');
+    const responseAudio = await generateAudioResponse(result);
+    if (responseAudio) {
+      playAudioBase64(responseAudio);
+    } else {
+      setState('idle');
+    }
+  }, [currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties, playAudioBase64, setState]);
+
+  const isSupported = !!navigator.mediaDevices?.getUserMedia;
 
   if (!isSupported && !isOpen) {
     return null; // Silently hide on unsupported browsers
@@ -165,10 +184,10 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
               </button>
             </div>
 
-            {/* Live Transcript */}
-            {transcript && (
+            {/* Live Transcript placeholder */}
+            {state === 'processing' && (
               <div className="px-4 py-2 bg-blue-50 border-b border-blue-100 text-sm text-blue-700 italic">
-                🎤 "{transcript}"
+                🤔 Samajh raha hoon...
               </div>
             )}
 

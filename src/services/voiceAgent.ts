@@ -57,6 +57,55 @@ RULES:
 - For payments, if mode not specified, default to "bank"
 - reportType "ledger" = party-specific ledger, "daily" = today's production, "summary" = overall`;
 
+export async function parseVoiceCommandAudio(
+  base64Audio: string,
+  mimeType: string,
+  context: VoiceContext
+): Promise<{ action: VoiceAction, transcript: string }> {
+  const today = new Date().toISOString().split('T')[0];
+  const contextStr = `
+Current user: ${context.currentUser.loginId} | Shift: ${context.currentUser.shift || 'A'} | Dept: ${context.currentUser.department}
+Active Job Card: ${context.selectedJobCardCode || 'none selected'}
+Today's date: ${today}
+Payment Parties: ${context.paymentParties.slice(0, 10).map(p => p.party_name).join(', ')}
+Job Cards (active): ${context.jobCards.filter(j => j.status !== 'dispatched').slice(0, 5).map(j => `${j.jobCode}(${j.partyCode})`).join(', ')}
+`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { inlineData: { mimeType, data: base64Audio } },
+            { text: `${SYSTEM_PROMPT}\n\nCONTEXT:\n${contextStr}\n\nListen to the audio. First output the user's transcript in Hindi/English, then a newline, then Return JSON:` }
+          ]
+        }
+      ],
+      config: { temperature: 0.1, maxOutputTokens: 512 }
+    });
+
+    const raw = response.text?.trim() || '';
+    
+    // The response should have text then JSON.
+    const jsonStart = raw.indexOf('{');
+    if (jsonStart === -1) throw new Error("No JSON found");
+    
+    const transcript = raw.substring(0, jsonStart).trim();
+    const jsonStr = raw.substring(jsonStart).replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+    const parsed = JSON.parse(jsonStr);
+    
+    if (parsed.date === undefined && (parsed.type === 'add_production_roll' || parsed.type === 'add_wastage')) {
+      parsed.date = today;
+    }
+    return { action: parsed as VoiceAction, transcript: transcript || 'Audio understood.' };
+  } catch (err) {
+    console.error('Voice audio parse error', err);
+    return { action: { type: 'unknown', message: 'Samajh nahi aaya. Dobara bolein.' }, transcript: 'Error parsing audio.' };
+  }
+}
+
 export async function parseVoiceCommand(
   transcript: string,
   context: VoiceContext
@@ -205,4 +254,32 @@ export async function executeAction(
     default:
       return (action as any).message || 'Samajh nahi aaya. Dobara bolein.';
   }
+}
+
+export async function generateAudioResponse(text: string): Promise<string | null> {
+  try {
+    const cleanText = text.replace(/[*✅❌📤➡️]/gu, '').trim();
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: cleanText,
+      config: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: 'Aoede'
+            }
+          }
+        }
+      }
+    });
+
+    const audioPart = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+    if (audioPart) {
+      return audioPart.inlineData.data; // Base64 string
+    }
+  } catch (err) {
+    console.error('Audio generation error', err);
+  }
+  return null;
 }

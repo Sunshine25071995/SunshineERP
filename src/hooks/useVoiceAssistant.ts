@@ -1,114 +1,59 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
-
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-  resultIndex: number;
-}
-
-interface SpeechRecognitionResult {
-  isFinal: boolean;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  [index: number]: SpeechRecognitionResult;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
+import { useState, useRef, useCallback } from 'react';
 
 export type RecognitionState = 'idle' | 'listening' | 'processing' | 'speaking';
 
 export function useVoiceAssistant() {
   const [state, setState] = useState<RecognitionState>('idle');
-  const [transcript, setTranscript] = useState('');
-  const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
-  const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
-
-  useEffect(() => {
-    const supported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-    setIsSupported(supported);
-  }, []);
-
-  const speak = useCallback((text: string) => {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = 'hi-IN';
-    utt.rate = 1.0;
-    utt.pitch = 1.0;
-    synthRef.current = utt;
-    utt.onstart = () => setState('speaking');
-    utt.onend = () => setState('idle');
-    window.speechSynthesis.speak(utt);
-  }, []);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
     }
-    setState('idle');
   }, []);
 
   const startListening = useCallback((): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        reject(new Error('Speech recognition not supported'));
-        return;
-      }
+    return new Promise(async (resolve, reject) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
 
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-      recognition.lang = 'hi-IN';
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.continuous = false;
-
-      setState('listening');
-      setTranscript('');
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let finalTranscript = '';
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
-          if (result.isFinal) {
-            finalTranscript += result[0].transcript;
-          } else {
-            interimTranscript += result[0].transcript;
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
           }
-        }
-        setTranscript(finalTranscript || interimTranscript);
-        if (finalTranscript) {
-          resolve(finalTranscript.trim());
-        }
-      };
+        };
 
-      recognition.onerror = (event: any) => {
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = () => {
+            const base64Data = (reader.result as string).split(',')[1];
+            resolve(base64Data);
+          };
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        setState('listening');
+      } catch (err) {
         setState('idle');
-        reject(new Error(event.error || 'Recognition error'));
-      };
-
-      recognition.onend = () => {
-        // If resolve was never called (no result), provide empty
-        setState(prev => prev === 'listening' ? 'idle' : prev);
-      };
-
-      recognition.start();
+        reject(err);
+      }
     });
   }, []);
 
-  return { state, setState, transcript, setTranscript, isSupported, startListening, stopListening, speak };
+  const playAudioBase64 = useCallback((base64Audio: string, mimeType: string = 'audio/wav') => {
+    setState('speaking');
+    const audio = new Audio(`data:${mimeType};base64,${base64Audio}`);
+    audio.onended = () => setState('idle');
+    audio.onerror = () => setState('idle');
+    audio.play();
+  }, []);
+
+  return { state, setState, startListening, stopListening, playAudioBase64 };
 }
