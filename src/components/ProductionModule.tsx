@@ -365,6 +365,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                   <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
                       <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Date</th>
+                        <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Shift</th>
                       <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Sr. No.</th>
                       <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Gross Wt.</th>
                       <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Core Wt.</th>
@@ -379,7 +380,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       if (isEditing) {
                         return (
                           <tr key={roll.id} className="bg-emerald-50 border border-gray-300">
-                            <td colSpan={7} className="p-2 border border-gray-300">
+                            <td colSpan={8} className="p-2 border border-gray-300">
                               <div className="flex flex-wrap gap-2 items-end">
                                 <div className="flex-1 min-w-[100px]"><FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField></div>
                                 <div className="flex-1 min-w-[100px]"><FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField></div>
@@ -397,6 +398,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       return (
                         <tr key={roll.id} className="text-center">
                           <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                            <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg text-gray-900">{roll.shift || '-'}</td>
                           <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{roll.rollNo}</td>
                           <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{formatWeight(roll.grossWeight)}</td>
                           <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{formatWeight(roll.coreWeight)}</td>
