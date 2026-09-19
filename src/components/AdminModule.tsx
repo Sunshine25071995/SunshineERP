@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User, JobCard, Chemical, ChemicalPurchase, ChemicalUsage,
   ProductionRoll, SlittingRoll, ProductionWastage, Department, Shift, JobCardStatus,
@@ -39,7 +39,7 @@ const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 
 const selectCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-black text-black focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
 
 export const AdminModule: React.FC<AdminModuleProps> = ({
-  currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages,
+  currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages, permissions,
 }) => {
   const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker'>('home');
   const [jobCardSearch, setJobCardSearch] = useState('');
@@ -324,7 +324,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             {permissions?.edit !== false && <button onClick={openJobCardCreate}
               className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-3 rounded-xl btn-press shadow-sm shrink-0">
               <Plus className="w-4 h-4" /><span className="hidden sm:inline">New Job Card</span>
-            </button>
+            </button>}
           </div>
 
           {filteredJobCards.length === 0 ? (
@@ -416,7 +416,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             {permissions?.edit !== false && <button onClick={openUserCreate}
               className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl btn-press shadow-sm">
               <Plus className="w-3.5 h-3.5" /><span>Add User</span>
-            </button>
+            </button>}
           </div>
           <div className="app-card overflow-hidden">
             {users.length === 0 ? (

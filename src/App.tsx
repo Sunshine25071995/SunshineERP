@@ -20,6 +20,7 @@ import { ProductionModule } from './components/ProductionModule';
 import { SlittingModule } from './components/SlittingModule';
 import { PaymentTrackerModule } from './payment-tracker/PaymentTrackerModule';
 import { getUserPermissions } from './utils/permissions';
+import { VoiceAssistant } from './components/VoiceAssistant';
 
 export default function App() {
   const [isLive, setIsLive] = useState(false);
@@ -62,85 +63,61 @@ export default function App() {
     let unsubs: (() => void)[] = [];
 
     try {
-      // 1. Users
       const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
         const list: User[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as User);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as User); });
         setUsers(list);
         setIsLive(true);
       });
       unsubs.push(unsubUsers);
 
-      // 2. Job Cards
       const unsubJc = onSnapshot(collection(db, 'jobCards'), (snapshot) => {
         const list: JobCard[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as JobCard);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as JobCard); });
         setJobCards(list);
       });
       unsubs.push(unsubJc);
 
-      // 3. Chemicals
       const unsubChem = onSnapshot(collection(db, 'chemicals'), (snapshot) => {
         const list: Chemical[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as Chemical);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as Chemical); });
         setChemicals(list);
       });
       unsubs.push(unsubChem);
 
-      // 4. Chemical Purchases
       const unsubPurch = onSnapshot(collection(db, 'chemicalPurchases'), (snapshot) => {
         const list: ChemicalPurchase[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as ChemicalPurchase);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as ChemicalPurchase); });
         setPurchases(list);
       });
       unsubs.push(unsubPurch);
 
-      // 5. Chemical Usages
       const unsubUsage = onSnapshot(collection(db, 'chemicalUsage'), (snapshot) => {
         const list: ChemicalUsage[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as ChemicalUsage);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as ChemicalUsage); });
         setUsages(list);
       });
       unsubs.push(unsubUsage);
 
-      // 6. Production Rolls
       const unsubProd = onSnapshot(collection(db, 'productionRolls'), (snapshot) => {
         const list: ProductionRoll[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as ProductionRoll);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as ProductionRoll); });
         list.sort((a, b) => (a.rollNo || 0) - (b.rollNo || 0));
         setProdRolls(list);
       });
       unsubs.push(unsubProd);
 
-      // 7. Slitting Rolls
       const unsubSlit = onSnapshot(collection(db, 'slittingRolls'), (snapshot) => {
         const list: SlittingRoll[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as SlittingRoll);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as SlittingRoll); });
         list.sort((a, b) => (a.rollNo || 0) - (b.rollNo || 0));
         setSlitRolls(list);
       });
       unsubs.push(unsubSlit);
 
-      // 8. Production Wastage
       const unsubWastage = onSnapshot(collection(db, 'productionWastage'), (snapshot) => {
         const list: ProductionWastage[] = [];
-        snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as ProductionWastage);
-        });
+        snapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() } as ProductionWastage); });
         setProdWastages(list);
       });
       unsubs.push(unsubWastage);
@@ -148,9 +125,7 @@ export default function App() {
       console.error('Error attaching realtime listeners:', err);
     }
 
-    return () => {
-      unsubs.forEach((unsub) => unsub());
-    };
+    return () => { unsubs.forEach((unsub) => unsub()); };
   }, []);
 
   // Update currentUser if users list changes in realtime
@@ -197,6 +172,14 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* AI Voice Assistant — always visible when logged in */}
+      {currentUser && (
+        <VoiceAssistant
+          currentUser={currentUser}
+          jobCards={jobCards}
+        />
+      )}
     </div>
   );
 }
@@ -204,14 +187,14 @@ export default function App() {
 function AppContainer(props: any) {
   const { currentUser } = props;
   const perms = getUserPermissions(currentUser);
-  
+
   const availableTabs = [];
   if (perms.admin.view) availableTabs.push({ id: 'admin', label: 'Dashboard' });
   if (perms.payments.view) availableTabs.push({ id: 'payments', label: 'Payments' });
   if (perms.production.view) availableTabs.push({ id: 'production', label: 'Production' });
   if (perms.slitting.view) availableTabs.push({ id: 'slitting', label: 'Slitting' });
   if (perms.chemical.view) availableTabs.push({ id: 'chemical', label: 'Chemicals' });
-  
+
   const [activeTab, setActiveTab] = useState(availableTabs.length > 0 ? availableTabs[0].id : '');
 
   if (availableTabs.length === 0) {
