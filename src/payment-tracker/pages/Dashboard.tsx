@@ -5,7 +5,6 @@ import { formatCurrency } from '../utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { IndianRupee, AlertCircle, Share2, ReceiptText, TrendingUp, Users } from 'lucide-react';
 import { format, isThisMonth } from 'date-fns';
-import html2canvas from 'html2canvas';
 
 export function Dashboard() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -37,7 +36,7 @@ export function Dashboard() {
   }, []);
 
   if (loading) {
-    return <div className="flex h-full items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
+    return <div className="w-full flex h-full items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
   }
 
   const totalSales = bills.reduce((sum, b) => sum + b.bill_amount, 0);
@@ -89,10 +88,10 @@ export function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] max-w-5xl mx-auto space-y-3 sm:space-y-4" ref={dashboardRef}>
+    <div className="w-full flex flex-col h-[calc(100vh-5rem)] space-y-3 sm:space-y-4" ref={dashboardRef}>
       {/* Header */}
-      <div className="flex items-center justify-between shrink-0 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-100">
-        <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+      <div className="w-full flex items-center justify-between shrink-0 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-100">
+        <h1 className="text-lg font-black text-slate-900 flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-indigo-500" />
           Dashboard Overview
         </h1>
@@ -100,7 +99,7 @@ export function Dashboard() {
           <button 
             onClick={handleWhatsApp}
             disabled={isExporting}
-            className="flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-emerald-500 text-white rounded-xl px-4 py-2 font-bold hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50"
           >
             <Share2 className="h-4 w-4" /> 
             <span className="hidden sm:inline">{isExporting ? 'Sharing...' : 'WhatsApp'}</span>
@@ -110,13 +109,13 @@ export function Dashboard() {
       </div>
 
       {/* 4 Main Metrics in a compact grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-        <div className="bg-gradient-to-br from-rose-50 to-rose-100/50 p-3 sm:p-4 rounded-2xl border border-rose-100 flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-rose-600 mb-1 sm:mb-2">
+      <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
+        <div className="bg-red-50 p-3 sm:p-4 rounded-2xl border border-red-200 flex flex-col justify-between">
+          <div className="flex items-center gap-2 text-red-700 mb-1 sm:mb-2">
             <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="text-xs sm:text-sm font-semibold">Receivable</span>
           </div>
-          <span className="text-lg sm:text-2xl font-bold text-slate-900 truncate">{formatCurrency(totalOutstanding)}</span>
+          <span className="text-2xl sm:text-3xl font-black text-red-600 truncate">{formatCurrency(totalOutstanding)}</span>
         </div>
         
         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-3 sm:p-4 rounded-2xl border border-emerald-100 flex flex-col justify-between">
@@ -145,7 +144,7 @@ export function Dashboard() {
       </div>
 
       {/* Main Content Area: Chart and Top Receivables */}
-      <div className="flex flex-col lg:flex-row gap-3 flex-1 min-h-0">
+      <div className="w-full flex flex-col lg:flex-row gap-3 flex-1 min-h-0">
         
         {/* Chart Section */}
         <div className="flex-1 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col min-h-[180px]">
@@ -155,9 +154,9 @@ export function Dashboard() {
               <BarChart data={chartData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} dy={5} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} tickFormatter={(val) => `₹${val/1000}k`} />
-                <RechartsTooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => formatCurrency(value)} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                <Bar dataKey="sales" name="Sales" fill="#818CF8" radius={[3, 3, 0, 0]} maxBarSize={40} />
-                <Bar dataKey="collection" name="Collection" fill="#34D399" radius={[3, 3, 0, 0]} maxBarSize={40} />
+                <RechartsTooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => formatCurrency(value)} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                <Bar dataKey="sales" name="Sales" fill="#818CF8" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="collection" name="Collection" fill="#34D399" radius={[4, 4, 0, 0]} maxBarSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -173,9 +172,9 @@ export function Dashboard() {
           <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
             {partyOutstanding.length > 0 ? (
               partyOutstanding.map((party, idx) => (
-                <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div key={idx} className="flex justify-between items-center p-3 rounded-2xl bg-slate-50 border border-slate-100">
                   <span className="text-xs sm:text-sm font-medium text-slate-700 truncate pr-2">{party.name}</span>
-                  <span className="text-xs sm:text-sm font-bold text-rose-600 shrink-0">{formatCurrency(party.outstanding)}</span>
+                  <span className="text-sm sm:text-base font-black text-rose-600 shrink-0">{formatCurrency(party.outstanding)}</span>
                 </div>
               ))
             ) : (
