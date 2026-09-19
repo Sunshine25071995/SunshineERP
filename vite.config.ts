@@ -12,6 +12,9 @@ export default defineConfig(() => {
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg'],
+        workbox: {
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 // 5 MB
+        },
         manifest: {
           name: 'Sunshine ERP',
           short_name: 'Sunshine',
