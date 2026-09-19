@@ -8,7 +8,7 @@ async function test() {
   try {
     console.log("Generating audio...");
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.6-flash',
       contents: 'Namaste! Main sunshine ki assistant hu. Kya madad kar sakti hu?',
       config: {
         responseModalities: ['AUDIO'],

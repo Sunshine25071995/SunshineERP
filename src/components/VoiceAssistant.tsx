@@ -24,7 +24,7 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
     { role: 'assistant', text: '🎤 Namaste! Bolein kya karna hai.\n\nExamples:\n• "67.500 ka roll add karo"\n• "35.500 wastage add karo"\n• "Label Graphic ke 50000 aaye"\n• "Label Graphic ka WhatsApp report bhejo"', ts: Date.now() }
   ]);
   const [parties, setParties] = useState<any[]>([]);
-  const { state, setState, startListening, stopListening, playAudioBase64 } = useVoiceAssistant();
+  const { state, setState, startListening, stopListening, playAudioBase64, speak } = useVoiceAssistant();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isListening = state === 'listening';
   const isProcessing = state === 'processing';
@@ -83,16 +83,17 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
       if (responseAudio) {
         playAudioBase64(responseAudio);
       } else {
-        setState('idle');
+        speak(result.replace(/[*✅❌📤➡️]/gu, ''));
       }
     } catch (err: any) {
       const errMsg = err?.message?.includes('not-allowed')
         ? '❌ Microphone permission denied.'
         : `❌ Error: ${err?.message || 'Unknown error'}`;
       addMessage('assistant', errMsg);
+      speak('Error occurred');
       setState('idle');
     }
-  }, [isListening, isProcessing, startListening, stopListening, setState, playAudioBase64, currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties]);
+  }, [isListening, isProcessing, startListening, stopListening, setState, playAudioBase64, speak, currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties]);
 
   const handleTextSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -122,9 +123,9 @@ export function VoiceAssistant({ currentUser, jobCards, selectedJobCardId, selec
     if (responseAudio) {
       playAudioBase64(responseAudio);
     } else {
-      setState('idle');
+      speak(result.replace(/[*✅❌📤➡️]/gu, ''));
     }
-  }, [currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties, playAudioBase64, setState]);
+  }, [currentUser, jobCards, selectedJobCardId, selectedJobCardCode, parties, playAudioBase64, speak, setState]);
 
   const isSupported = !!navigator.mediaDevices?.getUserMedia;
 

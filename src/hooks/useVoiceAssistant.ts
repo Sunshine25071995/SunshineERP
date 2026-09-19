@@ -55,5 +55,14 @@ export function useVoiceAssistant() {
     audio.play();
   }, []);
 
-  return { state, setState, startListening, stopListening, playAudioBase64 };
+  const speak = useCallback((text: string) => {
+    setState('speaking');
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'hi-IN';
+    u.onend = () => setState('idle');
+    u.onerror = () => setState('idle');
+    window.speechSynthesis.speak(u);
+  }, []);
+
+  return { state, setState, startListening, stopListening, playAudioBase64, speak };
 }
