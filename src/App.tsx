@@ -18,6 +18,8 @@ import { AdminModule } from './components/AdminModule';
 import { ChemicalModule } from './components/ChemicalModule';
 import { ProductionModule } from './components/ProductionModule';
 import { SlittingModule } from './components/SlittingModule';
+import { PaymentTrackerModule } from './payment-tracker/PaymentTrackerModule';
+import { getUserPermissions } from './utils/permissions';
 
 export default function App() {
   const [isLive, setIsLive] = useState(false);
@@ -182,52 +184,65 @@ export default function App() {
         {!currentUser ? (
           <LoginModal users={users} onLogin={handleLogin} />
         ) : (
-          <div>
-            {currentUser.department === 'admin' && (
-              <AdminModule
-                currentUser={currentUser}
-                users={users}
-                jobCards={jobCards}
-                chemicals={chemicals}
-                purchases={purchases}
-                usages={usages}
-                prodRolls={prodRolls}
-                slitRolls={slitRolls}
-                prodWastages={prodWastages}
-              />
-            )}
-
-            {currentUser.department === 'chemical' && (
-              <ChemicalModule
-                currentUser={currentUser}
-                chemicals={chemicals}
-                purchases={purchases}
-                usages={usages}
-              />
-            )}
-
-            {currentUser.department === 'production' && (
-              <ProductionModule
-                currentUser={currentUser}
-                jobCards={jobCards}
-                prodRolls={prodRolls}
-                prodWastages={prodWastages}
-                slitRolls={slitRolls}
-              />
-            )}
-
-            {currentUser.department === 'slitting' && (
-              <SlittingModule
-                currentUser={currentUser}
-                jobCards={jobCards}
-                prodRolls={prodRolls}
-                slitRolls={slitRolls}
-                prodWastages={prodWastages}
-              />
-            )}
-          </div>
+          <AppContainer
+            currentUser={currentUser}
+            users={users}
+            jobCards={jobCards}
+            chemicals={chemicals}
+            purchases={purchases}
+            usages={usages}
+            prodRolls={prodRolls}
+            slitRolls={slitRolls}
+            prodWastages={prodWastages}
+          />
         )}
       </main>
+    </div>
+  );
+}
+
+function AppContainer(props: any) {
+  const { currentUser } = props;
+  const perms = getUserPermissions(currentUser);
+  
+  const availableTabs = [];
+  if (perms.admin.view) availableTabs.push({ id: 'admin', label: 'Dashboard' });
+  if (perms.payments.view) availableTabs.push({ id: 'payments', label: 'Payments' });
+  if (perms.production.view) availableTabs.push({ id: 'production', label: 'Production' });
+  if (perms.slitting.view) availableTabs.push({ id: 'slitting', label: 'Slitting' });
+  if (perms.chemical.view) availableTabs.push({ id: 'chemical', label: 'Chemicals' });
+  
+  const [activeTab, setActiveTab] = useState(availableTabs.length > 0 ? availableTabs[0].id : '');
+
+  if (availableTabs.length === 0) {
+    return <div className="text-center p-8 text-gray-500">You do not have permission to view any modules. Please contact an administrator.</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {availableTabs.length > 1 && (
+        <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-2">
+          {availableTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'admin' && <AdminModule {...props} />}
+      {activeTab === 'chemical' && <ChemicalModule {...props} />}
+      {activeTab === 'production' && <ProductionModule {...props} />}
+      {activeTab === 'slitting' && <SlittingModule {...props} />}
+      {activeTab === 'payments' && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 min-h-[500px]">
+          <PaymentTrackerModule />
+        </div>
+      )}
     </div>
   );
 }

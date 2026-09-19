@@ -2,13 +2,22 @@ export type Department = 'admin' | 'chemical' | 'production' | 'slitting';
 export type Shift = 'A' | 'B' | null;
 export type JobCardStatus = 'pending' | 'running' | 'completed' | 'dispatched';
 
+export interface UserPermissions {
+  admin: { view: boolean; edit: boolean };
+  chemical: { view: boolean; edit: boolean };
+  production: { view: boolean; edit: boolean };
+  slitting: { view: boolean; edit: boolean };
+  payments: { view: boolean; edit: boolean };
+}
+
 export interface User {
   id: string; // doc id
   loginId: string;
   name: string;
-  department: Department;
+  department: Department | 'custom';
   shift: Shift;
   active: boolean;
+  permissions?: UserPermissions;
 }
 
 export interface JobCard {

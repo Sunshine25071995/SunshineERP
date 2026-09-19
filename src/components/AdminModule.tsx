@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   User, JobCard, Chemical, ChemicalPurchase, ChemicalUsage,
   ProductionRoll, SlittingRoll, ProductionWastage, Department, Shift, JobCardStatus,
@@ -25,7 +25,7 @@ interface AdminModuleProps {
   usages: ChemicalUsage[];
   prodRolls: ProductionRoll[];
   slitRolls: SlittingRoll[];
-  prodWastages: ProductionWastage[];
+  prodWastages: ProductionWastage[]; permissions?: { view: boolean, edit: boolean };
 }
 
 const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
@@ -102,9 +102,16 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [uLoginId, setULoginId] = useState('');
   const [uName, setUName] = useState('');
-  const [uDept, setUDept] = useState<Department>('production');
+  const [uDept, setUDept] = useState<Department | 'custom'>('production');
   const [uShift, setUShift] = useState<Shift>('A');
   const [uActive, setUActive] = useState(true);
+  const [uPermissions, setUPermissions] = useState<any>({
+    admin: { view: false, edit: false },
+    chemical: { view: false, edit: false },
+    production: { view: false, edit: false },
+    slitting: { view: false, edit: false },
+    payments: { view: false, edit: false },
+  });
 
   // Sync state
   const [syncLoading, setSyncLoading] = useState(false);
@@ -178,13 +185,44 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
   const openUserCreate = () => {
     setEditingUser(null); setULoginId(''); setUName('');
-    setUDept('production'); setUShift('A'); setUActive(true);
+    setUDept('custom'); setUShift('A'); setUActive(true);
+    setUPermissions({
+      admin: { view: false, edit: false },
+      chemical: { view: false, edit: false },
+      production: { view: false, edit: false },
+      slitting: { view: false, edit: false },
+      payments: { view: false, edit: false },
+    });
     setShowUserModal(true);
   };
 
   const openUserEdit = (user: User) => {
     setEditingUser(user); setULoginId(user.loginId); setUName(user.name);
     setUDept(user.department); setUShift(user.shift); setUActive(user.active);
+    
+    // If user has permissions object, use it. Otherwise compute default based on department
+    if (user.permissions) {
+      setUPermissions(user.permissions);
+    } else {
+      const p = {
+        admin: { view: false, edit: false },
+        chemical: { view: false, edit: false },
+        production: { view: false, edit: false },
+        slitting: { view: false, edit: false },
+        payments: { view: false, edit: false },
+      };
+      if (user.department === 'admin') {
+        p.admin = { view: true, edit: true };
+        p.chemical = { view: true, edit: true };
+        p.production = { view: true, edit: true };
+        p.slitting = { view: true, edit: true };
+        p.payments = { view: true, edit: true };
+      } else if (user.department === 'chemical') { p.chemical = { view: true, edit: true }; }
+      else if (user.department === 'production') { p.production = { view: true, edit: true }; }
+      else if (user.department === 'slitting') { p.slitting = { view: true, edit: true }; }
+      setUPermissions(p);
+    }
+    
     setShowUserModal(true);
   };
 
@@ -195,6 +233,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     const data = {
       loginId: cleanId, name: uName.trim(), department: uDept,
       shift: uDept === 'admin' || uDept === 'chemical' ? null : uShift, active: uActive,
+      permissions: uPermissions,
     };
     try {
       if (editingUser) {
@@ -282,7 +321,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                 className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm" />
               {jobCardSearch && <button onClick={() => setJobCardSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-4 h-4" /></button>}
             </div>
-            <button onClick={openJobCardCreate}
+            {permissions?.edit !== false && <button onClick={openJobCardCreate}
               className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-3 rounded-xl btn-press shadow-sm shrink-0">
               <Plus className="w-4 h-4" /><span className="hidden sm:inline">New Job Card</span>
             </button>
@@ -374,7 +413,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
         <div className="space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">System Users</p>
-            <button onClick={openUserCreate}
+            {permissions?.edit !== false && <button onClick={openUserCreate}
               className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl btn-press shadow-sm">
               <Plus className="w-3.5 h-3.5" /><span>Add User</span>
             </button>
@@ -636,18 +675,46 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             <form onSubmit={handleSaveUser} className="p-5 space-y-4">
               <FormField label="Login ID"><input type="text" placeholder="e.g. worker001" value={uLoginId} onChange={e => setULoginId(e.target.value)} required className={inputCls} autoCapitalize="none" /></FormField>
               <FormField label="Full Name"><input type="text" placeholder="e.g. Ramesh Kumar" value={uName} onChange={e => setUName(e.target.value)} required className={inputCls} /></FormField>
-              <FormField label="Department">
-                <select value={uDept} onChange={e => setUDept(e.target.value as Department)} className={selectCls}>
+              <FormField label="Department / Role">
+                <select value={uDept} onChange={e => setUDept(e.target.value as any)} className={selectCls}>
                   <option value="production">Production</option>
                   <option value="slitting">Slitting</option>
                   <option value="chemical">Chemical</option>
                   <option value="admin">Admin</option>
+                  <option value="custom">Custom Permissions</option>
                 </select>
               </FormField>
-              {(uDept === 'production' || uDept === 'slitting') && (
-                <FormField label="Shift">
-                  <select value={uShift} onChange={e => setUShift(e.target.value as Shift)} className={selectCls}>
-                    <option value="A">Shift A</option><option value="B">Shift B</option><option value="C">Shift C</option>
+
+              {uDept === 'custom' && (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Module Permissions</label>
+                  <div className="space-y-3">
+                    {['admin', 'payments', 'production', 'slitting', 'chemical'].map(mod => (
+                      <div key={mod} className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-gray-700 capitalize">{mod === 'admin' ? 'App Dashboard' : mod}</span>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-1 text-sm text-gray-600">
+                            <input type="checkbox" checked={uPermissions[mod].view} onChange={e => setUPermissions({...uPermissions, [mod]: {...uPermissions[mod], view: e.target.checked}})} className="rounded border-gray-300 text-blue-600" />
+                            View
+                          </label>
+                          <label className="flex items-center gap-1 text-sm text-gray-600">
+                            <input type="checkbox" checked={uPermissions[mod].edit} onChange={e => setUPermissions({...uPermissions, [mod]: {...uPermissions[mod], edit: e.target.checked}})} className="rounded border-gray-300 text-blue-600" />
+                            Edit
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(uDept === 'production' || uDept === 'slitting' || uDept === 'custom') && (
+                <FormField label="Shift (Optional)">
+                  <select value={uShift || ''} onChange={e => setUShift(e.target.value as Shift)} className={selectCls}>
+                    <option value="">No Shift</option>
+                    <option value="A">Shift A</option>
+                    <option value="B">Shift B</option>
+                    <option value="C">Shift C</option>
                   </select>
                 </FormField>
               )}
