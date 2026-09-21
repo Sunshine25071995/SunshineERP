@@ -46,8 +46,8 @@ export function Bills() {
   }
 
   const filteredBills = bills.filter(b => 
-    b.bill_number.toLowerCase().includes(search.toLowerCase()) ||
-    parties.find(p => p.id === b.party_id)?.party_name.toLowerCase().includes(search.toLowerCase())
+    String(b.bill_number || '').toLowerCase().includes(search.toLowerCase()) ||
+    String(parties.find(p => p.id === b.party_id)?.party_name || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const toggleJobCardSelection = (id: string) => {

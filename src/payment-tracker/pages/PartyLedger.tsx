@@ -141,12 +141,12 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
     doc.text('PAYMENTS RECEIVED', margin + 4, tableStartY - 1.5);
 
     const paymentRows = payments.map(p => [
-      format(new Date(p.payment_date), 'dd/MM/yy'),
-      p.payment_mode,
+      format(new Date(p.payment_date), 'dd/MM/yy') || '',
+      p.payment_mode || '',
       p.reference_number || '-',
-      formatCurrency(p.amount),
+      formatCurrency(p.amount) || '',
     ]);
-    const paymentTotal = formatCurrency(totalReceivedAmount);
+    const paymentTotal = formatCurrency(totalReceivedAmount) || '';
 
     autoTable(doc, {
       startY: tableStartY,
@@ -173,12 +173,12 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
       const dueDays = calculateDueDays(b.bill_date, b.fully_paid_date);
       const isCleared = b.outstanding_amount <= 0;
       return [
-        format(new Date(b.bill_date), 'dd/MM/yy'),
-        b.bill_number,
-        formatCurrency(b.bill_amount),
-        formatCurrency(b.outstanding_amount),
-        `${dueDays}d${isCleared ? ' ✓' : ''}`,
-        b.status,
+        format(new Date(b.bill_date), 'dd/MM/yy') || '',
+        b.bill_number || '',
+        formatCurrency(b.bill_amount) || '',
+        formatCurrency(b.outstanding_amount) || '',
+        `${dueDays}d${isCleared ? ' ✓' : ''}` || '',
+        b.status || '',
       ];
     });
 
@@ -188,7 +188,7 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
       tableWidth: colW,
       head: [['Date', 'Bill No', 'Amount', 'Outstanding', 'Due Days', 'Status']],
       body: billRows,
-      foot: [['', 'TOTAL', formatCurrency(totalBillsAmount), formatCurrency(totalPendingAmount), '', '']],
+      foot: [['', 'TOTAL', formatCurrency(totalBillsAmount) || '', formatCurrency(totalPendingAmount) || '', '', '']],
       styles: { fontSize: 7.5, cellPadding: 2 },
       headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
       footStyles: { fillColor: [238, 242, 255], textColor: [67, 56, 202], fontStyle: 'bold' },
@@ -199,7 +199,7 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
       alternateRowStyles: { fillColor: [245, 243, 255] },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index === 5) {
-          const status = data.cell.raw as string;
+          const status = (data.cell.raw || '') as string;
           if (status === 'PAID') data.cell.styles.textColor = [5, 150, 105];
           else if (status === 'OVERDUE' || status === 'DUE') data.cell.styles.textColor = [220, 38, 38];
           else data.cell.styles.textColor = [99, 102, 241];

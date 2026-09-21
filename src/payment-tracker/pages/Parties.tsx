@@ -59,7 +59,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
     };
   });
 
-  const filteredParties = partyStats.filter(p => p.party_name.toLowerCase().includes(search.toLowerCase()));
+  const filteredParties = partyStats.filter(p => String(p.party_name || '').toLowerCase().includes(search.toLowerCase()));
 
   async function handleAddParty(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

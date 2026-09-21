@@ -34,7 +34,7 @@ export function Payments() {
   }
 
   const filteredPayments = payments.filter(p => 
-    parties.find(pt => pt.id === p.party_id)?.party_name.toLowerCase().includes(search.toLowerCase())
+    String(parties.find(pt => pt.id === p.party_id)?.party_name || '').toLowerCase().includes(search.toLowerCase())
   );
 
   async function handleAddPayment(e: React.FormEvent<HTMLFormElement>) {

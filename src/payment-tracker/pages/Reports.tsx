@@ -199,15 +199,18 @@ export function Reports() {
         alternateRowStyles: { fillColor: [245, 243, 255] },
       });
     } else if (reportType === 'sales') {
-      const rows = reportRows.map(r => [
-        format(r.date, 'dd/MM/yy'),
-        r.billNo,
-        r.party,
-        formatCurrency(r.amount),
-        formatCurrency(r.paid),
-        formatCurrency(r.outstanding),
-        r.status,
-      ]);
+      const rows = reportRows.map(row => {
+        const b = row as any;
+        return [
+          format(b.date, 'dd/MM/yy') || '',
+          b.billNo || '',
+          b.party || '',
+          formatCurrency(b.amount) || '',
+          formatCurrency(b.paid) || '',
+          formatCurrency(b.outstanding) || '',
+          b.status || ''
+        ];
+      });
       autoTable(doc, {
         startY: tableStartY,
         margin: { left: margin, right: margin },

@@ -58,10 +58,10 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
     return (
-      (jc.jobCode || '').toLowerCase().includes(q) ||
-      (jc.partyCode || '').toLowerCase().includes(q) ||
-      (jc.size || '').toLowerCase().includes(q) ||
-      (jc.status || '').toLowerCase().includes(q)
+      String(jc.jobCode || '').toLowerCase().includes(q) ||
+      String(jc.partyCode || '').toLowerCase().includes(q) ||
+      String(jc.size || '').toLowerCase().includes(q) ||
+      String(jc.status || '').toLowerCase().includes(q)
     );
   });
 
