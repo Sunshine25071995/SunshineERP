@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, JobCard, ProductionRoll, ProductionWastage, SlittingRoll } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { Layers, Plus, Trash2, Edit2, Check, X, Search, ChevronRight, FileText } from 'lucide-react';
@@ -186,12 +186,10 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
     }
   };
 
-  // ── VIEW A: JOB CARD LIST ────────────────────────────────────
   if (!selectedJobCard) {
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
-
           <div className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full">
             Shift {currentUser.shift || 'A'}
           </div>
@@ -271,10 +269,8 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
     );
   }
 
-  // ── VIEW B: DETAIL ───────────────────────────────────────────
   return (
     <div className="space-y-4 animate-slide-up">
-      {/* Job Header */}
       <div className="app-card p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -312,7 +308,6 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
         </div>
       </div>
 
-      {/* Tab Switcher */}
       <div className="bg-gray-100 p-1 rounded-2xl flex gap-1">
         {(['rolls', 'wastage'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
@@ -326,7 +321,6 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
 
       {activeTab === 'rolls' && (
         <div className="space-y-4 animate-fade-in">
-          {/* Add Roll Form */}
           <div className="app-card p-4">
             <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Plus className="w-4 h-4 text-emerald-600" />
@@ -353,7 +347,6 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
             </form>
           </div>
 
-          {/* Rolls List */}
           {activeProdRolls.length > 0 && (
             <div className="app-card overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
@@ -364,14 +357,14 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
-                      <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Date</th>
-                        <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Shift</th>
-                      <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Sr. No.</th>
-                      <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Gross Wt.</th>
-                      <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Core Wt.</th>
-                      <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Net Wt.</th>
-                      <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Joints</th>
-                      <th className="px-1.5 py-0 px-1 border border-gray-300 whitespace-nowrap text-base sm:text-lg font-bold text-gray-900">Actions</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Date</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Shift</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Sr. No.</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Gross Wt.</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Core Wt.</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Net Wt.</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Joints</th>
+                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -380,15 +373,15 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       if (isEditing) {
                         return (
                           <tr key={roll.id} className="bg-emerald-50 border border-gray-300">
-                            <td colSpan={8} className="p-2 border border-gray-300">
-                              <div className="flex flex-wrap gap-2 items-end">
-                                <div className="flex-1 min-w-[100px]"><FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField></div>
-                                <div className="flex-1 min-w-[100px]"><FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField></div>
-                                <div className="w-20"><FormField label="Joints"><input type="number" value={editJoints} onChange={e => setEditJoints(e.target.value)} className={inputCls} /></FormField></div>
-                                <div className="w-32"><FormField label="Date"><input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className={inputCls} /></FormField></div>
+                            <td colSpan={8} className="p-1 border border-gray-300">
+                              <div className="flex flex-wrap gap-1 items-end">
+                                <div className="flex-1 min-w-[70px]"><FormField label="Gross Wt"><input type="number" step="0.001" value={editGross} onChange={e => setEditGross(e.target.value)} className={inputCls} /></FormField></div>
+                                <div className="flex-1 min-w-[70px]"><FormField label="Core Wt"><input type="number" step="0.001" value={editCore} onChange={e => setEditCore(e.target.value)} className={inputCls} /></FormField></div>
+                                <div className="w-16"><FormField label="Joints"><input type="number" value={editJoints} onChange={e => setEditJoints(e.target.value)} className={inputCls} /></FormField></div>
+                                <div className="w-24"><FormField label="Date"><input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className={inputCls} /></FormField></div>
                                 <div className="flex gap-1">
-                                  <button onClick={() => handleUpdateRoll(roll.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-lg btn-press"><Check className="w-4 h-4" /></button>
-                                  <button onClick={() => setEditingRollId(null)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 p-2.5 rounded-lg btn-press"><X className="w-4 h-4" /></button>
+                                  <button onClick={() => handleUpdateRoll(roll.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg btn-press"><Check className="w-4 h-4" /></button>
+                                  <button onClick={() => setEditingRollId(null)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 p-2 rounded-lg btn-press"><X className="w-4 h-4" /></button>
                                 </div>
                               </div>
                             </td>
@@ -396,15 +389,15 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                         );
                       }
                       return (
-                        <tr key={roll.id} className="text-center">
-                          <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap">{formatToDDMM(roll.date)}</td>
-                            <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg text-gray-900">{roll.shift || '-'}</td>
-                          <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{roll.rollNo}</td>
-                          <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{formatWeight(roll.grossWeight)}</td>
-                          <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{formatWeight(roll.coreWeight)}</td>
-                          <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono text-base sm:text-lg font-bold text-gray-900 font-bold">{formatWeight(roll.netWeight)}</td>
-                          <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{roll.joints > 0 ? roll.joints : '-'}</td>
-                          <td className="px-1.5 py-0 px-1 border border-gray-300 text-base sm:text-lg font-bold text-gray-900">
+                        <tr key={roll.id} className="text-center hover:bg-gray-50">
+                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900 whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                          <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs text-gray-900">{roll.shift || '-'}</td>
+                          <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs font-bold text-gray-900">{roll.rollNo}</td>
+                          <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-black text-gray-900 font-bold">{formatWeight(roll.netWeight)}</td>
+                          <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs font-bold text-gray-900">{roll.joints > 0 ? roll.joints : '-'}</td>
+                          <td className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">
                             <div className="flex items-center justify-center gap-1">
                               <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
                               <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -414,11 +407,11 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                       );
                     })}
                     <tr className="bg-[#C6E0B4] text-black font-black text-center">
-                      <td colSpan={2} className="px-1.5 py-0 px-1 border border-gray-300 text-base sm:text-lg font-bold text-gray-900">TOTAL</td>
-                      <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
-                      <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
-                      <td className="px-1.5 py-0 px-1 border border-gray-300 font-mono font-semibold text-base sm:text-lg font-bold text-gray-900">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
-                      <td colSpan={2} className="px-1.5 py-0 px-1 border border-gray-300"></td>
+                      <td colSpan={3} className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">TOTAL</td>
+                      <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1 py-1 border border-gray-300 font-mono font-semibold text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(activeProdRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                      <td colSpan={2} className="px-1 py-1 border border-gray-300"></td>
                     </tr>
                   </tbody>
                 </table>
