@@ -292,6 +292,17 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                     </div>
                   </div>
 
+                  {(jc.coilSizes || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Coil Sizes:</span>
+                      {(jc.coilSizes || []).map((size: string) => (
+                        <span key={size} className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded-full border border-blue-200">
+                          {size}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100">
                       <p className="text-[10px] text-emerald-600 font-semibold">Prod Out</p>
