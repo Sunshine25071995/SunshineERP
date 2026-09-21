@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { dbService } from '../db';
 import { adminDbService } from '../db-admin';
 import { Bill, Party } from '../types';
-import { formatCurrency, formatDate, calculateDueDays } from '../utils';
+import { formatCurrency, formatDate } from '../utils';
 import { Plus, Search, Trash2, Edit } from 'lucide-react';
 import { useAuth } from '../auth';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebaseClient';
+import toast from 'react-hot-toast';
 
 export function Bills() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -38,6 +39,7 @@ export function Bills() {
       setJobCards(jSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (error) {
       console.error(error);
+      toast.error('Failed to load bills');
     } finally {
       setLoading(false);
     }
@@ -58,47 +60,65 @@ export function Bills() {
 
   async function handleAddBill(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const dateStr = formData.get('bill_date') as string;
-    
-    const newBill = {
-      bill_number: formData.get('bill_number') as string,
-      party_id: formData.get('party_id') as string,
-      bill_date: new Date(dateStr).getTime(),
-      bill_amount: Number(formData.get('bill_amount')),
-      notes: formData.get('notes') as string,
-      job_card_ids: selectedJobCards,
-      created_by: profile?.name || 'Admin',
-    };
-    
-    await dbService.addBill(newBill);
-    setIsAddModalOpen(false);
-    setSelectedJobCards([]);
-    setSelectedPartyId('');
-    loadData();
+    try {
+      const formData = new FormData(e.currentTarget);
+      const dateStr = formData.get('bill_date') as string;
+      
+      const newBill = {
+        bill_number: formData.get('bill_number') as string,
+        party_id: formData.get('party_id') as string,
+        bill_date: new Date(dateStr).getTime(),
+        bill_amount: Number(formData.get('bill_amount')),
+        notes: formData.get('notes') as string,
+        job_card_ids: selectedJobCards,
+        created_by: profile?.name || 'Admin',
+      };
+      
+      await dbService.addBill(newBill);
+      toast.success('Sales bill added successfully');
+      setIsAddModalOpen(false);
+      setSelectedJobCards([]);
+      setSelectedPartyId('');
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to add bill');
+    }
   }
   
   async function handleEditBill(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!editingBill) return;
-    const formData = new FormData(e.currentTarget);
-    const dateStr = formData.get('bill_date') as string;
-    
-    await dbService.updateBillDetails(editingBill.id, {
-      bill_number: formData.get('bill_number') as string,
-      bill_date: new Date(dateStr).getTime(),
-      notes: formData.get('notes') as string,
-      job_card_ids: selectedJobCards,
-    });
-    setEditingBill(null);
-    setSelectedJobCards([]);
-    loadData();
+    try {
+      const formData = new FormData(e.currentTarget);
+      const dateStr = formData.get('bill_date') as string;
+      
+      await dbService.updateBillDetails(editingBill.id, {
+        bill_number: formData.get('bill_number') as string,
+        bill_date: new Date(dateStr).getTime(),
+        notes: formData.get('notes') as string,
+        job_card_ids: selectedJobCards,
+      });
+      toast.success('Bill updated successfully');
+      setEditingBill(null);
+      setSelectedJobCards([]);
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to update bill');
+    }
   }
 
   async function handleDeleteBill(id: string) {
     if (!window.confirm("Are you sure you want to delete this bill? Related payment allocations will be refunded to balance.")) return;
-    await adminDbService.deleteBill(id);
-    loadData();
+    try {
+      await adminDbService.deleteBill(id);
+      toast.success('Bill deleted successfully');
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to delete bill');
+    }
   }
 
   function openEditModal(bill: Bill) {
@@ -145,7 +165,7 @@ export function Bills() {
           </div>
         </div>
         
-        <div className="hidden md:block w-full overflow-x-auto">
+        <div className="w-full overflow-x-auto">
           <table className="w-full divide-y divide-slate-200 whitespace-nowrap">
             <thead className="bg-slate-800 text-white text-xs uppercase tracking-wider">
               <tr>
@@ -210,56 +230,6 @@ export function Bills() {
               )}
             </tbody>
           </table>
-        </div>
-
-        {/* Mobile View */}
-        <div className="md:hidden w-full divide-y divide-slate-100">
-          {filteredBills.map((bill) => {
-            const party = parties.find(p => p.id === bill.party_id);
-            const dueDays = calculateDueDays(bill.bill_date, bill.fully_paid_date);
-            return (
-              <div key={bill.id} className="p-4 bg-white">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">#{bill.bill_number}</h3>
-                    <p className="text-sm font-bold text-slate-700">{party?.party_name}</p>
-                    <p className="text-xs text-slate-500 mt-1">{formatDate(bill.bill_date)}</p>
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    bill.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 
-                    bill.status === 'OVERDUE' ? 'bg-red-100 text-red-800' : 
-                    bill.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' : 
-                    'bg-amber-100 text-amber-800'
-                  }`}>
-                    {bill.status}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 bg-slate-50 rounded-xl p-3">
-                  <div>
-                    <p className="text-slate-500 text-xs font-bold uppercase">Total Amount</p>
-                    <p className="font-bold text-slate-900">{formatCurrency(bill.bill_amount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-xs font-bold uppercase">Outstanding</p>
-                    <p className="font-black text-red-600">{bill.outstanding_amount > 0 ? formatCurrency(bill.outstanding_amount) : '₹0'}</p>
-                  </div>
-                </div>
-                
-                {profile?.role === 'admin' && (
-                  <div className="mt-3 flex gap-2">
-                    <button onClick={() => openEditModal(bill)} className="flex-1 flex items-center justify-center gap-2 p-2 text-slate-700 font-bold rounded-xl bg-slate-100 hover:bg-slate-200"><Edit className="w-4 h-4" /> Edit</button>
-                    <button onClick={() => handleDeleteBill(bill.id)} className="flex-1 flex items-center justify-center gap-2 p-2 text-red-600 font-bold rounded-xl bg-red-50 hover:bg-red-100"><Trash2 className="w-4 h-4" /> Delete</button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {filteredBills.length === 0 && (
-            <div className="p-8 text-center text-sm font-medium text-slate-500">
-              No bills found.
-            </div>
-          )}
         </div>
       </div>
 

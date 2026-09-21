@@ -20,7 +20,7 @@ import { ProductionModule } from './components/ProductionModule';
 import { SlittingModule } from './components/SlittingModule';
 import { PaymentTrackerModule } from './payment-tracker/PaymentTrackerModule';
 import { getUserPermissions } from './utils/permissions';
-import { VoiceAssistant } from './components/VoiceAssistant';
+import { Toaster } from 'react-hot-toast';
 
 export default function App() {
   const [isLive, setIsLive] = useState(false);
@@ -151,6 +151,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col font-sans antialiased">
+      <Toaster position="top-right" />
       {/* Top Header Navbar */}
       <Navbar currentUser={currentUser} onLogout={handleLogout} isLive={isLive} />
 
@@ -172,14 +173,6 @@ export default function App() {
           />
         )}
       </main>
-
-      {/* AI Voice Assistant — always visible when logged in */}
-      {currentUser && (
-        <VoiceAssistant
-          currentUser={currentUser}
-          jobCards={jobCards}
-        />
-      )}
     </div>
   );
 }

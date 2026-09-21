@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { dbService } from '../db';
+import { adminDbService } from '../db-admin';
 import { Party, Bill } from '../types';
 import { formatCurrency, calculateDueDays } from '../utils';
 import { Edit2, Trash2, Plus, Search, ChevronRight } from 'lucide-react';
 import { useAuth } from '../auth';
-import { adminDbService } from '../db-admin';
+import toast from 'react-hot-toast';
 
 export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string) => void }) {
   const [parties, setParties] = useState<Party[]>([]);
@@ -26,6 +27,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
       setBills(b);
     } catch (error) {
       console.error(error);
+      toast.error('Failed to load parties data');
     } finally {
       setLoading(false);
     }
@@ -61,41 +63,59 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
 
   async function handleAddParty(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const newParty = {
-      party_name: formData.get('party_name') as string,
-      mobile: formData.get('mobile') as string,
-      email: formData.get('email') as string,
-      address: formData.get('address') as string,
-      gst_number: formData.get('gst_number') as string,
-      opening_balance: Number(formData.get('opening_balance')) || 0,
-    };
-    
-    await dbService.addParty(newParty);
-    setIsAddModalOpen(false);
-    loadData();
+    try {
+      const formData = new FormData(e.currentTarget);
+      const newParty = {
+        party_name: formData.get('party_name') as string,
+        mobile: formData.get('mobile') as string,
+        email: formData.get('email') as string,
+        address: formData.get('address') as string,
+        gst_number: formData.get('gst_number') as string,
+        opening_balance: Number(formData.get('opening_balance')) || 0,
+      };
+      
+      await dbService.addParty(newParty);
+      toast.success('Party added successfully');
+      setIsAddModalOpen(false);
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to add party');
+    }
   }
 
   async function handleEditParty(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!editingParty) return;
-    const formData = new FormData(e.currentTarget);
-    await dbService.updateParty(editingParty.id, {
-      party_name: formData.get('party_name') as string,
-      mobile: formData.get('mobile') as string,
-      email: formData.get('email') as string,
-      address: formData.get('address') as string,
-      gst_number: formData.get('gst_number') as string,
-      opening_balance: Number(formData.get('opening_balance')) || 0,
-    });
-    setEditingParty(null);
-    loadData();
+    try {
+      const formData = new FormData(e.currentTarget);
+      await dbService.updateParty(editingParty.id, {
+        party_name: formData.get('party_name') as string,
+        mobile: formData.get('mobile') as string,
+        email: formData.get('email') as string,
+        address: formData.get('address') as string,
+        gst_number: formData.get('gst_number') as string,
+        opening_balance: Number(formData.get('opening_balance')) || 0,
+      });
+      toast.success('Party updated successfully');
+      setEditingParty(null);
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to update party');
+    }
   }
 
   async function handleDeleteParty(id: string) {
     if (!window.confirm("Are you sure you want to delete this party? All related data will be orphaned.")) return;
-    await adminDbService.deleteParty(id);
-    loadData();
+    try {
+      await adminDbService.deleteParty(id);
+      toast.success('Party deleted');
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to delete party');
+    }
   }
 
   if (loading) return <div className="w-full flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
@@ -113,79 +133,96 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
         </button>
       </div>
 
-      <div className="w-full relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Search className="h-4 w-4 text-slate-400" />
+      <div className="w-full bg-white shadow-sm rounded-2xl border border-slate-100 overflow-hidden">
+        <div className="p-4 border-b border-slate-100">
+          <div className="relative w-full sm:max-w-sm">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search parties..."
+              className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
-        <input
-          type="text"
-          placeholder="Search parties..."
-          className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-      
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredParties.map((party) => (
-          <div key={party.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col">
-            <div className="flex justify-between items-start mb-2">
-              <div className="truncate pr-2">
-                <h3 className="text-base font-bold text-slate-900 truncate">{party.party_name}</h3>
-                <p className="text-sm text-slate-500">{party.mobile || 'No Mobile'}</p>
-              </div>
-              <span className={`shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
-                party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
-                'bg-amber-100 text-amber-800'
-              }`}>
-                {party.status}
-              </span>
-            </div>
-            
-            <div className="my-3">
-              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Outstanding</p>
-              <p className="text-2xl sm:text-3xl font-black text-red-600">
-                {formatCurrency(party.outstanding)}
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2 mt-auto mb-4 text-sm bg-slate-50 rounded-xl p-3">
-              <div>
-                <p className="text-slate-500 text-xs font-medium">Bills</p>
-                <p className="font-bold text-slate-900">{party.totalBills}</p>
-              </div>
-              <div>
-                <p className="text-slate-500 text-xs font-medium">Sales</p>
-                <p className="font-bold text-slate-900 truncate" title={formatCurrency(party.totalSales)}>{formatCurrency(party.totalSales)}</p>
-              </div>
-              <div>
-                <p className="text-slate-500 text-xs font-medium">Received</p>
-                <p className="font-bold text-slate-900 truncate" title={formatCurrency(party.totalReceived)}>{formatCurrency(party.totalReceived)}</p>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-              <div className="flex gap-2">
-                {profile?.role === 'admin' && (
-                  <>
-                    <button onClick={() => setEditingParty(party)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl bg-slate-100 hover:bg-indigo-50"><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => handleDeleteParty(party.id)} className="p-2 text-slate-600 hover:text-red-600 rounded-xl bg-slate-100 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>
-                  </>
-                )}
-              </div>
-              <button onClick={() => onNavigate('partyLedger', party.id)} className="w-full sm:w-auto inline-flex justify-center items-center text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl hover:bg-indigo-100">
-                View Ledger <ChevronRight className="h-4 w-4 ml-1" />
-              </button>
-            </div>
-          </div>
-        ))}
-        {filteredParties.length === 0 && (
-          <div className="col-span-full p-8 text-center text-sm text-slate-500 bg-white rounded-2xl shadow-sm border border-slate-100">
-            No parties found.
-          </div>
-        )}
+        
+        <div className="w-full overflow-x-auto">
+          <table className="w-full divide-y divide-slate-200 whitespace-nowrap">
+            <thead className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left font-bold">Party Name</th>
+                <th scope="col" className="px-6 py-3 text-left font-bold">Contact</th>
+                <th scope="col" className="px-6 py-3 text-center font-bold">Bills</th>
+                <th scope="col" className="px-6 py-3 text-right font-bold">Total Sales</th>
+                <th scope="col" className="px-6 py-3 text-right font-bold">Received</th>
+                <th scope="col" className="px-6 py-3 text-right font-bold">Outstanding</th>
+                <th scope="col" className="px-6 py-3 text-center font-bold">Status</th>
+                <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-slate-200">
+              {filteredParties.map((party) => (
+                <tr key={party.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                    <button onClick={() => onNavigate('partyLedger', party.id)} className="hover:text-indigo-600 hover:underline">
+                      {party.party_name}
+                    </button>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-600">
+                    {party.mobile || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900 text-center">
+                    {party.totalBills}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900 text-right">
+                    {formatCurrency(party.totalSales)}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-emerald-600 text-right">
+                    {formatCurrency(party.totalReceived)}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-black text-red-600 text-right">
+                    {party.outstanding > 0 ? formatCurrency(party.outstanding) : '-'}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
+                      party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                      party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
+                      'bg-amber-100 text-amber-800'
+                    }`}>
+                      {party.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right text-sm">
+                    <button onClick={() => onNavigate('partyLedger', party.id)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl mr-2 font-bold" title="View Ledger">
+                      Ledger
+                    </button>
+                    {profile?.role === 'admin' && (
+                      <>
+                        <button onClick={() => setEditingParty(party)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2" title="Edit">
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => handleDeleteParty(party.id)} className="p-2 text-slate-600 hover:text-red-600 rounded-xl hover:bg-red-50" title="Delete">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {filteredParties.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-6 py-12 text-center text-sm text-slate-500 font-medium">
+                    No parties found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {(isAddModalOpen || editingParty) && (

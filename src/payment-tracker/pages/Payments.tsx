@@ -5,6 +5,7 @@ import { Payment, Party } from '../types';
 import { formatCurrency, formatDate } from '../utils';
 import { Plus, Search, Trash2, Edit } from 'lucide-react';
 import { useAuth } from '../auth';
+import toast from 'react-hot-toast';
 
 export function Payments() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -26,6 +27,7 @@ export function Payments() {
       setParties(pt);
     } catch (error) {
       console.error(error);
+      toast.error('Failed to load payments');
     } finally {
       setLoading(false);
     }
@@ -37,43 +39,61 @@ export function Payments() {
 
   async function handleAddPayment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const dateStr = formData.get('payment_date') as string;
-    
-    const newPayment = {
-      party_id: formData.get('party_id') as string,
-      payment_date: new Date(dateStr).getTime(),
-      amount: Number(formData.get('amount')),
-      payment_mode: formData.get('payment_mode') as string,
-      reference_number: '',
-      notes: formData.get('notes') as string,
-      created_by: profile?.name || 'User',
-    };
-    
-    await dbService.addPayment(newPayment);
-    setIsAddModalOpen(false);
-    loadData();
+    try {
+      const formData = new FormData(e.currentTarget);
+      const dateStr = formData.get('payment_date') as string;
+      
+      const newPayment = {
+        party_id: formData.get('party_id') as string,
+        payment_date: new Date(dateStr).getTime(),
+        amount: Number(formData.get('amount')),
+        payment_mode: formData.get('payment_mode') as string,
+        reference_number: '',
+        notes: formData.get('notes') as string,
+        created_by: profile?.name || 'User',
+      };
+      
+      await dbService.addPayment(newPayment);
+      toast.success('Payment added successfully');
+      setIsAddModalOpen(false);
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to add payment');
+    }
   }
   
   async function handleEditPayment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!editingPayment) return;
-    const formData = new FormData(e.currentTarget);
-    const dateStr = formData.get('payment_date') as string;
-    
-    await dbService.updatePaymentDetails(editingPayment.id, {
-      payment_date: new Date(dateStr).getTime(),
-      payment_mode: formData.get('payment_mode') as string,
-      notes: formData.get('notes') as string,
-    });
-    setEditingPayment(null);
-    loadData();
+    try {
+      const formData = new FormData(e.currentTarget);
+      const dateStr = formData.get('payment_date') as string;
+      
+      await dbService.updatePaymentDetails(editingPayment.id, {
+        payment_date: new Date(dateStr).getTime(),
+        payment_mode: formData.get('payment_mode') as string,
+        notes: formData.get('notes') as string,
+      });
+      toast.success('Payment updated successfully');
+      setEditingPayment(null);
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to update payment');
+    }
   }
 
   async function handleDeletePayment(id: string) {
     if (!window.confirm("Are you sure you want to delete this payment? It will reverse bill allocations and adjust the party's balance.")) return;
-    await adminDbService.deletePayment(id);
-    loadData();
+    try {
+      await adminDbService.deletePayment(id);
+      toast.success('Payment deleted successfully');
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to delete payment');
+    }
   }
 
   if (loading) return <div className="w-full flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
@@ -107,15 +127,14 @@ export function Payments() {
           </div>
         </div>
         
-        {/* Desktop Table View */}
-        <div className="hidden md:block w-full overflow-x-auto">
+        <div className="w-full overflow-x-auto">
           <table className="w-full divide-y divide-slate-200 whitespace-nowrap">
             <thead className="bg-slate-800 text-white text-xs uppercase tracking-wider">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left font-bold">Date</th>
                 <th scope="col" className="px-6 py-3 text-left font-bold">Party Name</th>
                 <th scope="col" className="px-6 py-3 text-right font-bold">Amount</th>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Mode</th>
+                <th scope="col" className="px-6 py-3 text-center font-bold">Mode</th>
                 {profile?.role === 'admin' && <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>}
               </tr>
             </thead>
@@ -133,8 +152,10 @@ export function Payments() {
                     <td className="px-6 py-4 text-right text-sm font-black text-emerald-600">
                       +{formatCurrency(payment.amount)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-700 capitalize font-medium">
-                      {payment.payment_mode}
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 capitalize">
+                        {payment.payment_mode}
+                      </span>
                     </td>
                     {profile?.role === 'admin' && (
                       <td className="px-6 py-4 text-right text-sm">
@@ -158,47 +179,6 @@ export function Payments() {
               )}
             </tbody>
           </table>
-        </div>
-
-        {/* Mobile View */}
-        <div className="md:hidden w-full divide-y divide-slate-100">
-          {filteredPayments.map((payment) => {
-            const party = parties.find(p => p.id === payment.party_id);
-            return (
-              <div key={payment.id} className="p-4 bg-white">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">{party?.party_name || 'Unknown'}</h3>
-                    <p className="text-sm font-medium text-slate-500">{formatDate(payment.payment_date)}</p>
-                  </div>
-                  <span className="text-lg font-black text-emerald-600">
-                    +{formatCurrency(payment.amount)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-50">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 capitalize">
-                    {payment.payment_mode}
-                  </span>
-                  
-                  {profile?.role === 'admin' && (
-                    <div className="flex space-x-2">
-                      <button onClick={() => setEditingPayment(payment)} className="p-2 text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200">
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => handleDeletePayment(payment.id)} className="p-2 text-red-600 bg-red-50 rounded-xl hover:bg-red-100">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-          {filteredPayments.length === 0 && (
-            <div className="p-8 text-center text-sm font-medium text-slate-500">
-              No payments found.
-            </div>
-          )}
         </div>
       </div>
 
