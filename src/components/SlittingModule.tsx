@@ -31,7 +31,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const emoji: Record<string, string> = { running: '🔥', pending: '⏳', completed: '✅', dispatched: '🚚' };
   const s = status?.toLowerCase() || 'pending';
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${map[s] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${map[s] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
       <span>{emoji[s] || ''}</span><span className="capitalize">{status}</span>
     </span>
   );
@@ -236,7 +236,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-full">
+          <div className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-3 py-0.5.5 rounded-full">
             Shift {currentUser.shift || 'A'}
           </div>
         </div>
@@ -268,7 +268,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                   }`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-mono text-2xl font-black px-3 py-1.5 rounded-xl border shadow-sm ${
+                      <span className={`font-mono text-2xl font-black px-3 py-0.5.5 rounded-xl border shadow-sm ${
                         isRunning ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-amber-100 border-amber-300 text-amber-900'
                       }`}>{jc.jobCode}</span>
                     </div>
@@ -322,7 +322,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Selected Job</p>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-3xl font-black text-blue-900 bg-blue-100 px-4 py-1.5 rounded-xl border border-blue-300">
+              <span className="font-mono text-3xl font-black text-blue-900 bg-blue-100 px-4 py-0.5.5 rounded-xl border border-blue-300">
                 {selectedJobCard.jobCode}
               </span>
               <StatusBadge status={selectedJobCard.status} />
@@ -379,11 +379,11 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
-                      <th className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">Select</th>
-                      <th className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">Date</th>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Shift</th>
-                      <th className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">Sr. No.</th>
-                      <th className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">Net Wt.</th>
+                      <th className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">Select</th>
+                      <th className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">Date</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Shift</th>
+                      <th className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">Sr. No.</th>
+                      <th className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">Net Wt.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -392,17 +392,17 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                         className={`cursor-pointer transition-colors text-center ${
                           roll.takenBySlitting ? 'bg-[#C6E0B4]' : 'bg-white hover:bg-gray-50'
                         }`}>
-                        <td className="px-1 py-1 border border-gray-300">
+                        <td className="px-1 py-0.5 border border-gray-300">
                           <div className={`mx-auto w-4 h-4 sm:w-5 sm:h-5 rounded-sm flex items-center justify-center ${
                             roll.takenBySlitting ? 'bg-green-700 text-white' : 'bg-white border border-gray-400 text-transparent'
                           }`}>
                             <CheckSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </div>
                         </td>
-                        <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{formatToDDMM(roll.date)}</td>
-                        <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{roll.shift || '-'}</td>
-                        <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{roll.rollNo}</td>
-                        <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-black text-gray-900">{formatWeight(roll.netWeight)}</td>
+                        <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{formatToDDMM(roll.date)}</td>
+                        <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{roll.shift || '-'}</td>
+                        <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{roll.rollNo}</td>
+                        <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-black text-gray-900">{formatWeight(roll.netWeight)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -465,13 +465,13 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-[#FFD966] text-black font-black text-center">
                     <tr>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Date</th>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Shift</th>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Sr. No.</th>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Gross Wt.</th>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Core Wt.</th>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Net Wt.</th>
-                      <th className="px-1 py-1 border border-gray-300 whitespace-nowrap text-[10px] sm:text-xs font-bold text-gray-900">Actions</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Date</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Shift</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Sr. No.</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Gross Wt.</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Core Wt.</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Net Wt.</th>
+                      <th className="px-1 py-0.5 border border-gray-300 whitespace-nowrap text-sm sm:text-base leading-tight font-bold text-gray-900">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -504,13 +504,13 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                       }
                       return (
                         <tr key={roll.id} className="text-center hover:bg-gray-50">
-                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900 whitespace-nowrap">{formatToDDMM(roll.date)}</td>
-                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{roll.shift || '-'}</td>
-                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{roll.rollNo}</td>
-                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(roll.grossWeight)}</td>
-                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(roll.coreWeight)}</td>
-                          <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-black text-gray-900">{formatWeight(roll.netWeight)}</td>
-                          <td className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">
+                          <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900 whitespace-nowrap">{formatToDDMM(roll.date)}</td>
+                          <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{roll.shift || '-'}</td>
+                          <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{roll.rollNo}</td>
+                          <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{formatWeight(roll.grossWeight)}</td>
+                          <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{formatWeight(roll.coreWeight)}</td>
+                          <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-black text-gray-900">{formatWeight(roll.netWeight)}</td>
+                          <td className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">
                             <div className="flex items-center justify-center gap-1">
                               <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
                               <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -520,11 +520,11 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                       );
                     })}
                     <tr className="bg-[#C6E0B4] text-black font-black text-center">
-                      <td colSpan={3} className="px-1 py-1 border border-gray-300 text-[10px] sm:text-xs font-bold text-gray-900">TOTAL</td>
-                      <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-gray-300 font-mono text-[10px] sm:text-xs font-bold text-gray-900">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
-                      <td className="px-1 py-1 border border-gray-300"></td>
+                      <td colSpan={3} className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">TOTAL</td>
+                      <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.grossWeight || 0), 0))}</td>
+                      <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.coreWeight || 0), 0))}</td>
+                      <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{formatWeight(activeSlitRolls.reduce((sum, r) => sum + (r.netWeight || 0), 0))}</td>
+                      <td className="px-1 py-0.5 border border-gray-300"></td>
                     </tr>
                   </tbody>
                 </table>
