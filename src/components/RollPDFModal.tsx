@@ -67,7 +67,7 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
     doc.text(`Party: ${jobCard.partyCode}`, margin + 60, 35);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Size: ${jobCard.size}  |  Micron: ${jobCard.micron}μ  |  Target: ${formatWeight(jobCard.totalQuantity)} kg`, margin + 4, 41);
+    doc.text(`Size: ${jobCard.size}  |  Micron: ${jobCard.micron} Mic  |  Target: ${formatWeight(jobCard.totalQuantity)} kg`, margin + 4, 41);
 
     const totalGross = filtered.reduce((s, r) => s + (r.grossWeight || 0), 0);
     const totalCore = filtered.reduce((s, r) => s + (r.coreWeight || 0), 0);
@@ -80,7 +80,7 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
       body: filtered.map(r => [
         String(r.rollNo),
         jobCard.size || '',
-        `${jobCard.micron || ''}μ`,
+        `${jobCard.micron || ''} Mic`,
         formatWeight(r.grossWeight),
         formatWeight(r.coreWeight),
         formatWeight(r.netWeight),
@@ -91,10 +91,11 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
         { content: formatWeight(totalCore), styles: { fontStyle: 'bold' } },
         { content: formatWeight(totalNet), styles: { fontStyle: 'bold', textColor: [5, 150, 105] } },
       ]],
-      styles: { fontSize: 9, cellPadding: 3, font: 'helvetica' },
-      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
-      footStyles: { fillColor: [236, 253, 245], textColor: [30, 41, 59] },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 1.5, font: 'helvetica', textColor: 0, lineColor: 200, lineWidth: 0.1 },
+      headStyles: { fillColor: [255, 217, 102], textColor: 0, fontStyle: 'bold', halign: 'center' },
+      footStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [255, 255, 255] },
       columnStyles: {
         0: { halign: 'center', fontStyle: 'bold' },
         3: { halign: 'right' },
@@ -132,7 +133,7 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
     doc.text(`Party: ${jobCard.partyCode}`, margin + 60, 35);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Size: ${jobCard.size}  |  Micron: ${jobCard.micron}μ  |  Target: ${formatWeight(jobCard.totalQuantity)} kg`, margin + 4, 41);
+    doc.text(`Size: ${jobCard.size}  |  Micron: ${jobCard.micron} Mic  |  Target: ${formatWeight(jobCard.totalQuantity)} kg`, margin + 4, 41);
 
     const totalGross = filtered.reduce((s, r) => s + (r.grossWeight || 0), 0);
     const totalCore = filtered.reduce((s, r) => s + (r.coreWeight || 0), 0);
@@ -145,7 +146,7 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
       body: filtered.map(r => [
         String(r.rollNo),
         r.coilSize || '',
-        `${jobCard.micron || ''}μ`,
+        `${jobCard.micron || ''} Mic`,
         formatWeight(r.grossWeight),
         formatWeight(r.coreWeight),
         formatWeight(r.netWeight),
@@ -156,10 +157,11 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
         { content: formatWeight(totalCore), styles: { fontStyle: 'bold' } },
         { content: formatWeight(totalNet), styles: { fontStyle: 'bold', textColor: [37, 99, 235] } },
       ]],
-      styles: { fontSize: 9, cellPadding: 3, font: 'helvetica' },
-      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
-      footStyles: { fillColor: [239, 246, 255], textColor: [30, 41, 59] },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 1.5, font: 'helvetica', textColor: 0, lineColor: 200, lineWidth: 0.1 },
+      headStyles: { fillColor: [255, 217, 102], textColor: 0, fontStyle: 'bold', halign: 'center' },
+      footStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [255, 255, 255] },
       columnStyles: {
         0: { halign: 'center', fontStyle: 'bold' },
         3: { halign: 'right' },
@@ -191,7 +193,7 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
     let msg = `📄 *${label.toUpperCase()} REPORT*\n`;
     msg += `🏷️ *Job Code:* ${jobCard.jobCode}\n`;
     msg += `👤 *Party:* ${jobCard.partyCode}\n`;
-    msg += `📐 *Size:* ${jobCard.size}  |  *Micron:* ${jobCard.micron}μ\n`;
+    msg += `📐 *Size:* ${jobCard.size}  |  *Micron:* ${jobCard.micron} Mic\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━\n`;
     filtered.forEach(r => {
       if (activeType === 'production') {
