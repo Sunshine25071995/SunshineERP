@@ -6,6 +6,7 @@ import {
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { PARTIES, getPartyName } from '../utils/parties';
 import { JobCardDetailModal } from './JobCardDetailModal';
+import { RollPDFModal } from './RollPDFModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
   Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase,
@@ -82,6 +83,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
   // Job Card state
   const [selectedJobCardForDetail, setSelectedJobCardForDetail] = useState<JobCard | null>(null);
+  const [pdfModalJobCard, setPdfModalJobCard] = useState<JobCard | null>(null);
   const [showJobCardModal, setShowJobCardModal] = useState(false);
   const [editingJobCard, setEditingJobCard] = useState<JobCard | null>(null);
   const [deletingJobCard, setDeletingJobCard] = useState<JobCard | null>(null);
@@ -391,10 +393,16 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <button onClick={() => setSelectedJobCardForDetail(jc)}
-                        className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-bold text-xs btn-press">
-                        <Eye className="w-3.5 h-3.5" /><span>Full Detail</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSelectedJobCardForDetail(jc)}
+                          className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-bold text-xs btn-press">
+                          <Eye className="w-3.5 h-3.5" /><span>Detail</span>
+                        </button>
+                        <button onClick={() => setPdfModalJobCard(jc)}
+                          className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-bold text-xs btn-press">
+                          <FileText className="w-3.5 h-3.5" /><span>PDF</span>
+                        </button>
+                      </div>
                       <div className="flex items-center gap-1">
                         <button onClick={() => openJobCardEdit(jc)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
                         <button onClick={() => setDeletingJobCard(jc)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -768,6 +776,16 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
           prodRolls={prodRolls} slitRolls={slitRolls} prodWastages={prodWastages}
           onClose={() => setSelectedJobCardForDetail(null)}
           onDelete={jc => { setSelectedJobCardForDetail(null); setDeletingJobCard(jc); }}
+        />
+      )}
+
+      {/* ── MODAL: ROLL PDF DOWNLOAD ───────────────────────────── */}
+      {pdfModalJobCard && (
+        <RollPDFModal
+          jobCard={pdfModalJobCard}
+          prodRolls={prodRolls}
+          slitRolls={slitRolls}
+          onClose={() => setPdfModalJobCard(null)}
         />
       )}
     </div>
