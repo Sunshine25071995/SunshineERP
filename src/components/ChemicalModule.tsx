@@ -214,48 +214,112 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
             </form>
           </div>
 
-          {/* Usage Log */}
+          {/* Daily Summary Table */}
+          <div className="app-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+              <FlaskConical className="w-4 h-4 text-amber-600" />
+              <h3 className="text-sm font-bold text-gray-900">Daily Usage Summary</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-100/50">
+                    <th className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Date</th>
+                    <th className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Chemical</th>
+                    <th className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200 text-right">Total Used</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {Object.entries(
+                    usages.reduce((acc, u) => {
+                      if (!acc[u.date]) acc[u.date] = {};
+                      if (!acc[u.date][u.chemicalId]) acc[u.date][u.chemicalId] = 0;
+                      acc[u.date][u.chemicalId] += u.quantityUsed;
+                      return acc;
+                    }, {} as Record<string, Record<string, number>>)
+                  )
+                  .sort((a, b) => b[0].localeCompare(a[0]))
+                  .flatMap(([date, chemMap]) => 
+                    Object.entries(chemMap).map(([chemId, total]) => ({ date, chemId, total }))
+                  )
+                  .map((item, idx) => {
+                    const chem = chemicals.find(c => c.id === item.chemId);
+                    return (
+                      <tr key={idx} className="hover:bg-amber-50/30 transition-colors">
+                        <td className="px-4 py-2.5 text-xs font-bold text-gray-700 whitespace-nowrap">{item.date === new Date().toISOString().split('T')[0] ? <span className="text-blue-600">Today</span> : item.date}</td>
+                        <td className="px-4 py-2.5 text-sm font-bold text-gray-900">{chem?.name || 'Unknown'}</td>
+                        <td className="px-4 py-2.5 text-sm font-black font-mono text-amber-700 text-right">{formatWeight(item.total)}<span className="text-xs font-normal text-amber-500 ml-1">{chem?.unit}</span></td>
+                      </tr>
+                    );
+                  })}
+                  {usages.length === 0 && (
+                    <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-400">No usage recorded yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Raw Usage Log Table */}
           <div className="app-card overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
-              <h3 className="text-sm font-bold text-gray-900">Usage Logs</h3>
+              <h3 className="text-sm font-bold text-gray-900">Detailed Logs</h3>
             </div>
             {usages.length === 0 ? (
               <div className="p-8 text-center text-sm text-gray-400">No usage recorded yet.</div>
             ) : (
-              <div className="divide-y divide-gray-100">
-                {[...usages].reverse().map((u) => {
-                  const chem = chemicals.find(c => c.id === u.chemicalId);
-                  const isOwner = u.usedBy === currentUser.loginId || currentUser.department === 'admin';
-                  const isEditing = editingUsageId === u.id;
-                  return (
-                    <div key={u.id} className="px-4 py-3.5 flex items-center gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">{chem?.name || 'Chemical'}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{u.date} · by {u.usedBy}</p>
-                      </div>
-                      {isEditing ? (
-                        <div className="flex items-center gap-2">
-                          <input type="number" step="0.001" value={editQty} onChange={e => setEditQty(e.target.value)}
-                            className="w-24 bg-white border border-blue-400 rounded-lg px-2 py-1.5 text-sm font-mono text-gray-900 focus:outline-none" />
-                          <button onClick={() => handleUpdateUsage(u.id)} className="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg"><Check className="w-4 h-4" /></button>
-                          <button onClick={() => setEditingUsageId(null)} className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg"><X className="w-4 h-4" /></button>
-                        </div>
-                      ) : (
-                        <>
-                          <span className="font-mono text-sm font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-                            {formatWeight(u.quantityUsed)} {chem?.unit}
-                          </span>
-                          {isOwner && (
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => { setEditingUsageId(u.id); setEditQty(String(u.quantityUsed)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => handleDeleteUsage(u.id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Chemical</th>
+                      <th className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Date / User</th>
+                      <th className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Quantity</th>
+                      <th className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {[...usages].reverse().map((u) => {
+                      const chem = chemicals.find(c => c.id === u.chemicalId);
+                      const isOwner = u.usedBy === currentUser.loginId || currentUser.department === 'admin';
+                      const isEditing = editingUsageId === u.id;
+                      return (
+                        <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-2.5 text-sm font-bold text-gray-900">{chem?.name || 'Chemical'}</td>
+                          <td className="px-4 py-2.5">
+                            <div className="text-xs font-semibold text-gray-600">{u.date}</div>
+                            <div className="text-[10px] text-gray-400">by {u.usedBy}</div>
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            {isEditing ? (
+                              <input type="number" step="0.001" value={editQty} onChange={e => setEditQty(e.target.value)}
+                                className="w-20 bg-white border border-blue-400 rounded-lg px-2 py-1 text-xs font-mono text-gray-900 focus:outline-none" />
+                            ) : (
+                              <span className="font-mono text-sm font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                                {formatWeight(u.quantityUsed)} {chem?.unit}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2.5 text-center">
+                            {isEditing ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <button onClick={() => handleUpdateUsage(u.id)} className="w-7 h-7 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200"><Check className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => setEditingUsageId(null)} className="w-7 h-7 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"><X className="w-3.5 h-3.5" /></button>
+                              </div>
+                            ) : (
+                              isOwner && (
+                                <div className="flex items-center justify-center gap-1">
+                                  <button onClick={() => { setEditingUsageId(u.id); setEditQty(String(u.quantityUsed)); }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-700"><Edit2 className="w-3 h-3" /></button>
+                                  <button onClick={() => handleDeleteUsage(u.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3 h-3" /></button>
+                                </div>
+                              )
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
