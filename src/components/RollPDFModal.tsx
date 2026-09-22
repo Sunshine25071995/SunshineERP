@@ -182,7 +182,6 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
   };
 
   const handleWhatsApp = async () => {
-    const doc = activeType === 'production' ? buildProdPDF() : buildSlitPDF();
     const filtered = activeType === 'production'
       ? jcProdRolls.filter(r => selectedProd.has(r.id))
       : jcSlitRolls.filter(r => selectedSlit.has(r.id));
@@ -217,20 +216,18 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
     msg += `⚖️ *${formatWeight(totalNet)} Kg*\n`;
     msg += `\n_Generated via Sunshine ERP_`;
 
-    // Try file share on mobile
-    const blob = doc.output('blob');
-    const filename = activeType === 'production'
-      ? `${jobCard.jobCode}-production-rolls.pdf`
-      : `${jobCard.jobCode}-slitting-rolls.pdf`;
-    const file = new File([blob], filename, { type: 'application/pdf' });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    if (navigator.share) {
       try {
-        await navigator.share({ files: [file], title: filename, text: msg });
-        return;
-      } catch { /* fall through to WhatsApp text */ }
+        await navigator.share({
+          text: msg
+        });
+      } catch (err) {
+        console.error(err);
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const currentRolls = activeType === 'production' ? jcProdRolls : jcSlitRolls;
