@@ -190,23 +190,31 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
     const totalNet = filtered.reduce((s, r) => s + (r.netWeight || 0), 0);
     const label = activeType === 'production' ? 'Production Roll' : 'Slitting Output';
 
-    let msg = `📄 *${label.toUpperCase()} REPORT*\n`;
+    const groups: Record<string, { weight: number; count: number }> = {};
+    
+    filtered.forEach(r => {
+      const size = activeType === 'slitting' ? (r as SlittingRoll).coilSize || jobCard.size : jobCard.size;
+      const key = `${size} x ${jobCard.micron} Mic`;
+      if (!groups[key]) groups[key] = { weight: 0, count: 0 };
+      groups[key].weight += (r.netWeight || 0);
+      groups[key].count += 1;
+    });
+
+    let msg = `📄 *${label.toUpperCase()} SUMMARY*\n`;
     msg += `🏷️ *Job Code:* ${jobCard.jobCode}\n`;
     msg += `👤 *Party:* ${jobCard.partyCode}\n`;
-    msg += `📐 *Size:* ${jobCard.size}  |  *Micron:* ${jobCard.micron} Mic\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-    filtered.forEach(r => {
-      if (activeType === 'production') {
-        const pr = r as ProductionRoll;
-        msg += `• Roll #${pr.rollNo} — Net: ${formatWeight(pr.netWeight)} kg\n`;
-      } else {
-        const sr = r as SlittingRoll;
-        msg += `• Roll #${sr.rollNo} [${sr.coilSize}] — Net: ${formatWeight(sr.netWeight)} kg\n`;
-      }
+    msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    Object.entries(groups).forEach(([key, data]) => {
+      msg += `📐 *${key}*\n`;
+      msg += `⚖️ *${formatWeight(data.weight)} Kg*\n`;
+      msg += `📦 *${data.count} Rolls*\n`;
+      msg += `----------------------------\n`;
     });
-    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `📦 *Total Rolls:* ${filtered.length}\n`;
-    msg += `⚖️ *Total Net Wt.:* ${formatWeight(totalNet)} kg\n`;
+    
+    msg += `\n🌟 *TOTAL OVERALL*\n`;
+    msg += `📦 *${filtered.length} Rolls*\n`;
+    msg += `⚖️ *${formatWeight(totalNet)} Kg*\n`;
     msg += `\n_Generated via Sunshine ERP_`;
 
     // Try file share on mobile

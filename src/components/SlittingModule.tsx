@@ -51,7 +51,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
   const sortedJobCards = [...jobCards].sort((a, b) => {
-    return (statusPriority[a.status?.toLowerCase()] || 99) - (statusPriority[b.status?.toLowerCase()] || 99);
+    return (statusPriority[(a.slittingStatus || 'pending').toLowerCase()] || 99) - (statusPriority[(b.slittingStatus || 'pending').toLowerCase()] || 99);
   });
 
   const filteredJobCards = sortedJobCards.filter((jc) => {
@@ -168,6 +168,9 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
         productionRollId: null, createdBy: currentUser.loginId,
       });
       if (selectedJobCard) {
+        if (!selectedJobCard.slittingStatus || selectedJobCard.slittingStatus === 'pending') {
+          await updateDoc(doc(db, 'jobCards', selectedJobCardId), { slittingStatus: 'running' });
+        }
         fetch('/api/save-to-sheet', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

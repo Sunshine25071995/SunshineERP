@@ -130,6 +130,9 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
         joints: parseInt(joints, 10) || 0, takenBySlitting: false,
         createdBy: currentUser.loginId,
       });
+      if (selectedJobCard?.status === 'pending') {
+        await updateDoc(doc(db, 'jobCards', selectedJobCardId), { status: 'running' });
+      }
       setGrossWeight('');
     } catch (err) { alert('Error: ' + String(err)); }
   };
