@@ -30,6 +30,7 @@ export interface JobCard {
   coilSizes: string[]; // e.g. ["230mm", "250mm"]
   totalQuantity: number; // in kg or meters
   status: JobCardStatus;
+  slittingStatus?: JobCardStatus;
   createdBy: string; // user loginId
   createdAt?: any;
 }

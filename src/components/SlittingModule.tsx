@@ -67,7 +67,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
   });
 
   const handleUpdateStatus = async (jcId: string, newStatus: string) => {
-    try { await updateDoc(doc(db, 'jobCards', jcId), { status: newStatus as any }); }
+    try { await updateDoc(doc(db, 'jobCards', jcId), { slittingStatus: newStatus as any }); }
     catch (err) { console.error('Error updating status:', err); }
   };
 
@@ -168,7 +168,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
         productionRollId: null, createdBy: currentUser.loginId,
       });
       if (selectedJobCard) {
-        fetch('http://localhost:3001/api/save-to-sheet', {
+        fetch('/api/save-to-sheet', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             jobCardId: selectedJobCardId, jobCode: selectedJobCard.jobCode,
@@ -203,7 +203,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
       });
       const rollToUpdate = slitRolls.find(r => r.id === id);
       if (selectedJobCard && rollToUpdate) {
-        fetch('http://localhost:3001/api/update-sheet-row', {
+        fetch('/api/update-sheet-row', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             jobCode: selectedJobCard.jobCode, partyCode: selectedJobCard.partyCode,
@@ -223,7 +223,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
       try {
         await deleteDoc(doc(db, 'slittingRolls', id));
         if (selectedJobCard && rollToDelete) {
-          fetch('http://localhost:3001/api/delete-sheet-row', {
+          fetch('/api/delete-sheet-row', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ jobCode: selectedJobCard.jobCode, rollNo: rollToDelete.rollNo })
           }).catch(err => console.error('Failed to delete from sheet', err));
@@ -272,7 +272,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                         isRunning ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-amber-100 border-amber-300 text-amber-900'
                       }`}>{jc.jobCode}</span>
                     </div>
-                    <StatusBadge status={jc.status} />
+                    <StatusBadge status={jc.slittingStatus || 'pending'} />
                   </div>
 
                   <div className="text-sm font-semibold text-gray-700">{jc.partyCode}</div>
@@ -336,7 +336,14 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
               <span className="font-mono text-3xl font-black text-blue-900 bg-blue-100 px-4 py-0.5.5 rounded-xl border border-blue-300">
                 {selectedJobCard.jobCode}
               </span>
-              <StatusBadge status={selectedJobCard.status} />
+              <select value={selectedJobCard.slittingStatus || 'pending'}
+                onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
+                className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
+                <option value="running">🔥 Running</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="completed">✅ Completed</option>
+                <option value="dispatched">🚚 Dispatched</option>
+              </select>
             </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap text-sm text-gray-600">
               <span><span className="font-semibold">Party:</span> {selectedJobCard.partyCode}</span>
@@ -433,7 +440,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
             </h3>
             <form onSubmit={handleAddSlitRoll} className="space-y-3">
               <FormField label="Coil Size">
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap mb-2">
                   {(selectedJobCard.coilSizes || []).map(size => (
                     <button key={size} type="button" onClick={() => setSelectedCoilSize(size)}
                       className={`px-4 py-2.5 rounded-xl text-sm font-bold border transition-all btn-press ${
@@ -445,6 +452,7 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                     </button>
                   ))}
                 </div>
+                <input type="text" placeholder="Or type Coil Size manually" value={selectedCoilSize} onChange={e => setSelectedCoilSize(e.target.value)} required className={inputCls} />
               </FormField>
               <div className="grid grid-cols-2 gap-3">
                 <FormField label="Meter"><input type="number" step="0.01" placeholder="0.00" value={meter} onChange={e => setMeter(e.target.value)} className={inputCls} /></FormField>

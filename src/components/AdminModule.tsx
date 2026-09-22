@@ -180,9 +180,9 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     } finally { setIsDeleting(false); }
   };
 
-  const handleUpdateStatus = async (jcId: string, newStatus: JobCardStatus) => {
-    try { await updateDoc(doc(db, 'jobCards', jcId), { status: newStatus }); }
-    catch (err) { console.error(err); }
+  const handleUpdateStatus = async (jcId: string, newStatus: JobCardStatus, field: 'status' | 'slittingStatus' = 'status') => {
+    try { await updateDoc(doc(db, 'jobCards', jcId), { [field]: newStatus }); }
+    catch (err) { alert('Failed: ' + String(err)); }
   };
 
   const openUserCreate = () => {
@@ -260,7 +260,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
           coreWeight: roll.coreWeight, netWeight: roll.netWeight
         };
       });
-      const res = await fetch('http://localhost:3001/api/bulk-save-to-sheet', {
+      const res = await fetch('/api/bulk-save-to-sheet', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items })
       });
@@ -348,15 +348,29 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                           isRunning ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-amber-100 border-amber-300 text-amber-900'
                         }`}>{jc.jobCode}</span>
                       </div>
-                      <div onClick={e => e.stopPropagation()}>
-                        <select value={jc.status || 'pending'}
-                          onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus)}
-                          className="text-xs font-bold rounded-xl px-2.5 py-1.5 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
-                          <option value="running">🔥 Running</option>
-                          <option value="pending">⏳ Pending</option>
-                          <option value="completed">✅ Completed</option>
-                          <option value="dispatched">🚚 Dispatched</option>
-                        </select>
+                      <div onClick={e => e.stopPropagation()} className="flex flex-col gap-1 items-end">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">Prod</span>
+                          <select value={jc.status || 'pending'}
+                            onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'status')}
+                            className="text-xs font-bold rounded-lg px-1.5 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
+                            <option value="running">🔥 Run</option>
+                            <option value="pending">⏳ Pend</option>
+                            <option value="completed">✅ Comp</option>
+                            <option value="dispatched">🚚 Disp</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">Slit</span>
+                          <select value={jc.slittingStatus || 'pending'}
+                            onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'slittingStatus')}
+                            className="text-xs font-bold rounded-lg px-1.5 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
+                            <option value="running">🔥 Run</option>
+                            <option value="pending">⏳ Pend</option>
+                            <option value="completed">✅ Comp</option>
+                            <option value="dispatched">🚚 Disp</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
 

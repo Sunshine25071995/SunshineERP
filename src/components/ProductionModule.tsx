@@ -279,7 +279,14 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
               <span className="font-mono text-3xl font-black text-emerald-900 bg-emerald-100 px-4 py-0.5.5 rounded-xl border border-emerald-300">
                 {selectedJobCard.jobCode}
               </span>
-              <StatusBadge status={selectedJobCard.status} />
+              <select value={selectedJobCard.status || 'pending'}
+                onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
+                className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
+                <option value="running">🔥 Running</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="completed">✅ Completed</option>
+                <option value="dispatched">🚚 Dispatched</option>
+              </select>
             </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap text-sm text-gray-600">
               <span><span className="font-semibold">Party:</span> {selectedJobCard.partyCode}</span>
