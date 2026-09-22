@@ -65,9 +65,9 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   };
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
-  const sortedJobCards = [...jobCards].sort((a, b) =>
-    (statusPriority[a.status?.toLowerCase()] || 99) - (statusPriority[b.status?.toLowerCase()] || 99)
-  );
+  const sortedJobCards = [...jobCards].sort((a, b) => {
+    return (statusPriority[(a.slittingStatus || 'pending').toLowerCase()] || 99) - (statusPriority[(b.slittingStatus || 'pending').toLowerCase()] || 99);
+  });
 
   const filteredJobCards = sortedJobCards.filter((jc) => {
     if (!jobCardSearch.trim()) return true;
@@ -338,88 +338,42 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {filteredJobCards.map(jc => {
                 const summary = calculateJobCardWastage(jc.id, prodRolls, slitRolls, prodWastages);
-                const isRunning = jc.status?.toLowerCase() === 'running';
+                const isRunning = jc.slittingStatus?.toLowerCase() === 'running';
                 return (
-                  <div key={jc.id} className={`app-card p-4 flex flex-col gap-3 ${isRunning ? 'border-emerald-300 bg-emerald-50/50 running-card' : ''}`}>
+                  <div key={jc.id} onClick={() => setSelectedJobCardForDetail(jc)} className={`app-card p-4 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow ${isRunning ? 'border-emerald-300 bg-emerald-50/50 running-card' : ''}`}>
                     {/* Top */}
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`font-mono text-2xl font-black px-3 py-1.5 rounded-xl border shadow-sm ${
+                      <div className="flex flex-col gap-2">
+                        <span className={`inline-block font-mono text-xl font-black px-3 py-1 rounded-xl border shadow-sm ${
                           isRunning ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-amber-100 border-amber-300 text-amber-900'
                         }`}>{jc.jobCode}</span>
+                        <div className="text-sm font-semibold text-gray-700">{getPartyName(jc.partyCode)}</div>
                       </div>
                       <div onClick={e => e.stopPropagation()} className="flex flex-col gap-1 items-end">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">Prod</span>
-                          <select value={jc.status || 'pending'}
-                            onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'status')}
-                            className="text-xs font-bold rounded-lg px-1.5 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
-                            <option value="running">🔥 Run</option>
-                            <option value="pending">⏳ Pend</option>
-                            <option value="completed">✅ Comp</option>
-                            <option value="dispatched">🚚 Disp</option>
-                          </select>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">Slit</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">Slit Status</span>
                           <select value={jc.slittingStatus || 'pending'}
                             onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'slittingStatus')}
-                            className="text-xs font-bold rounded-lg px-1.5 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
-                            <option value="running">🔥 Run</option>
-                            <option value="pending">⏳ Pend</option>
-                            <option value="completed">✅ Comp</option>
-                            <option value="dispatched">🚚 Disp</option>
+                            className="text-xs font-bold rounded-lg px-2 py-1.5 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none shadow-sm">
+                            <option value="running">🔥 Running</option>
+                            <option value="pending">⏳ Pending</option>
+                            <option value="completed">✅ Completed</option>
+                            <option value="dispatched">🚚 Dispatched</option>
                           </select>
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="text-sm font-semibold text-gray-700">{getPartyName(jc.partyCode)}</div>
-
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
-                        <p className="text-[10px] text-gray-400 font-semibold">Size</p>
-                        <p className="text-xs font-bold text-gray-900">{jc.size}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
-                        <p className="text-[10px] text-gray-400 font-semibold">Micron</p>
-                        <p className="text-xs font-bold text-gray-900">{jc.micron}μ</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
-                        <p className="text-[10px] text-gray-400 font-semibold">Target</p>
-                        <p className="text-xs font-bold font-mono text-gray-900">{formatWeight(jc.totalQuantity)}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100">
-                        <p className="text-[10px] text-emerald-600 font-semibold">Prod Out</p>
-                        <p className="text-xs font-black font-mono text-emerald-800">{formatWeight(summary.totalProdOutputWeight)}</p>
-                      </div>
-                      <div className="bg-blue-50 rounded-xl p-2 border border-blue-100">
-                        <p className="text-[10px] text-blue-600 font-semibold">Slit Out</p>
-                        <p className="text-xs font-black font-mono text-blue-800">{formatWeight(summary.slittingOutputWeight)}</p>
-                      </div>
-                      <div className="bg-amber-50 rounded-xl p-2 border border-amber-100">
-                        <p className="text-[10px] text-amber-600 font-semibold">Wastage</p>
-                        <p className="text-xs font-black font-mono text-amber-800">{formatWeight(summary.finalWastage)}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => setSelectedJobCardForDetail(jc)}
-                          className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-bold text-xs btn-press">
-                          <Eye className="w-3.5 h-3.5" /><span>Detail</span>
-                        </button>
-                        <button onClick={() => setPdfModalJobCard(jc)}
-                          className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-bold text-xs btn-press">
-                          <FileText className="w-3.5 h-3.5" /><span>PDF</span>
+                        <button onClick={(e) => { e.stopPropagation(); setPdfModalJobCard(jc); }}
+                          className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 rounded-lg font-bold text-xs btn-press">
+                          <FileText className="w-4 h-4" /><span>Generate PDF</span>
                         </button>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button onClick={() => openJobCardEdit(jc)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setDeletingJobCard(jc)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); openJobCardEdit(jc); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); setDeletingJobCard(jc); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
                   </div>

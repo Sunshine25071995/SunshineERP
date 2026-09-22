@@ -200,7 +200,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
                     <button onClick={() => onNavigate('partyLedger', party.id)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl mr-2 font-bold" title="View Ledger">
                       Ledger
                     </button>
-                    {profile?.role === 'admin' && (
+                    {profile?.department === 'admin' && (
                       <>
                         <button onClick={() => setEditingParty(party)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2" title="Edit">
                           <Edit2 className="h-4 w-4" />
