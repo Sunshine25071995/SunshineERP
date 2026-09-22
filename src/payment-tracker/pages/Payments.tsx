@@ -135,7 +135,7 @@ export function Payments() {
                 <th scope="col" className="px-6 py-3 text-left font-bold">Party Name</th>
                 <th scope="col" className="px-6 py-3 text-right font-bold">Amount</th>
                 <th scope="col" className="px-6 py-3 text-center font-bold">Mode</th>
-                {profile?.department === 'admin' && <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>}
+                {profile?.role === 'admin' && <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -157,7 +157,7 @@ export function Payments() {
                         {payment.payment_mode}
                       </span>
                     </td>
-                    {profile?.department === 'admin' && (
+                    {profile?.role === 'admin' && (
                       <td className="px-6 py-4 text-right text-sm">
                         <button onClick={() => setEditingPayment(payment)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2">
                           <Edit className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function Payments() {
               })}
               {filteredPayments.length === 0 && (
                 <tr>
-                  <td colSpan={profile?.department === 'admin' ? 5 : 4} className="px-6 py-12 text-center text-sm font-medium text-slate-500">
+                  <td colSpan={profile?.role === 'admin' ? 5 : 4} className="px-6 py-12 text-center text-sm font-medium text-slate-500">
                     No payments found.
                   </td>
                 </tr>

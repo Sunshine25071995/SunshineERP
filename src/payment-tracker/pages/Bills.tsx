@@ -138,7 +138,7 @@ export function Bills() {
     <div className="w-full space-y-4">
       <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-lg font-black text-slate-900">Sales Bills</h1>
-        {profile?.department === 'admin' && (
+        {profile?.role === 'admin' && (
           <button
             onClick={openAddModal}
             className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-bold text-white shadow-sm hover:bg-indigo-700"
@@ -175,7 +175,7 @@ export function Bills() {
                 <th scope="col" className="px-6 py-3 text-right font-bold">Amount</th>
                 <th scope="col" className="px-6 py-3 text-right font-bold">Outstanding</th>
                 <th scope="col" className="px-6 py-3 text-center font-bold">Status</th>
-                {profile?.department === 'admin' && <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>}
+                {profile?.role === 'admin' && <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -208,7 +208,7 @@ export function Bills() {
                         {bill.status}
                       </span>
                     </td>
-                    {profile?.department === 'admin' && (
+                    {profile?.role === 'admin' && (
                       <td className="px-6 py-4 text-right text-sm">
                         <button onClick={() => openEditModal(bill)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2">
                           <Edit className="h-4 w-4" />
@@ -223,7 +223,7 @@ export function Bills() {
               })}
               {filteredBills.length === 0 && (
                 <tr>
-                  <td colSpan={profile?.department === 'admin' ? 7 : 6} className="px-6 py-12 text-center text-sm text-slate-500 font-medium">
+                  <td colSpan={profile?.role === 'admin' ? 7 : 6} className="px-6 py-12 text-center text-sm text-slate-500 font-medium">
                     No bills found.
                   </td>
                 </tr>

@@ -9,8 +9,9 @@ export function useAuth() {
         const user = JSON.parse(saved);
         const perms = getUserPermissions(user);
         return {
+          ...user,
           name: user.name,
-          role: perms.payments.edit ? 'admin' : 'viewer',
+          role: (perms.payments?.edit || user.department === 'admin') ? 'admin' : 'viewer',
         };
       }
     } catch {}

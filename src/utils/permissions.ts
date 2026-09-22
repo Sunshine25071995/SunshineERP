@@ -10,7 +10,7 @@ export const DEFAULT_PERMISSIONS: UserPermissions = {
 
 export function getUserPermissions(user: User): UserPermissions {
   if (user.permissions) {
-    return user.permissions;
+    return { ...DEFAULT_PERMISSIONS, ...user.permissions };
   }
 
   // Fallback for legacy departments
