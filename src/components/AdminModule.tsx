@@ -364,6 +364,26 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       </div>
                     </div>
 
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className="text-[11px] font-bold bg-blue-50 text-blue-800 px-2 py-0.5 rounded-lg border border-blue-100">
+                        {jc.size}
+                      </span>
+                      <span className="text-[11px] font-bold bg-purple-50 text-purple-800 px-2 py-0.5 rounded-lg border border-purple-100">
+                        {jc.micron} Mic
+                      </span>
+                      <span className="text-[11px] font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded-lg border border-amber-100">
+                        {formatWeight(jc.totalQuantity)} kg
+                      </span>
+                    </div>
+                    {jc.coilSizes?.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] text-gray-500 font-semibold uppercase">Coils:</span>
+                        {jc.coilSizes.map(cs => (
+                          <span key={cs} className="text-[10px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">{cs}</span>
+                        ))}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                       <div className="flex items-center gap-2">
                         <button onClick={(e) => { e.stopPropagation(); setPdfModalJobCard(jc); }}
