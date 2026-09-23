@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { getPartyName } from '../utils/parties';
@@ -49,16 +49,16 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
   const jcSlitRolls = slitRolls.filter((r) => r.jobCardId === jobCard.id);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal Sheet */}
-      <div className="relative bg-white w-full max-w-3xl max-h-[92vh] sm:max-h-[90vh] flex flex-col rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
+      <div className="relative bg-white w-full max-w-3xl max-h-[92vh] sm:max-h-[90vh] flex flex-col rounded-t-[28px] sm:rounded-2xl shadow-2xl overflow-hidden animate-slide-up z-50 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:pb-0">
 
         {/* Drag handle (mobile) */}
-        <div className="flex justify-center pt-2 pb-1 sm:hidden">
-          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        <div className="flex justify-center pt-3 pb-2 sm:hidden">
+          <div className="w-10 h-1.5 bg-gray-300 rounded-full" />
         </div>
 
         {/* Header */}

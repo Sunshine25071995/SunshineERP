@@ -12,7 +12,6 @@ import {
   SlittingRoll,
   ProductionWastage,
 } from './types';
-import { Navbar } from './components/Navbar';
 import { LoginModal } from './components/LoginModal';
 import { AdminModule } from './components/AdminModule';
 import { ChemicalModule } from './components/ChemicalModule';
@@ -21,6 +20,7 @@ import { SlittingModule } from './components/SlittingModule';
 import { PaymentTrackerModule } from './payment-tracker/PaymentTrackerModule';
 import { getUserPermissions } from './utils/permissions';
 import { Toaster } from 'react-hot-toast';
+import { LayoutDashboard, Wallet, Factory, Scissors, FlaskConical, LogOut } from 'lucide-react';
 
 export default function App() {
   const [isLive, setIsLive] = useState(false);
@@ -137,7 +137,7 @@ export default function App() {
         localStorage.setItem('sunshine_app_user', JSON.stringify(updated));
       }
     }
-  }, [users]);
+  }, [users, currentUser]);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
@@ -150,13 +150,46 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
       <Toaster position="top-right" />
-      {/* Top Header Navbar */}
-      <Navbar currentUser={currentUser} onLogout={handleLogout} isLive={isLive} />
+      
+      {/* MD3 Top App Bar */}
+      <header className="bg-slate-50 sticky top-0 z-40 px-4 h-16 flex items-center justify-between border-b border-slate-200" style={{ paddingTop: 'var(--safe-top)' }}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center shadow-sm">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white fill-white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <span className="text-xl font-bold tracking-tight text-slate-900">Sunshine</span>
+          {isLive && (
+            <div className="ml-1 px-2 py-0.5 bg-indigo-100 border border-indigo-200 rounded-lg flex items-center gap-1.5 hidden sm:flex">
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></div>
+              <span className="text-[10px] font-bold text-indigo-800 uppercase tracking-wider">Live</span>
+            </div>
+          )}
+        </div>
+        {currentUser && (
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 bg-slate-100 rounded-full px-3 py-1.5">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 uppercase tracking-wider">
+                {currentUser.department || 'USER'}
+              </span>
+              <span className="text-sm font-semibold text-slate-800">{currentUser.name}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+              title="Log Out"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+      </header>
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-4 py-4 pb-safe">
+      <main className="flex-1 w-full max-w-5xl mx-auto md:py-4 pb-[80px] md:pb-6">
         {!currentUser ? (
           <LoginModal users={users} onLogin={handleLogin} />
         ) : (
@@ -182,43 +215,72 @@ function AppContainer(props: any) {
   const perms = getUserPermissions(currentUser);
 
   const availableTabs = [];
-  if (perms.admin.view) availableTabs.push({ id: 'admin', label: 'Dashboard' });
-  if (perms.payments.view) availableTabs.push({ id: 'payments', label: 'Payments' });
-  if (perms.production.view) availableTabs.push({ id: 'production', label: 'Production' });
-  if (perms.slitting.view) availableTabs.push({ id: 'slitting', label: 'Slitting' });
-  if (perms.chemical.view) availableTabs.push({ id: 'chemical', label: 'Chemicals' });
+  if (perms.admin.view) availableTabs.push({ id: 'admin', label: 'Admin', icon: <LayoutDashboard className="w-6 h-6" /> });
+  if (perms.payments.view) availableTabs.push({ id: 'payments', label: 'Payments', icon: <Wallet className="w-6 h-6" /> });
+  if (perms.production.view) availableTabs.push({ id: 'production', label: 'Production', icon: <Factory className="w-6 h-6" /> });
+  if (perms.slitting.view) availableTabs.push({ id: 'slitting', label: 'Slitting', icon: <Scissors className="w-6 h-6" /> });
+  if (perms.chemical.view) availableTabs.push({ id: 'chemical', label: 'Chemical', icon: <FlaskConical className="w-6 h-6" /> });
 
   const [activeTab, setActiveTab] = useState(availableTabs.length > 0 ? availableTabs[0].id : '');
 
   if (availableTabs.length === 0) {
-    return <div className="text-center p-8 text-gray-500">You do not have permission to view any modules. Please contact an administrator.</div>;
+    return <div className="text-center p-8 text-slate-500">You do not have permission to view any modules. Please contact an administrator.</div>;
   }
 
   return (
-    <div className="space-y-4">
+    <>
+      {/* Desktop Top Tabs (MD3 style) */}
       {availableTabs.length > 1 && (
-        <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-2">
-          {availableTabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="hidden md:flex overflow-x-auto gap-2 px-4 py-2 bg-slate-50 mb-4 rounded-xl">
+          {availableTabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-indigo-100 text-indigo-700' : 'bg-transparent text-slate-600 hover:bg-slate-200 hover:text-slate-900'}`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            )
+          })}
         </div>
       )}
 
-      {activeTab === 'admin' && <AdminModule {...props} />}
-      {activeTab === 'chemical' && <ChemicalModule {...props} />}
-      {activeTab === 'production' && <ProductionModule {...props} />}
-      {activeTab === 'slitting' && <SlittingModule {...props} />}
-      {activeTab === 'payments' && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 min-h-[500px]">
-          <PaymentTrackerModule />
+      {/* Module Content */}
+      <div className="px-3 sm:px-4 md:px-0">
+        {activeTab === 'admin' && <AdminModule {...props} />}
+        {activeTab === 'chemical' && <ChemicalModule {...props} />}
+        {activeTab === 'production' && <ProductionModule {...props} />}
+        {activeTab === 'slitting' && <SlittingModule {...props} />}
+        {activeTab === 'payments' && (
+          <div className="app-card p-4 min-h-[500px] rounded-3xl">
+            <PaymentTrackerModule />
+          </div>
+        )}
+      </div>
+
+      {/* MD3 Bottom Navigation Bar for Mobile */}
+      {availableTabs.length > 1 && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-50 border-t border-slate-200 flex justify-around items-center h-[80px] pb-safe z-50">
+          {availableTabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${isActive ? 'text-indigo-700' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                <div className={`px-4 py-1 rounded-full transition-all ${isActive ? 'bg-indigo-100' : ''}`}>
+                  {tab.icon}
+                </div>
+                <span className={`text-[11px] font-medium ${isActive ? 'font-bold' : ''}`}>{tab.label}</span>
+              </button>
+            )
+          })}
         </div>
       )}
-    </div>
+    </>
   );
 }

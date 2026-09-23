@@ -237,11 +237,11 @@ export const RollPDFModal: React.FC<RollPDFModalProps> = ({ jobCard, prodRolls, 
   const selectNone = activeType === 'production' ? selectNoneProd : selectNoneSlit;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-lg max-h-[90vh] flex flex-col rounded-t-3xl sm:rounded-2xl shadow-2xl animate-slide-up">
+      <div className="relative bg-white w-full max-w-lg max-h-[90vh] flex flex-col rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-slide-up z-50 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-0">
         {/* Handle */}
-        <div className="flex justify-center pt-2 pb-1 sm:hidden"><div className="w-10 h-1 bg-gray-300 rounded-full" /></div>
+        <div className="flex justify-center pt-3 pb-2 sm:hidden"><div className="w-10 h-1.5 bg-gray-300 rounded-full" /></div>
 
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">

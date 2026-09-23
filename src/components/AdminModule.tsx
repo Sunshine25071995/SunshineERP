@@ -30,14 +30,14 @@ interface AdminModuleProps {
 }
 
 const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div>
-    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{label}</label>
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
     {children}
   </div>
 );
 
-const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-black text-black placeholder:text-gray-400 placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
-const selectCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-black text-black focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
+const inputCls = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 px-4 py-3 text-base text-gray-900 focus:outline-none focus:border-indigo-600 focus:bg-indigo-50/50 transition-colors";
+const selectCls = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 px-4 py-3 text-base text-gray-900 focus:outline-none focus:border-indigo-600 focus:bg-indigo-50/50 transition-colors";
 
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages, permissions,
@@ -287,24 +287,22 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   ];
 
   return (
-    <div className="space-y-3 animate-fade-in">
+    <div className="space-y-4 pb-[80px] animate-fade-in w-full">
 
       {/* HOME DASHBOARD */}
       {activeTab === 'home' && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 p-1 sm:p-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-2">
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => navigateToTab(tab.id)}
-              className={`relative rounded-[2rem] py-8 sm:py-10 px-4 flex flex-col items-center justify-center gap-3 overflow-hidden transition-all duration-300 shadow-lg border-0 bg-gradient-to-br ${tab.gradient} text-white hover:scale-[1.03] active:scale-95`}
+              className="relative app-card p-6 flex flex-col items-center justify-center gap-4 hover:shadow-lg transition-shadow bg-white rounded-3xl"
             >
-              {/* Decorative circle */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-6 -mt-6 pointer-events-none"></div>
-              
-              <tab.icon className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md relative z-10" />
-              <span className="text-sm sm:text-base font-black tracking-wide drop-shadow-md relative z-10">{tab.label}</span>
+              <div className={`p-4 rounded-2xl ${tab.lightBg} ${tab.lightText}`}>
+                <tab.icon className="w-10 h-10" />
+              </div>
+              <span className="text-base font-bold text-gray-900">{tab.label}</span>
               
               {tab.count !== undefined && (
-                <span className="absolute top-4 right-4 text-[10px] sm:text-xs font-black px-2 py-1 rounded-full bg-white/20 backdrop-blur-md shadow-sm border border-white/10">
+                <span className="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
                   {tab.count}
                 </span>
               )}
@@ -315,25 +313,21 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
       {/* ── TAB: JOB CARDS ────────────────────────────────────── */}
       {activeTab === 'jobCards' && (
-        <div className="space-y-4 animate-fade-in">
+        <div className="space-y-4 animate-fade-in relative">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input type="text" placeholder="Search job code, party…" value={jobCardSearch}
                 onChange={e => setJobCardSearch(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm" />
+                className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm" />
               {jobCardSearch && <button onClick={() => setJobCardSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-4 h-4" /></button>}
             </div>
-            {permissions?.edit !== false && <button onClick={openJobCardCreate}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-3 rounded-xl btn-press shadow-sm shrink-0">
-              <Plus className="w-4 h-4" /><span className="hidden sm:inline">New Job Card</span>
-            </button>}
           </div>
 
           {filteredJobCards.length === 0 ? (
             <div className="app-card p-10 text-center">
               <FileText className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">{jobCardSearch ? 'No matching job cards.' : 'No job cards yet. Create one above.'}</p>
+              <p className="text-sm text-gray-500">{jobCardSearch ? 'No matching job cards.' : 'No job cards yet. Create one below.'}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -402,52 +396,56 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               })}
             </div>
           )}
+          {permissions?.edit !== false && (
+            <button onClick={openJobCardCreate} className="fab-btn">
+              <Plus className="w-6 h-6" />
+            </button>
+          )}
         </div>
       )}
 
       {/* ── TAB: USERS ─────────────────────────────────────────── */}
       {activeTab === 'users' && (
-        <div className="space-y-4 animate-fade-in">
+        <div className="space-y-4 animate-fade-in relative">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">System Users</p>
-            {permissions?.edit !== false && <button onClick={openUserCreate}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl btn-press shadow-sm">
-              <Plus className="w-3.5 h-3.5" /><span>Add User</span>
-            </button>}
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">System Users</p>
           </div>
-          <div className="app-card overflow-hidden">
-            {users.length === 0 ? (
-              <div className="p-8 text-center text-sm text-gray-400">No users yet.</div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {users.map(u => {
-                  const deptColor: Record<string, string> = {
-                    admin: 'bg-purple-100 text-purple-800', production: 'bg-emerald-100 text-emerald-800',
-                    slitting: 'bg-blue-100 text-blue-800', chemical: 'bg-amber-100 text-amber-800',
-                  };
-                  return (
-                    <div key={u.id || u.loginId} className="px-4 py-3.5 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-black text-gray-700">{(u.name || u.loginId).charAt(0).toUpperCase()}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-bold text-gray-900">{u.name}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase ${deptColor[u.department] || 'bg-gray-100 text-gray-600'}`}>{u.department}</span>
-                          {u.shift && <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">Shift {u.shift}</span>}
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs font-mono text-gray-500">{u.loginId}</span>
-                          <span className={`text-[10px] font-bold ${u.active ? 'text-emerald-600' : 'text-red-500'}`}>· {u.active ? 'Active' : 'Inactive'}</span>
-                        </div>
-                      </div>
-                      <button onClick={() => openUserEdit(u)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
+          {users.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-400 bg-slate-50 rounded-2xl">No users yet.</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {users.map(u => {
+                const deptColor: Record<string, string> = {
+                  admin: 'bg-purple-100 text-purple-800', production: 'bg-emerald-100 text-emerald-800',
+                  slitting: 'bg-indigo-100 text-indigo-800', chemical: 'bg-amber-100 text-amber-800',
+                };
+                return (
+                  <div key={u.id || u.loginId} className="app-card p-4 flex items-center gap-4 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                      <span className="text-lg font-black text-slate-700">{(u.name || u.loginId).charAt(0).toUpperCase()}</span>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-base font-bold text-gray-900">{u.name}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-md uppercase ${deptColor[u.department] || 'bg-slate-100 text-slate-600'}`}>{u.department}</span>
+                        {u.shift && <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">Shift {u.shift}</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-gray-500">{u.loginId}</span>
+                        <span className={`text-xs font-bold ${u.active ? 'text-emerald-600' : 'text-rose-500'}`}>· {u.active ? 'Active' : 'Inactive'}</span>
+                      </div>
+                    </div>
+                    <button onClick={() => openUserEdit(u)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-gray-400 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {permissions?.edit !== false && (
+            <button onClick={openUserCreate} className="fab-btn">
+              <Plus className="w-6 h-6" />
+            </button>
+          )}
         </div>
       )}
 
@@ -528,27 +526,24 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             {prodRolls.length === 0 ? (
               <div className="p-6 text-center text-sm text-gray-400">No production rolls.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-200">
-                    <tr>{['Roll', 'Shift', 'Net Wt', 'Joints', 'Slitting'].map(h => <th key={h} className="px-3 py-2.5">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {prodRolls.map(r => (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2.5 font-mono font-bold text-emerald-700">#{r.rollNo}</td>
-                        <td className="px-3 py-2.5 font-semibold">Shift {r.shift}</td>
-                        <td className="px-3 py-2.5 font-mono font-bold">{formatWeight(r.netWeight)}</td>
-                        <td className="px-3 py-2.5">{r.joints}</td>
-                        <td className="px-3 py-2.5">
-                          {r.takenBySlitting
-                            ? <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">Taken</span>
-                            : <span className="text-[10px] text-gray-400 italic">Pending</span>}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3">
+                {prodRolls.map(r => (
+                  <div key={r.id} className="bg-slate-50 p-4 rounded-2xl flex items-center justify-between hover:shadow-sm transition-shadow">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono font-bold text-emerald-700">#{r.rollNo}</span>
+                        <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md shadow-sm">Shift {r.shift}</span>
+                      </div>
+                      <div className="text-sm font-black text-gray-900">{formatWeight(r.netWeight)} <span className="font-normal text-gray-500">kg</span></div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <div className="text-xs font-semibold text-slate-500">{r.joints} Joints</div>
+                      {r.takenBySlitting
+                        ? <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">Taken</span>
+                        : <span className="text-[10px] text-gray-400 italic">Pending</span>}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -562,23 +557,22 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             {slitRolls.length === 0 ? (
               <div className="p-6 text-center text-sm text-gray-400">No slitting rolls.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-200">
-                    <tr>{['Roll', 'Size', 'Shift', 'Net Wt', 'Meter'].map(h => <th key={h} className="px-3 py-2.5">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {slitRolls.map(r => (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2.5 font-mono font-bold text-blue-700">#{r.rollNo}</td>
-                        <td className="px-3 py-2.5 font-mono font-bold text-amber-800">{r.coilSize}</td>
-                        <td className="px-3 py-2.5 font-semibold">Shift {r.shift}</td>
-                        <td className="px-3 py-2.5 font-mono font-bold">{formatWeight(r.netWeight)}</td>
-                        <td className="px-3 py-2.5 font-mono">{r.meter ? `${r.meter}m` : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3">
+                {slitRolls.map(r => (
+                  <div key={r.id} className="bg-slate-50 p-4 rounded-2xl flex items-center justify-between hover:shadow-sm transition-shadow">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono font-bold text-blue-700">#{r.rollNo}</span>
+                        <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md shadow-sm">Shift {r.shift}</span>
+                      </div>
+                      <div className="text-sm font-black text-gray-900">{formatWeight(r.netWeight)} <span className="font-normal text-gray-500">kg</span></div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">{r.coilSize}</div>
+                      <div className="text-xs font-mono text-gray-500">{r.meter ? `${r.meter}m` : '—'}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -667,33 +661,21 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               }
 
               return (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-100">
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Size & Micron</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Weight</th>
-                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Rolls</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {stockList.map((item, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-3">
-                            <span className="font-bold text-gray-900">{item.size}</span>
-                            <span className="text-gray-400 mx-2">×</span>
-                            <span className="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">{item.micron} Mic</span>
-                          </td>
-                          <td className="px-4 py-3 text-right font-black font-mono text-emerald-700">
-                            {formatWeight(item.weight)}<span className="text-xs font-normal text-gray-400 ml-1">kg</span>
-                          </td>
-                          <td className="px-4 py-3 text-right font-bold text-gray-600">
-                            {item.count} Rolls
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  {stockList.map((item, i) => (
+                    <div key={i} className="app-card p-4 flex flex-col justify-between gap-3 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-gray-900">{item.size}</span>
+                          <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-md">{item.micron} Mic</span>
+                        </div>
+                        <div className="text-sm font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">{item.count} Rolls</div>
+                      </div>
+                      <div className="text-2xl font-black font-mono text-emerald-700">
+                        {formatWeight(item.weight)}<span className="text-sm font-normal text-gray-500 ml-1">kg</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               );
             })()}
@@ -703,16 +685,16 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
       {/* ── MODAL: JOB CARD FORM ──────────────────────────────── */}
       {showJobCardModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowJobCardModal(false)} />
-          <div className="relative bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl shadow-2xl animate-slide-up">
-            <div className="flex justify-center pt-2 pb-1 sm:hidden"><div className="w-10 h-1 bg-gray-300 rounded-full" /></div>
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-base font-black text-gray-900">{editingJobCard ? 'Edit Job Card' : 'New Job Card'}</h2>
-              <button onClick={() => setShowJobCardModal(false)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500"><X className="w-4 h-4" /></button>
+          <div className="relative bg-white w-full max-w-lg rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-slide-up z-50 max-h-[90vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-0">
+            <div className="flex justify-center pt-3 pb-2 sm:hidden"><div className="w-10 h-1.5 bg-gray-300 rounded-full" /></div>
+            <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">{editingJobCard ? 'Edit Job Card' : 'New Job Card'}</h2>
+              <button onClick={() => setShowJobCardModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={handleSaveJobCard} className="p-5 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSaveJobCard} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField label="Job Code"><input type="text" value={jcCode} onChange={e => setJcCode(e.target.value)} required className={inputCls} /></FormField>
                 <FormField label="Date"><input type="date" value={jcDate} onChange={e => setJcDate(e.target.value)} className={inputCls} /></FormField>
                 <div className="col-span-2">
@@ -742,26 +724,26 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                 </div>
                 <div className="col-span-2">
                   <FormField label="Coil Sizes">
-                    <div className="flex gap-2 mb-2">
+                    <div className="flex gap-2 mb-3">
                       <input type="text" placeholder="e.g. 230mm" value={jcCoilSizesInput}
                         onChange={e => setJcCoilSizesInput(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCoilSizeTag())}
                         className={inputCls} />
-                      <button type="button" onClick={addCoilSizeTag} className="shrink-0 px-3 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 font-bold rounded-xl text-sm btn-press">Add</button>
+                      <button type="button" onClick={addCoilSizeTag} className="shrink-0 px-4 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-xl text-sm transition-colors">Add</button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {jcCoilSizesList.map((size, i) => (
-                        <span key={i} className="flex items-center gap-1 text-xs font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg">
+                        <span key={i} className="flex items-center gap-1 text-sm font-mono font-bold bg-amber-100 text-amber-900 border border-amber-200 px-3 py-1.5 rounded-full">
                           {size}
-                          <button type="button" onClick={() => setJcCoilSizesList(jcCoilSizesList.filter((_, idx) => idx !== i))} className="text-amber-600 hover:text-red-600"><X className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => setJcCoilSizesList(jcCoilSizesList.filter((_, idx) => idx !== i))} className="text-amber-600 hover:text-rose-600"><X className="w-4 h-4" /></button>
                         </span>
                       ))}
                     </div>
                   </FormField>
                 </div>
               </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 btn-press shadow-sm">
-                <Check className="w-4 h-4" /><span>{editingJobCard ? 'Update Job Card' : 'Create Job Card'}</span>
+              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-full mt-4 transition-colors text-base shadow-md">
+                {editingJobCard ? 'Update Job Card' : 'Create Job Card'}
               </button>
             </form>
           </div>
@@ -770,15 +752,15 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
       {/* ── MODAL: USER FORM ──────────────────────────────────── */}
       {showUserModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowUserModal(false)} />
-          <div className="relative bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl shadow-2xl animate-slide-up">
-            <div className="flex justify-center pt-2 pb-1 sm:hidden"><div className="w-10 h-1 bg-gray-300 rounded-full" /></div>
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-base font-black text-gray-900">{editingUser ? 'Edit User' : 'New User'}</h2>
-              <button onClick={() => setShowUserModal(false)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500"><X className="w-4 h-4" /></button>
+          <div className="relative bg-white w-full max-w-md rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-slide-up z-50 max-h-[90vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-0">
+            <div className="flex justify-center pt-3 pb-2 sm:hidden"><div className="w-10 h-1.5 bg-gray-300 rounded-full" /></div>
+            <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">{editingUser ? 'Edit User' : 'New User'}</h2>
+              <button onClick={() => setShowUserModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={handleSaveUser} className="p-5 space-y-4">
+            <form onSubmit={handleSaveUser} className="p-6 space-y-4">
               <FormField label="Login ID"><input type="text" placeholder="e.g. worker001" value={uLoginId} onChange={e => setULoginId(e.target.value)} required className={inputCls} autoCapitalize="none" /></FormField>
               <FormField label="Full Name"><input type="text" placeholder="e.g. Ramesh Kumar" value={uName} onChange={e => setUName(e.target.value)} required className={inputCls} /></FormField>
               <FormField label="Department / Role">
@@ -792,19 +774,19 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               </FormField>
 
               {uDept === 'custom' && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Module Permissions</label>
-                  <div className="space-y-3">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-3">Module Permissions</label>
+                  <div className="space-y-4">
                     {['admin', 'payments', 'production', 'slitting', 'chemical'].map(mod => (
                       <div key={mod} className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-gray-700 capitalize">{mod === 'admin' ? 'App Dashboard' : mod}</span>
+                        <span className="text-sm font-bold text-gray-900 capitalize">{mod === 'admin' ? 'App Dashboard' : mod}</span>
                         <div className="flex gap-4">
-                          <label className="flex items-center gap-1 text-sm text-gray-600">
-                            <input type="checkbox" checked={uPermissions[mod].view} onChange={e => setUPermissions({...uPermissions, [mod]: {...uPermissions[mod], view: e.target.checked}})} className="rounded border-gray-300 text-blue-600" />
+                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="checkbox" checked={uPermissions[mod].view} onChange={e => setUPermissions({...uPermissions, [mod]: {...uPermissions[mod], view: e.target.checked}})} className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                             View
                           </label>
-                          <label className="flex items-center gap-1 text-sm text-gray-600">
-                            <input type="checkbox" checked={uPermissions[mod].edit} onChange={e => setUPermissions({...uPermissions, [mod]: {...uPermissions[mod], edit: e.target.checked}})} className="rounded border-gray-300 text-blue-600" />
+                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="checkbox" checked={uPermissions[mod].edit} onChange={e => setUPermissions({...uPermissions, [mod]: {...uPermissions[mod], edit: e.target.checked}})} className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                             Edit
                           </label>
                         </div>
@@ -824,15 +806,15 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                   </select>
                 </FormField>
               )}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <span className="text-sm font-semibold text-gray-700">Account Active</span>
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <span className="text-base font-bold text-gray-900">Account Active</span>
                 <button type="button" onClick={() => setUActive(!uActive)}
-                  className={`w-12 h-6 rounded-full transition-all relative ${uActive ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                  className={`w-12 h-6 rounded-full transition-all relative ${uActive ? 'bg-indigo-600' : 'bg-gray-300'}`}>
                   <div className={`w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition-all ${uActive ? 'left-6' : 'left-0.5'}`} />
                 </button>
               </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 btn-press shadow-sm">
-                <Check className="w-4 h-4" /><span>{editingUser ? 'Update User' : 'Create User'}</span>
+              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-full mt-4 transition-colors text-base shadow-md">
+                {editingUser ? 'Update User' : 'Create User'}
               </button>
             </form>
           </div>
@@ -841,24 +823,25 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
       {/* ── MODAL: DELETE CONFIRM ─────────────────────────────── */}
       {deletingJobCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => !isDeleting && setDeletingJobCard(null)} />
-          <div className="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 animate-slide-up">
+          <div className="relative bg-white w-full max-w-sm rounded-t-[28px] sm:rounded-2xl shadow-2xl p-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-6 animate-slide-up z-50">
+            <div className="flex justify-center mb-4 sm:hidden"><div className="w-10 h-1.5 bg-gray-300 rounded-full" /></div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-6 h-6 text-red-600" />
+              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-rose-600" />
               </div>
-              <h3 className="text-lg font-black text-gray-900 mb-1">Delete Job Card?</h3>
-              <p className="text-sm text-gray-500 mb-1">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Job Card?</h3>
+              <p className="text-base text-gray-500 mb-2">
                 This will delete <span className="font-bold text-gray-900">{deletingJobCard.jobCode}</span> and all its linked rolls.
               </p>
-              <p className="text-xs text-red-600 font-semibold mb-5">This action cannot be undone.</p>
-              {deleteError && <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-3">{deleteError}</div>}
+              <p className="text-sm text-rose-600 font-semibold mb-6">This action cannot be undone.</p>
+              {deleteError && <div className="mb-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-4">{deleteError}</div>}
               <div className="flex gap-3">
                 <button onClick={() => setDeletingJobCard(null)} disabled={isDeleting}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl btn-press">Cancel</button>
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 rounded-full transition-colors text-base">Cancel</button>
                 <button onClick={handleConfirmDeleteJobCard} disabled={isDeleting}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl btn-press disabled:opacity-60">
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-full transition-colors text-base shadow-md disabled:opacity-60">
                   {isDeleting ? 'Deleting…' : 'Delete'}
                 </button>
               </div>

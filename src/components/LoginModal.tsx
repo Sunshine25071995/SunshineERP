@@ -44,72 +44,69 @@ export const LoginModal: React.FC<LoginModalProps> = ({ users, onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white px-5 py-12" style={{ paddingBottom: 'max(48px, var(--safe-bottom))' }}>
-
-      {/* Brand */}
-      <div className="flex flex-col items-center mb-10 animate-fade-in">
-        <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center shadow-xl mb-4">
-          <svg viewBox="0 0 24 24" className="w-10 h-10" xmlns="http://www.w3.org/2000/svg">
+    <div className="flex flex-col items-center justify-center bg-slate-50 px-5 py-12 h-full" style={{ minHeight: 'calc(100vh - 80px)' }}>
+      {/* Brand / Splash style */}
+      <div className="flex flex-col items-center mb-10 animate-fade-in text-center">
+        <div className="w-24 h-24 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-xl mb-6">
+          <svg viewBox="0 0 24 24" className="w-12 h-12" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
           </svg>
         </div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Sunshine ERP</h1>
-        <p className="text-sm text-gray-500 mt-1">Factory Management System</p>
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">Sunshine ERP</h1>
+        <p className="text-base text-slate-500 font-medium">Factory Management System</p>
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-sm animate-slide-up">
-        <div className="app-card p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-1">Sign In</h2>
-          <p className="text-sm text-gray-500 mb-5">Enter your assigned Login ID to continue</p>
+      <div className="w-full max-w-sm animate-slide-up bg-white rounded-[2rem] shadow-sm p-8">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h2>
+        <p className="text-sm text-slate-500 mb-6">Enter your assigned Login ID to continue</p>
 
-          {error && (
-            <div className="mb-4 flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-xl p-3">
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700 font-medium">{error}</p>
-            </div>
-          )}
+        {error && (
+          <div className="mb-6 flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-2xl p-4">
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700 font-medium">{error}</p>
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
-                Login ID
-              </label>
-              <input
-                type="text"
-                value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
-                placeholder="Enter your Login ID"
-                className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-base font-mono font-semibold text-gray-900 placeholder:text-gray-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                autoFocus
-                autoCapitalize="none"
-                autoCorrect="off"
-                id="login-id-input"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Login ID
+            </label>
+            <input
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="Enter your Login ID"
+              className="w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50 px-4 py-3.5 text-lg font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans placeholder:font-normal focus:outline-none transition-all"
+              autoFocus
+              autoCapitalize="none"
+              autoCorrect="off"
+              id="login-id-input"
+            />
+          </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm shadow-sm btn-press disabled:opacity-60"
-              id="login-submit-btn"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <LogIn className="w-4 h-4" />
-                  <span>Sign In</span>
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Sunshine Industries · All rights reserved
-        </p>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-4 px-6 rounded-full flex items-center justify-center gap-2 transition-all text-base disabled:opacity-60 disabled:cursor-not-allowed"
+            id="login-submit-btn"
+          >
+            {isLoading ? (
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <LogIn className="w-5 h-5" />
+                <span>Sign In</span>
+              </>
+            )}
+          </button>
+        </form>
       </div>
+
+      <p className="text-center text-sm font-medium text-slate-400 mt-10">
+        Sunshine Industries · All rights reserved
+      </p>
     </div>
   );
 };
