@@ -321,18 +321,18 @@ export function Reports() {
   // ── Status badge helper ───────────────────────────────────────────────────
   const statusBadge = (status: string) => {
     const cls =
-      status === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
-      status === 'OVERDUE' ? 'bg-red-100 text-red-700' :
-      status === 'PARTIALLY PAID' ? 'bg-indigo-100 text-indigo-700' :
-      'bg-amber-100 text-amber-700';
-    return <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${cls}`}>{status}</span>;
+      status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
+      status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+      status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
+      'bg-amber-100 text-amber-800';
+    return <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold ${cls}`}>{status}</span>;
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 pb-[80px]">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl font-black text-slate-900">Reports</h1>
+        <h1 className="text-xl font-bold text-slate-900">Reports</h1>
         <div className="flex flex-wrap gap-2">
           <button onClick={printReport} className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 shadow-sm">
             <Printer className="h-4 w-4" />Print
@@ -380,8 +380,8 @@ export function Reports() {
         </div>
 
         {/* Desktop table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left">
+        <div className="hidden md:block w-full overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 {tableHeaders.map((h, i) => (
@@ -394,30 +394,30 @@ export function Reports() {
                 <tr key={idx} className="hover:bg-slate-50 transition-colors">
                   {reportType === 'outstanding' && <>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900">{row.party_name}</td>
-                    <td className="px-5 py-3 text-sm text-right text-slate-700">{formatCurrency(row.totalSales)}</td>
+                    <td className="px-5 py-3 text-sm text-right text-slate-700 font-bold">{formatCurrency(row.totalSales)}</td>
                     <td className="px-5 py-3 text-sm text-right text-emerald-600 font-bold">{formatCurrency(row.received)}</td>
                     <td className="px-5 py-3 text-sm text-right font-black text-red-600">{formatCurrency(row.outstanding)}</td>
                   </>}
                   {reportType === 'sales' && <>
-                    <td className="px-5 py-3 text-sm text-slate-700">{format(row.date, 'dd/MM/yy')}</td>
+                    <td className="px-5 py-3 text-sm text-slate-700 font-medium">{format(row.date, 'dd/MM/yy')}</td>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{row.billNo}</td>
-                    <td className="px-5 py-3 text-sm text-slate-700 text-right">{row.party}</td>
+                    <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{row.party}</td>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{formatCurrency(row.amount)}</td>
                     <td className="px-5 py-3 text-sm text-emerald-600 font-bold text-right">{formatCurrency(row.paid)}</td>
                     <td className="px-5 py-3 text-sm font-black text-red-600 text-right">{formatCurrency(row.outstanding)}</td>
                     <td className="px-5 py-3 text-right">{statusBadge(row.status)}</td>
                   </>}
                   {reportType === 'collections' && <>
-                    <td className="px-5 py-3 text-sm text-slate-700">{format(row.date, 'dd/MM/yy')}</td>
+                    <td className="px-5 py-3 text-sm text-slate-700 font-medium">{format(row.date, 'dd/MM/yy')}</td>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{row.party}</td>
-                    <td className="px-5 py-3 text-sm font-black text-emerald-600 text-right">{formatCurrency(row.amount)}</td>
-                    <td className="px-5 py-3 text-sm text-slate-600 text-right">{row.mode}</td>
+                    <td className="px-5 py-3 text-sm font-black text-emerald-600 text-right">+{formatCurrency(row.amount)}</td>
+                    <td className="px-5 py-3 text-sm text-slate-600 text-right capitalize">{row.mode}</td>
                     <td className="px-5 py-3 text-sm text-slate-500 text-right">{row.ref}</td>
                   </>}
                 </tr>
               ))}
               {reportRows.length === 0 && (
-                <tr><td colSpan={tableHeaders.length} className="px-2 py-6 text-center text-slate-400 text-sm">No data available.</td></tr>
+                <tr><td colSpan={tableHeaders.length} className="px-2 py-6 text-center text-slate-500 text-sm font-medium">No data available.</td></tr>
               )}
             </tbody>
             {reportRows.length > 0 && (
@@ -448,54 +448,78 @@ export function Reports() {
         </div>
 
         {/* Mobile card view */}
-        <div className="md:hidden divide-y divide-slate-100">
+        <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50">
           {reportRows.map((row, idx) => (
-            <div key={idx} className="p-4 hover:bg-slate-50">
+            <div key={idx} className="app-card p-4 rounded-2xl bg-white flex flex-col gap-2">
               {reportType === 'outstanding' && (
                 <>
-                  <p className="font-bold text-slate-900 text-base mb-2">{row.party_name}</p>
+                  <p className="font-bold text-slate-900 text-lg mb-1">{row.party_name}</p>
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-slate-50 rounded-xl p-2"><p className="text-xs text-slate-400">Bills</p><p className="font-bold text-slate-800 text-sm">{formatCurrency(row.totalSales)}</p></div>
-                    <div className="bg-emerald-50 rounded-xl p-2"><p className="text-xs text-emerald-500">Received</p><p className="font-bold text-emerald-700 text-sm">{formatCurrency(row.received)}</p></div>
-                    <div className="bg-red-50 rounded-xl p-2"><p className="text-xs text-red-400">Due</p><p className="font-black text-red-600 text-base">{formatCurrency(row.outstanding)}</p></div>
+                    <div className="bg-slate-50 rounded-xl p-2 flex flex-col justify-center">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Bills</p>
+                      <p className="font-bold text-slate-900 text-sm">{formatCurrency(row.totalSales)}</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-2 flex flex-col justify-center">
+                      <p className="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Received</p>
+                      <p className="font-bold text-emerald-700 text-sm">{formatCurrency(row.received)}</p>
+                    </div>
+                    <div className="bg-red-50 rounded-xl p-2 flex flex-col justify-center">
+                      <p className="text-[10px] text-red-500 font-bold uppercase mb-0.5">Due</p>
+                      <p className="font-black text-red-600 text-sm">{formatCurrency(row.outstanding)}</p>
+                    </div>
                   </div>
                 </>
               )}
               {reportType === 'sales' && (
                 <>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-slate-900">{row.billNo}</span>
+                    <div>
+                      <span className="font-bold text-slate-900 text-lg">{row.party}</span>
+                      <p className="text-xs text-slate-500 font-medium">{row.billNo} · {format(row.date, 'dd/MM/yy')}</p>
+                    </div>
                     {statusBadge(row.status)}
                   </div>
-                  <p className="text-xs text-slate-500 mb-2">{row.party} · {format(row.date, 'dd/MM/yy')}</p>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-slate-50 rounded-xl p-2"><p className="text-xs text-slate-400">Amount</p><p className="font-bold text-slate-800 text-sm">{formatCurrency(row.amount)}</p></div>
-                    <div className="bg-emerald-50 rounded-xl p-2"><p className="text-xs text-emerald-500">Paid</p><p className="font-bold text-emerald-700 text-sm">{formatCurrency(row.paid)}</p></div>
-                    <div className="bg-red-50 rounded-xl p-2"><p className="text-xs text-red-400">Due</p><p className="font-black text-red-600 text-sm">{formatCurrency(row.outstanding)}</p></div>
+                  <div className="grid grid-cols-3 gap-2 text-center mt-2">
+                    <div className="bg-slate-50 rounded-xl p-2 flex flex-col justify-center">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Amount</p>
+                      <p className="font-bold text-slate-900 text-sm">{formatCurrency(row.amount)}</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-2 flex flex-col justify-center">
+                      <p className="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Paid</p>
+                      <p className="font-bold text-emerald-700 text-sm">{formatCurrency(row.paid)}</p>
+                    </div>
+                    <div className="bg-red-50 rounded-xl p-2 flex flex-col justify-center">
+                      <p className="text-[10px] text-red-500 font-bold uppercase mb-0.5">Due</p>
+                      <p className="font-black text-red-600 text-sm">{formatCurrency(row.outstanding)}</p>
+                    </div>
                   </div>
                 </>
               )}
               {reportType === 'collections' && (
                 <>
-                  <div className="flex items-center justify-between">
-                    <p className="font-bold text-slate-900">{row.party}</p>
-                    <p className="font-black text-emerald-600 text-lg">{formatCurrency(row.amount)}</p>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-bold text-slate-900 text-lg">{row.party}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 font-medium">{format(row.date, 'dd/MM/yy')} · {row.mode} {row.ref !== '-' ? `· ${row.ref}` : ''}</p>
+                    </div>
+                    <p className="font-black text-emerald-600 text-base bg-emerald-50 px-3 py-1.5 rounded-lg">+{formatCurrency(row.amount)}</p>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{format(row.date, 'dd/MM/yy')} · {row.mode} {row.ref !== '-' ? `· ${row.ref}` : ''}</p>
                 </>
               )}
             </div>
           ))}
-          {reportRows.length === 0 && <div className="p-8 text-center text-sm text-slate-500">No data available.</div>}
-          {reportRows.length > 0 && (
-            <div className="px-4 py-3 bg-slate-800 flex justify-between">
-              <span className="text-xs font-black text-white uppercase">Total</span>
-              {reportType === 'outstanding' && <span className="text-xs font-black text-red-400">{formatCurrency(totalOutstanding)}</span>}
-              {reportType === 'sales' && <span className="text-xs font-black text-indigo-300">{formatCurrency(totalBills)}</span>}
-              {reportType === 'collections' && <span className="text-xs font-black text-emerald-400">{formatCurrency(totalPayments)}</span>}
-            </div>
-          )}
+          {reportRows.length === 0 && <div className="p-8 text-center text-sm text-slate-500 font-medium">No data available.</div>}
         </div>
+        
+        {/* Mobile Total Bar */}
+        {reportRows.length > 0 && (
+          <div className="md:hidden px-4 py-3 bg-slate-800 flex justify-between items-center rounded-b-2xl">
+            <span className="text-xs font-black text-white uppercase tracking-wider">Total</span>
+            {reportType === 'outstanding' && <span className="text-sm font-black text-red-400">{formatCurrency(totalOutstanding)}</span>}
+            {reportType === 'sales' && <span className="text-sm font-black text-indigo-300">{formatCurrency(totalBills)}</span>}
+            {reportType === 'collections' && <span className="text-sm font-black text-emerald-400">{formatCurrency(totalPayments)}</span>}
+          </div>
+        )}
       </div>
     </div>
   );
