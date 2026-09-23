@@ -26,7 +26,7 @@ export function PaymentTrackerModule() {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row h-full min-h-[500px] md:h-[calc(100vh-140px)] bg-slate-50 overflow-hidden rounded-xl shadow-inner border border-slate-200">
+    <div className="flex flex-col md:flex-row h-full min-h-[500px] md:h-[calc(100vh-140px)] bg-slate-50 overflow-hidden md:rounded-xl md:shadow-inner md:border md:border-slate-200">
       {/* Sidebar */}
       <div className="hidden md:flex flex-col w-64 bg-white shadow-xl z-20 border-r border-slate-100">
         <div className="flex-1 overflow-y-auto py-4">

@@ -249,13 +249,13 @@ function AppContainer(props: any) {
       )}
 
       {/* Module Content */}
-      <div className="px-3 sm:px-4 md:px-0">
+      <div className={activeTab === 'payments' ? "md:px-0" : "px-3 sm:px-4 md:px-0"}>
         {activeTab === 'admin' && <AdminModule {...props} />}
         {activeTab === 'chemical' && <ChemicalModule {...props} />}
         {activeTab === 'production' && <ProductionModule {...props} />}
         {activeTab === 'slitting' && <SlittingModule {...props} />}
         {activeTab === 'payments' && (
-          <div className="app-card p-4 min-h-[500px] rounded-3xl">
+          <div className="md:p-4">
             <PaymentTrackerModule />
           </div>
         )}
