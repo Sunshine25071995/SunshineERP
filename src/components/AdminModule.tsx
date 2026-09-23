@@ -42,7 +42,7 @@ const selectCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages, permissions,
 }) => {
-  const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock'>('home');
   const [jobCardSearch, setJobCardSearch] = useState('');
 
   // Handle hardware back button for tab navigation
@@ -59,7 +59,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const navigateToTab = (tabId: 'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker') => {
+  const navigateToTab = (tabId: 'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock') => {
     setActiveTab(tabId);
     window.history.pushState({ tab: tabId }, '');
   };
@@ -283,6 +283,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     { id: 'chemicals' as const, label: 'Chemicals', icon: FlaskConical, count: chemicals.length, gradient: 'from-emerald-500 to-emerald-700', lightBg: 'bg-emerald-50', lightText: 'text-emerald-600' },
     { id: 'factoryRolls' as const, label: 'Rolls', icon: Layers, count: undefined, gradient: 'from-amber-500 to-amber-700', lightBg: 'bg-amber-50', lightText: 'text-amber-600' },
     { id: 'paymentTracker' as const, label: 'Payments', icon: CreditCard, count: undefined, gradient: 'from-rose-500 to-rose-700', lightBg: 'bg-rose-50', lightText: 'text-rose-600' },
+    { id: 'stock' as const, label: 'Stock', icon: Briefcase, count: undefined, gradient: 'from-teal-500 to-teal-700', lightBg: 'bg-teal-50', lightText: 'text-teal-600' },
   ];
 
   return (
@@ -588,6 +589,115 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       {activeTab === 'paymentTracker' && (
         <div className="animate-fade-in">
           <PaymentTrackerModule />
+        </div>
+      )}
+
+      {/* ── TAB: STOCK ────────────────────────────────────────── */}
+      {activeTab === 'stock' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-black text-gray-900">Finished Stock</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Inventory from Completed Job Cards</p>
+            </div>
+            <button
+              onClick={async () => {
+                const completedJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed');
+                const completedSlitRolls = slitRolls.filter(r => completedJobCards.some(jc => jc.id === r.jobCardId));
+                const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number }> = {};
+                completedSlitRolls.forEach(roll => {
+                  const jc = completedJobCards.find(j => j.id === roll.jobCardId);
+                  if (jc) {
+                    const size = roll.coilSize || jc.size;
+                    const key = `${size}-${jc.micron}`;
+                    if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0 };
+                    stockGroups[key].weight += (roll.netWeight || 0);
+                    stockGroups[key].count += 1;
+                  }
+                });
+                const stockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
+                
+                let msg = `📦 *FINISHED STOCK INVENTORY*\n━━━━━━━━━━━━━━━━━━━━\n\n`;
+                if (stockList.length === 0) {
+                  msg += `No stock available.\n`;
+                } else {
+                  stockList.forEach(item => {
+                    msg += `📐 *${item.size} x ${item.micron} Mic*\n`;
+                    msg += `⚖️ *${formatWeight(item.weight)} Kg*  |  📦 *${item.count} Rolls*\n`;
+                    msg += `----------------------------\n`;
+                  });
+                }
+                msg += `\n_Generated via Sunshine ERP_`;
+
+                if (navigator.share) {
+                  try {
+                    await navigator.share({ text: msg });
+                  } catch {
+                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                  }
+                } else {
+                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                }
+              }}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-colors btn-press shadow-sm"
+            >
+              <span>Share to WhatsApp</span>
+            </button>
+          </div>
+
+          <div className="app-card overflow-hidden">
+            {(() => {
+              const completedJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed');
+              const completedSlitRolls = slitRolls.filter(r => completedJobCards.some(jc => jc.id === r.jobCardId));
+              const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number }> = {};
+              completedSlitRolls.forEach(roll => {
+                const jc = completedJobCards.find(j => j.id === roll.jobCardId);
+                if (jc) {
+                  const size = roll.coilSize || jc.size;
+                  const key = `${size}-${jc.micron}`;
+                  if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0 };
+                  stockGroups[key].weight += (roll.netWeight || 0);
+                  stockGroups[key].count += 1;
+                }
+              });
+              const stockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
+
+              if (stockList.length === 0) {
+                return <div className="p-8 text-center text-sm text-gray-400">No completed stock available.</div>;
+              }
+
+              return (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-100">
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Size & Micron</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Weight</th>
+                        <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Rolls</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {stockList.map((item, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="font-bold text-gray-900">{item.size}</span>
+                            <span className="text-gray-400 mx-2">×</span>
+                            <span className="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">{item.micron} Mic</span>
+                          </td>
+                          <td className="px-4 py-3 text-right font-black font-mono text-emerald-700">
+                            {formatWeight(item.weight)}<span className="text-xs font-normal text-gray-400 ml-1">kg</span>
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-gray-600">
+                            {item.count} Rolls
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 
