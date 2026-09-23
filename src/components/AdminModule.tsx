@@ -9,13 +9,16 @@ import { JobCardDetailModal } from './JobCardDetailModal';
 import { RollPDFModal } from './RollPDFModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
-  Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase,
+  Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase, Activity
 } from 'lucide-react';
 import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
+import { WastageAnalytics } from './WastageAnalytics';
 import {
   collection, addDoc, doc, updateDoc, deleteDoc, setDoc, serverTimestamp, writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebaseClient';
+import { logActivity } from '../services/activityLog';
+import { ActivityLog } from './ActivityLog';
 
 interface AdminModuleProps {
   currentUser: User;
@@ -42,8 +45,20 @@ const selectCls = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages, permissions,
 }) => {
-  const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog'>('home');
   const [jobCardSearch, setJobCardSearch] = useState('');
+  const [outstandingPayments, setOutstandingPayments] = useState(0);
+
+  useEffect(() => {
+    if (currentUser.department === 'admin') {
+      import('../payment-tracker/db').then(({ dbService }) => {
+        dbService.getBills().then(bills => {
+          const total = bills.reduce((acc, bill) => acc + (bill.outstanding_amount || 0), 0);
+          setOutstandingPayments(total);
+        });
+      });
+    }
+  }, [currentUser.department]);
 
   // Handle hardware back button for tab navigation
   useEffect(() => {
@@ -59,7 +74,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const navigateToTab = (tabId: 'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock') => {
+  const navigateToTab = (tabId: 'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog') => {
     setActiveTab(tabId);
     window.history.pushState({ tab: tabId }, '');
   };
@@ -157,8 +172,13 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       createdBy: currentUser.loginId, createdAt: serverTimestamp(),
     };
     try {
-      if (editingJobCard) await updateDoc(doc(db, 'jobCards', editingJobCard.id), data);
-      else await addDoc(collection(db, 'jobCards'), data);
+      if (editingJobCard) {
+        await updateDoc(doc(db, 'jobCards', editingJobCard.id), data);
+        await logActivity('Job Card Updated', `Updated JC: ${data.jobCode}`, currentUser.id || currentUser.loginId, currentUser.name);
+      } else {
+        await addDoc(collection(db, 'jobCards'), data);
+        await logActivity('Job Card Created', `Created JC: ${data.jobCode}`, currentUser.id || currentUser.loginId, currentUser.name);
+      }
       setShowJobCardModal(false);
     } catch (err) { console.error(err); }
   };
@@ -173,6 +193,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       slitRolls.filter(r => r.jobCardId === deletingJobCard.id).forEach(r => batch.delete(doc(db, 'slittingRolls', r.id)));
       prodWastages.filter(w => w.jobCardId === deletingJobCard.id).forEach(w => batch.delete(doc(db, 'productionWastage', w.id)));
       await batch.commit();
+      await logActivity('Job Card Deleted', `Deleted JC: ${deletingJobCard.jobCode}`, currentUser.id || currentUser.loginId, currentUser.name);
       setDeletingJobCard(null); setShowJobCardModal(false);
       if (selectedJobCardForDetail?.id === deletingJobCard.id) setSelectedJobCardForDetail(null);
     } catch (err: any) {
@@ -284,6 +305,8 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     { id: 'factoryRolls' as const, label: 'Rolls', icon: Layers, count: undefined, gradient: 'from-amber-500 to-amber-700', lightBg: 'bg-amber-50', lightText: 'text-amber-600' },
     { id: 'paymentTracker' as const, label: 'Payments', icon: CreditCard, count: undefined, gradient: 'from-rose-500 to-rose-700', lightBg: 'bg-rose-50', lightText: 'text-rose-600' },
     { id: 'stock' as const, label: 'Stock', icon: Briefcase, count: undefined, gradient: 'from-teal-500 to-teal-700', lightBg: 'bg-teal-50', lightText: 'text-teal-600' },
+    { id: 'wastage' as const, label: 'Wastage', icon: Activity, count: undefined, gradient: 'from-orange-500 to-orange-700', lightBg: 'bg-orange-50', lightText: 'text-orange-600' },
+    { id: 'activityLog' as const, label: 'Activity Log', icon: Activity, count: undefined, gradient: 'from-indigo-500 to-indigo-700', lightBg: 'bg-indigo-50', lightText: 'text-indigo-600' },
   ];
 
   return (
@@ -291,24 +314,61 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 
       {/* HOME DASHBOARD */}
       {activeTab === 'home' && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-2">
-          {tabs.map(tab => (
-            <button key={tab.id} onClick={() => navigateToTab(tab.id)}
-              className="relative app-card p-6 flex flex-col items-center justify-center gap-4 hover:shadow-lg transition-shadow bg-white rounded-3xl"
-            >
-              <div className={`p-4 rounded-2xl ${tab.lightBg} ${tab.lightText}`}>
-                <tab.icon className="w-10 h-10" />
-              </div>
-              <span className="text-base font-bold text-gray-900">{tab.label}</span>
+        <>
+          {currentUser.department === 'admin' && (
+            <div className="app-card p-6 bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md rounded-[28px] mb-4">
+              <h2 className="text-2xl font-black mb-1">Welcome back, {currentUser.name}! 👋</h2>
+              <p className="text-sm font-medium text-indigo-100 mb-6">Here's a summary of what's happening today.</p>
               
-              {tab.count !== undefined && (
-                <span className="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
+                  <p className="text-xs font-bold text-indigo-50 uppercase tracking-wider mb-1">Pending Jobs</p>
+                  <p className="text-2xl font-black font-mono">{jobCards.filter(jc => jc.status === 'pending' || jc.slittingStatus === 'pending').length}</p>
+                </div>
+                <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
+                  <p className="text-xs font-bold text-indigo-50 uppercase tracking-wider mb-1">Outstanding</p>
+                  <p className="text-2xl font-black font-mono">₹{0 /* placeholder for outstandingPayments */}</p>
+                </div>
+                <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
+                  <p className="text-xs font-bold text-indigo-50 uppercase tracking-wider mb-1">Low Stock Chems</p>
+                  <p className="text-2xl font-black font-mono">
+                    {chemicals.filter(c => {
+                      const tp = purchases.filter(p => p.chemicalId === c.id).reduce((s, p) => s + (p.quantity || 0), 0);
+                      const tu = usages.filter(u => u.chemicalId === c.id).reduce((s, u) => s + (u.quantityUsed || 0), 0);
+                      const stock = tp - tu;
+                      const pct = tp > 0 ? (stock / tp) * 100 : 0;
+                      return pct <= 10;
+                    }).length}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-2">
+            {tabs.map(tab => (
+              <button key={tab.id} onClick={() => navigateToTab(tab.id as any)}
+                className="relative app-card p-6 flex flex-col items-center justify-center gap-4 hover:shadow-lg transition-shadow bg-white rounded-3xl"
+              >
+                <div className={`p-4 rounded-2xl ${tab.lightBg} ${tab.lightText}`}>
+                  <tab.icon className="w-10 h-10" />
+                </div>
+                <span className="text-base font-bold text-gray-900">{tab.label}</span>
+                
+                {tab.count !== undefined && (
+                  <span className="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ── TAB: ACTIVITY LOG ─────────────────────────────────── */}
+      {activeTab === 'activityLog' && (
+        <ActivityLog />
       )}
 
       {/* ── TAB: JOB CARDS ────────────────────────────────────── */}
@@ -683,11 +743,18 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
         </div>
       )}
 
+      {/* ── TAB: WASTAGE ────────────────────────────────────────── */}
+      {activeTab === 'wastage' && (
+        <div className="animate-fade-in">
+          <WastageAnalytics wastages={prodWastages} jobCards={jobCards} />
+        </div>
+      )}
+
       {/* ── MODAL: JOB CARD FORM ──────────────────────────────── */}
       {showJobCardModal && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowJobCardModal(false)} />
-          <div className="relative bg-white w-full max-w-lg rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-slide-up z-50 max-h-[90vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-0">
+          <div className="relative bg-white w-full max-w-lg rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-scale-in z-50 max-h-[90vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-0">
             <div className="flex justify-center pt-3 pb-2 sm:hidden"><div className="w-10 h-1.5 bg-gray-300 rounded-full" /></div>
             <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">{editingJobCard ? 'Edit Job Card' : 'New Job Card'}</h2>
@@ -754,7 +821,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       {showUserModal && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowUserModal(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-slide-up z-50 max-h-[90vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-0">
+          <div className="relative bg-white w-full max-w-md rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-scale-in z-50 max-h-[90vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-0">
             <div className="flex justify-center pt-3 pb-2 sm:hidden"><div className="w-10 h-1.5 bg-gray-300 rounded-full" /></div>
             <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">{editingUser ? 'Edit User' : 'New User'}</h2>

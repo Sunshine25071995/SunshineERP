@@ -8,6 +8,9 @@ import { useAuth } from '../auth';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebaseClient';
 import toast from 'react-hot-toast';
+import { logActivity } from '../../services/activityLog';
+import { SkeletonLoader } from '../../components/SkeletonLoader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 
 export function Bills() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -80,6 +83,9 @@ export function Bills() {
       setSelectedJobCards([]);
       setSelectedPartyId('');
       loadData();
+      
+      const party = parties.find(p => p.id === newBill.party_id);
+      await logActivity('Bill Created', `Added bill ${newBill.bill_number} for ${party?.party_name || 'Party'} (₹${newBill.bill_amount})`, profile?.uid || profile?.id || 'admin', profile?.name || 'Admin');
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || 'Failed to add bill');
@@ -132,12 +138,19 @@ export function Bills() {
     setSelectedPartyId('');
   }
 
-  if (loading) return <div className="w-full flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
+  const { isPulling } = usePullToRefresh(loadData);
+
+  if (loading) return <SkeletonLoader variant="list" />;
 
   const inputClasses = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50 px-4 py-3 text-sm focus:outline-none transition-colors";
 
   return (
-    <div className="w-full space-y-6 pb-[100px] font-sans">
+    <div className="w-full space-y-6 pb-[100px] font-sans animate-slide-up">
+      {isPulling && (
+        <div className="flex justify-center py-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+        </div>
+      )}
       <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Sales Bills</h1>
         {profile?.role === 'admin' && (
@@ -309,7 +322,7 @@ export function Bills() {
       {/* Modals - Bottom Sheet Style */}
       {(isAddModalOpen || editingBill) && (
         <div className="fixed inset-x-0 bottom-0 sm:inset-0 z-50 flex flex-col justify-end sm:justify-center bg-slate-900/40 sm:p-4 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-t-[28px] sm:rounded-3xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden max-h-[90vh] flex flex-col pb-safe">
+          <div className="bg-white rounded-t-[28px] sm:rounded-3xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden max-h-[90vh] flex flex-col pb-safe animate-scale-in">
             <div className="px-6 py-5 flex justify-between items-center bg-white relative">
               <h3 className="text-xl font-black text-slate-900">{editingBill ? 'Edit Sales Bill' : 'Add Sales Bill'}</h3>
               <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingBill(null); }} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-full bg-slate-50">

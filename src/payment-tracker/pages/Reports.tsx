@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { dbService } from '../db';
 import { Bill, Party, Payment } from '../types';
 import { formatCurrency, formatDate } from '../utils';
-import { Printer, Download, Share2 } from 'lucide-react';
+import { Printer, Download, Share2, AlertTriangle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, Legend } from 'recharts';
 
 export function Reports() {
   const [reportType, setReportType] = useState('outstanding');
@@ -83,6 +84,67 @@ export function Reports() {
       ref: p.reference_number || '-',
     }));
   }
+
+  const analyticsData = React.useMemo(() => {
+    if (reportType !== 'analytics') return null;
+
+    // 1. Monthly Sales vs Collection
+    const months = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = subMonths(now, i);
+      const mStart = startOfMonth(d);
+      const mEnd = endOfMonth(d);
+      
+      const sales = bills.filter(b => {
+        const bDate = new Date(b.bill_date);
+        return bDate >= mStart && bDate <= mEnd;
+      }).reduce((sum, b) => sum + b.bill_amount, 0);
+
+      const coll = payments.filter(p => {
+        const pDate = new Date(p.payment_date);
+        return pDate >= mStart && pDate <= mEnd;
+      }).reduce((sum, p) => sum + p.amount, 0);
+
+      months.push({
+        name: format(d, 'MMM yyyy'),
+        sales,
+        collection: coll
+      });
+    }
+
+    // 2. Party-wise outstanding (Top 5)
+    const partyOut = parties.map(p => {
+      const outstanding = bills.filter(b => b.party_id === p.id).reduce((s, b) => s + b.outstanding_amount, 0);
+      return { name: p.party_name, outstanding };
+    }).filter(p => p.outstanding > 0)
+      .sort((a, b) => b.outstanding - a.outstanding)
+      .slice(0, 5);
+
+    // 3. Top Defaulters (Oldest unpaid bills)
+    const unpaidBills = bills.filter(b => b.outstanding_amount > 0)
+      .map(b => {
+        const days = differenceInDays(new Date(), new Date(b.bill_date));
+        return {
+          ...b,
+          party: parties.find(p => p.id === b.party_id)?.party_name || '-',
+          days
+        };
+      })
+      .sort((a, b) => b.days - a.days)
+      .slice(0, 10);
+
+    // 4. Payment Mode breakdown
+    const pModes = new Map<string, number>();
+    payments.forEach(p => {
+      pModes.set(p.payment_mode || 'Cash', (pModes.get(p.payment_mode || 'Cash') || 0) + p.amount);
+    });
+    const modesData = Array.from(pModes.entries()).map(([name, value]) => ({ name, value }));
+
+    return { monthlyData: months, topOutstanding: partyOut, defaulters: unpaidBills, paymentModes: modesData };
+  }, [reportType, bills, payments, parties]);
+
+  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   // ── Professional PDF ───────────────────────────────────────────────────────
   const exportPDF = () => {
@@ -353,6 +415,7 @@ export function Reports() {
             { value: 'outstanding', label: '📊 Outstanding' },
             { value: 'sales', label: '🧾 Sales Register' },
             { value: 'collections', label: '💰 Collections' },
+            { value: 'analytics', label: '📈 Analytics' },
           ].map(opt => (
             <button
               key={opt.value}
@@ -369,7 +432,84 @@ export function Reports() {
         </div>
       </div>
 
-      {/* Table — also captured by html2canvas */}
+      {/* Report Content */}
+      {reportType === 'analytics' && analyticsData ? (
+        <div className="space-y-6 animate-fade-in pb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+              <h3 className="text-sm font-bold text-slate-800 mb-4">Monthly Sales vs Collection</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analyticsData.monthlyData} margin={{ top: 5, right: 0, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000)}k`} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Legend iconType="circle" />
+                    <Bar dataKey="sales" name="Sales" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="collection" name="Collection" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+              <h3 className="text-sm font-bold text-slate-800 mb-4">Top 5 Parties by Outstanding</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analyticsData.topOutstanding} layout="vertical" margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis type="number" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000)}k`} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} width={100} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="outstanding" name="Outstanding" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+              <h3 className="text-sm font-bold text-slate-800 mb-4">Payment Modes Breakdown</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={analyticsData.paymentModes} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={(entry) => entry.name}>
+                      {analyticsData.paymentModes.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Legend iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+              <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500" /> Top Defaulters (Oldest Unpaid)
+              </h3>
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                {analyticsData.defaulters.length === 0 ? (
+                  <p className="text-sm text-slate-500">No overdue bills.</p>
+                ) : (
+                  analyticsData.defaulters.map((b) => (
+                    <div key={b.id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">{b.party}</p>
+                        <p className="text-xs font-medium text-slate-500">Bill {b.bill_number} · {b.days} days old</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-red-600">{formatCurrency(b.outstanding_amount)}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
       <div ref={tableRef} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-slate-800 px-5 py-3">
           <h2 className="text-sm font-black text-white uppercase tracking-wide">
@@ -521,6 +661,7 @@ export function Reports() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

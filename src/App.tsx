@@ -21,6 +21,7 @@ import { PaymentTrackerModule } from './payment-tracker/PaymentTrackerModule';
 import { getUserPermissions } from './utils/permissions';
 import { Toaster } from 'react-hot-toast';
 import { LayoutDashboard, Wallet, Factory, Scissors, FlaskConical, LogOut } from 'lucide-react';
+import { NotificationCenter } from './components/NotificationCenter';
 
 export default function App() {
   const [isLive, setIsLive] = useState(false);
@@ -177,6 +178,12 @@ export default function App() {
               </span>
               <span className="text-sm font-semibold text-slate-800">{currentUser.name}</span>
             </div>
+            <NotificationCenter 
+              jobCards={jobCards}
+              chemicals={chemicals}
+              purchases={purchases}
+              usages={usages}
+            />
             <button
               onClick={handleLogout}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"

@@ -6,6 +6,8 @@ import { formatCurrency, calculateDueDays } from '../utils';
 import { Edit2, Trash2, Plus, Search, ChevronRight } from 'lucide-react';
 import { useAuth } from '../auth';
 import toast from 'react-hot-toast';
+import { SkeletonLoader } from '../../components/SkeletonLoader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 
 export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string) => void }) {
   const [parties, setParties] = useState<Party[]>([]);
@@ -118,12 +120,19 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
     }
   }
 
-  if (loading) return <div className="w-full flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
+  const { isPulling } = usePullToRefresh(loadData);
+
+  if (loading) return <SkeletonLoader variant="list" />;
 
   const inputClasses = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50 px-4 py-3 text-sm focus:outline-none transition-colors";
 
   return (
-    <div className="w-full space-y-6 pb-[100px] font-sans">
+    <div className="w-full space-y-6 pb-[100px] font-sans animate-slide-up">
+      {isPulling && (
+        <div className="flex justify-center py-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+        </div>
+      )}
       <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Parties</h1>
         <button
@@ -296,7 +305,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
       {/* Modals - Bottom Sheet Style */}
       {(isAddModalOpen || editingParty) && (
         <div className="fixed inset-x-0 bottom-0 sm:inset-0 z-50 flex flex-col justify-end sm:justify-center bg-slate-900/40 sm:p-4 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-t-[28px] sm:rounded-3xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden max-h-[90vh] flex flex-col pb-safe">
+          <div className="bg-white rounded-t-[28px] sm:rounded-3xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden max-h-[90vh] flex flex-col pb-safe animate-scale-in">
             <div className="px-6 py-5 flex justify-between items-center bg-white relative">
               <h3 className="text-xl font-black text-slate-900">{editingParty ? 'Edit Party' : 'Add Party'}</h3>
               <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingParty(null); }} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-full bg-slate-50">

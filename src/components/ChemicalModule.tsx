@@ -4,6 +4,7 @@ import { formatWeight } from '../utils/formatters';
 import { FlaskConical, Plus, Trash2, Edit2, Check, X, ShoppingCart } from 'lucide-react';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
+import { LowStockAlert } from './LowStockAlert';
 
 interface ChemicalModuleProps {
   currentUser: User;
@@ -147,6 +148,8 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
           <span>New</span>
         </button>
       </div>
+
+      <LowStockAlert chemicals={chemicals} purchases={purchases} usages={usages} />
 
       {/* Inventory Stock Cards */}
       <div className="mb-6">

@@ -5,6 +5,9 @@ import { formatCurrency } from '../utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { IndianRupee, AlertCircle, Share2, ReceiptText, TrendingUp, Users } from 'lucide-react';
 import { format, isThisMonth } from 'date-fns';
+import { PaymentDueAlert } from '../../components/PaymentDueAlert';
+import { SkeletonLoader } from '../../components/SkeletonLoader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 
 export function Dashboard() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -15,28 +18,31 @@ export function Dashboard() {
   
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [b, p, pt] = await Promise.all([
-          dbService.getBills(),
-          dbService.getPayments(),
-          dbService.getParties()
-        ]);
-        setBills(b);
-        setPayments(p);
-        setParties(pt);
-      } catch (error) {
-        console.error("Failed to load dashboard data", error);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = async () => {
+    try {
+      const [b, p, pt] = await Promise.all([
+        dbService.getBills(),
+        dbService.getPayments(),
+        dbService.getParties()
+      ]);
+      setBills(b);
+      setPayments(p);
+      setParties(pt);
+    } catch (error) {
+      console.error("Failed to load dashboard data", error);
+    } finally {
+      setLoading(false);
     }
-    load();
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
+  const { isPulling } = usePullToRefresh(loadData);
+
   if (loading) {
-    return <div className="w-full flex h-full items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
+    return <SkeletonLoader variant="metric" />;
   }
 
   const totalSales = bills.reduce((sum, b) => sum + b.bill_amount, 0);
@@ -88,7 +94,12 @@ export function Dashboard() {
   };
 
   return (
-    <div className="w-full flex flex-col space-y-4 pb-[100px] overflow-x-hidden font-sans" ref={dashboardRef}>
+    <div className="w-full flex flex-col space-y-4 pb-[100px] overflow-x-hidden font-sans animate-slide-up" ref={dashboardRef}>
+      {isPulling && (
+        <div className="flex justify-center py-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+        </div>
+      )}
       {/* Header */}
       <div className="w-full flex items-center justify-between shrink-0 bg-transparent py-2 border-none">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -134,6 +145,8 @@ export function Dashboard() {
           <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(monthSales)}</span>
         </div>
       </div>
+
+      <PaymentDueAlert bills={bills} parties={parties} />
 
       {/* Main Content Area: Chart and Top Receivables */}
       <div className="w-full flex flex-col lg:flex-row gap-4 flex-1 mt-2">

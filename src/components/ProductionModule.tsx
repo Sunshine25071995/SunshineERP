@@ -192,8 +192,26 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
   if (!selectedJobCard) {
     return (
       <div className="space-y-4 animate-fade-in">
+        <div className="app-card p-6 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md rounded-[28px] mb-4">
+          <h2 className="text-2xl font-black mb-1">Today's Production 🏭</h2>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
+              <p className="text-xs font-bold text-emerald-50 uppercase tracking-wider mb-1">Rolls Produced</p>
+              <p className="text-2xl font-black font-mono">
+                {prodRolls.filter(r => r.date === getTodayString()).length}
+              </p>
+            </div>
+            <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
+              <p className="text-xs font-bold text-emerald-50 uppercase tracking-wider mb-1">Total Weight</p>
+              <p className="text-2xl font-black font-mono">
+                {formatWeight(prodRolls.filter(r => r.date === getTodayString()).reduce((sum, r) => sum + (r.netWeight || 0), 0))} kg
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-0.5.5 rounded-full">
+          <div className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-0.5 rounded-full">
             Shift {currentUser.shift || 'A'}
           </div>
         </div>
