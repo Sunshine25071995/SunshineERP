@@ -73,7 +73,7 @@ export const dbService = {
     const partyBillsQuery = query(collection(db, 'bills'), where('party_id', '==', paymentData.party_id));
     const partyBillsSnap = await getDocs(partyBillsQuery); 
     
-    let bills = partyBillsSnap.docs.map(d => d.data() as Bill)
+    let bills = partyBillsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Bill))
       .filter(b => b.status !== 'PAID');
     
     // Perform allocation logic
