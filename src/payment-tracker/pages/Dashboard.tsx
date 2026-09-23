@@ -115,7 +115,7 @@ export function Dashboard() {
             <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="text-xs sm:text-sm font-semibold">Receivable</span>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-red-600 truncate">{formatCurrency(totalOutstanding)}</span>
+          <span className="text-sm md:text-xl lg:text-3xl font-black text-red-600 tracking-tighter break-all">{formatCurrency(totalOutstanding)}</span>
         </div>
         
         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-3 sm:p-4 rounded-2xl border border-emerald-100 flex flex-col justify-between">
@@ -123,7 +123,7 @@ export function Dashboard() {
             <IndianRupee className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="text-xs sm:text-sm font-semibold">Received</span>
           </div>
-          <span className="text-lg sm:text-2xl font-bold text-slate-900 truncate">{formatCurrency(totalReceived)}</span>
+          <span className="text-sm md:text-lg lg:text-2xl font-bold text-slate-900 tracking-tighter break-all">{formatCurrency(totalReceived)}</span>
         </div>
 
         <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-3 sm:p-4 rounded-2xl border border-indigo-100 flex flex-col justify-between">
@@ -131,7 +131,7 @@ export function Dashboard() {
             <ReceiptText className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="text-xs sm:text-sm font-semibold">Total Sales</span>
           </div>
-          <span className="text-lg sm:text-2xl font-bold text-slate-900 truncate">{formatCurrency(totalSales)}</span>
+          <span className="text-sm md:text-lg lg:text-2xl font-bold text-slate-900 tracking-tighter break-all">{formatCurrency(totalSales)}</span>
         </div>
 
         <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-3 sm:p-4 rounded-2xl border border-blue-100 flex flex-col justify-between">
@@ -139,7 +139,7 @@ export function Dashboard() {
             <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="text-xs sm:text-sm font-semibold">Month Sales</span>
           </div>
-          <span className="text-lg sm:text-2xl font-bold text-slate-900 truncate">{formatCurrency(monthSales)}</span>
+          <span className="text-sm md:text-lg lg:text-2xl font-bold text-slate-900 tracking-tighter break-all">{formatCurrency(monthSales)}</span>
         </div>
       </div>
 
@@ -172,9 +172,9 @@ export function Dashboard() {
           <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
             {partyOutstanding.length > 0 ? (
               partyOutstanding.map((party, idx) => (
-                <div key={idx} className="flex justify-between items-center p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                <div key={idx} className="flex justify-between items-center p-2 sm:p-3 rounded-xl bg-slate-50 border border-slate-100">
                   <span className="text-xs sm:text-sm font-medium text-slate-700 truncate pr-2">{party.name}</span>
-                  <span className="text-sm sm:text-base font-black text-rose-600 shrink-0">{formatCurrency(party.outstanding)}</span>
+                  <span className="text-sm font-black text-rose-600 shrink-0">{formatCurrency(party.outstanding)}</span>
                 </div>
               ))
             ) : (

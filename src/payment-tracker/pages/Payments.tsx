@@ -131,11 +131,11 @@ export function Payments() {
           <table className="w-full divide-y divide-slate-200 whitespace-nowrap">
             <thead className="bg-slate-800 text-white text-xs uppercase tracking-wider">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Date</th>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Party Name</th>
-                <th scope="col" className="px-6 py-3 text-right font-bold">Amount</th>
-                <th scope="col" className="px-6 py-3 text-center font-bold">Mode</th>
-                {profile?.role === 'admin' && <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>}
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-left font-bold">Date</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-left font-bold">Party Name</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Amount</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-center font-bold">Mode</th>
+                {profile?.role === 'admin' && <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Actions</th>}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -143,26 +143,26 @@ export function Payments() {
                 const party = parties.find(p => p.id === payment.party_id);
                 return (
                   <tr key={payment.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-slate-700 font-medium">
+                    <td className="px-1 py-1.5 text-[9px] md:text-xs text-slate-700 font-medium">
                       {formatDate(payment.payment_date)}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                    <td className="px-1 py-1.5 text-[9px] md:text-xs font-bold text-slate-900">
                       {party?.party_name}
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-black text-emerald-600">
+                    <td className="px-1 py-1.5 text-right text-[9px] md:text-xs font-black text-emerald-600">
                       +{formatCurrency(payment.amount)}
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 capitalize">
+                    <td className="px-1 py-1.5 text-center text-[9px] md:text-xs">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold bg-slate-100 text-slate-800 capitalize">
                         {payment.payment_mode}
                       </span>
                     </td>
                     {profile?.role === 'admin' && (
-                      <td className="px-6 py-4 text-right text-sm">
-                        <button onClick={() => setEditingPayment(payment)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2">
+                      <td className="px-1 py-1.5 text-right text-[9px] md:text-xs">
+                        <button onClick={() => setEditingPayment(payment)} className="p-0.5 md:p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2">
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button onClick={() => handleDeletePayment(payment.id)} className="p-2 text-slate-600 hover:text-red-600 rounded-xl hover:bg-red-50">
+                        <button onClick={() => handleDeletePayment(payment.id)} className="p-0.5 md:p-2 text-slate-600 hover:text-red-600 rounded-xl hover:bg-red-50">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </td>
@@ -172,7 +172,7 @@ export function Payments() {
               })}
               {filteredPayments.length === 0 && (
                 <tr>
-                  <td colSpan={profile?.role === 'admin' ? 5 : 4} className="px-6 py-12 text-center text-sm font-medium text-slate-500">
+                  <td colSpan={profile?.role === 'admin' ? 5 : 4} className="px-2 py-6 text-center text-sm font-medium text-slate-500">
                     No payments found.
                   </td>
                 </tr>

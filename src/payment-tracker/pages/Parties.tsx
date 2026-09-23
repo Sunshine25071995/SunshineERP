@@ -153,41 +153,41 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
           <table className="w-full divide-y divide-slate-200 whitespace-nowrap">
             <thead className="bg-slate-800 text-white text-xs uppercase tracking-wider">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Party Name</th>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Contact</th>
-                <th scope="col" className="px-6 py-3 text-center font-bold">Bills</th>
-                <th scope="col" className="px-6 py-3 text-right font-bold">Total Sales</th>
-                <th scope="col" className="px-6 py-3 text-right font-bold">Received</th>
-                <th scope="col" className="px-6 py-3 text-right font-bold">Outstanding</th>
-                <th scope="col" className="px-6 py-3 text-center font-bold">Status</th>
-                <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-left font-bold">Party Name</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-left font-bold">Contact</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-center font-bold">Bills</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Total Sales</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Received</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Outstanding</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-center font-bold">Status</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {filteredParties.map((party) => (
                 <tr key={party.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                  <td className="px-1 py-1.5 text-[9px] md:text-xs font-bold text-slate-900">
                     <button onClick={() => onNavigate('partyLedger', party.id)} className="hover:text-indigo-600 hover:underline">
                       {party.party_name}
                     </button>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
+                  <td className="px-1 py-1.5 text-[9px] md:text-xs text-slate-600">
                     {party.mobile || '-'}
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900 text-center">
+                  <td className="px-1 py-1.5 text-[9px] md:text-xs font-bold text-slate-900 text-center">
                     {party.totalBills}
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900 text-right">
+                  <td className="px-1 py-1.5 text-[9px] md:text-xs font-bold text-slate-900 text-right">
                     {formatCurrency(party.totalSales)}
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-emerald-600 text-right">
+                  <td className="px-1 py-1.5 text-[9px] md:text-xs font-bold text-emerald-600 text-right">
                     {formatCurrency(party.totalReceived)}
                   </td>
-                  <td className="px-6 py-4 text-sm font-black text-red-600 text-right">
+                  <td className="px-1 py-1.5 text-[9px] md:text-xs font-black text-red-600 text-right">
                     {party.outstanding > 0 ? formatCurrency(party.outstanding) : '-'}
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                  <td className="px-1 py-1.5 text-center text-[9px] md:text-xs">
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${
                       party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
                       party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
                       party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
@@ -196,16 +196,16 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
                       {party.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-sm">
+                  <td className="px-1 py-1.5 text-right text-[9px] md:text-xs">
                     <button onClick={() => onNavigate('partyLedger', party.id)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl mr-2 font-bold" title="View Ledger">
                       Ledger
                     </button>
                     {profile?.role === 'admin' && (
                       <>
-                        <button onClick={() => setEditingParty(party)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2" title="Edit">
+                        <button onClick={() => setEditingParty(party)} className="p-0.5 md:p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2" title="Edit">
                           <Edit2 className="h-4 w-4" />
                         </button>
-                        <button onClick={() => handleDeleteParty(party.id)} className="p-2 text-slate-600 hover:text-red-600 rounded-xl hover:bg-red-50" title="Delete">
+                        <button onClick={() => handleDeleteParty(party.id)} className="p-0.5 md:p-2 text-slate-600 hover:text-red-600 rounded-xl hover:bg-red-50" title="Delete">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </>
@@ -215,7 +215,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
               ))}
               {filteredParties.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-sm text-slate-500 font-medium">
+                  <td colSpan={8} className="px-2 py-6 text-center text-sm text-slate-500 font-medium">
                     No parties found.
                   </td>
                 </tr>

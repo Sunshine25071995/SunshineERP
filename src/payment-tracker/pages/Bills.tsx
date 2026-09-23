@@ -169,13 +169,13 @@ export function Bills() {
           <table className="w-full divide-y divide-slate-200 whitespace-nowrap">
             <thead className="bg-slate-800 text-white text-xs uppercase tracking-wider">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Date</th>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Bill No</th>
-                <th scope="col" className="px-6 py-3 text-left font-bold">Party</th>
-                <th scope="col" className="px-6 py-3 text-right font-bold">Amount</th>
-                <th scope="col" className="px-6 py-3 text-right font-bold">Outstanding</th>
-                <th scope="col" className="px-6 py-3 text-center font-bold">Status</th>
-                {profile?.role === 'admin' && <th scope="col" className="px-6 py-3 text-right font-bold">Actions</th>}
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-left font-bold">Date</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-left font-bold">Bill No</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-left font-bold">Party</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Amount</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Outstanding</th>
+                <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-center font-bold">Status</th>
+                {profile?.role === 'admin' && <th scope="col" className="px-1 py-1.5 text-[9px] md:text-xs text-right font-bold">Actions</th>}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -183,23 +183,23 @@ export function Bills() {
                 const party = parties.find(p => p.id === bill.party_id);
                 return (
                   <tr key={bill.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-slate-700 font-medium">
+                    <td className="px-1 py-1.5 text-[9px] md:text-xs text-slate-700 font-medium">
                       {formatDate(bill.bill_date)}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                    <td className="px-1 py-1.5 text-[9px] md:text-xs font-bold text-slate-900">
                       {bill.bill_number}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900 font-bold">
+                    <td className="px-1 py-1.5 text-[9px] md:text-xs text-slate-900 font-bold">
                       {party?.party_name}
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-bold text-slate-900">
+                    <td className="px-1 py-1.5 text-right text-[9px] md:text-xs font-bold text-slate-900">
                       {formatCurrency(bill.bill_amount)}
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-black text-red-600">
+                    <td className="px-1 py-1.5 text-right text-[9px] md:text-xs font-black text-red-600">
                       {bill.outstanding_amount > 0 ? formatCurrency(bill.outstanding_amount) : '₹0'}
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    <td className="px-1 py-1.5 text-center text-[9px] md:text-xs">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${
                         bill.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 
                         bill.status === 'OVERDUE' ? 'bg-red-100 text-red-800' : 
                         bill.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' : 
@@ -209,11 +209,11 @@ export function Bills() {
                       </span>
                     </td>
                     {profile?.role === 'admin' && (
-                      <td className="px-6 py-4 text-right text-sm">
-                        <button onClick={() => openEditModal(bill)} className="p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2">
+                      <td className="px-1 py-1.5 text-right text-[9px] md:text-xs">
+                        <button onClick={() => openEditModal(bill)} className="p-0.5 md:p-2 text-slate-600 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 mr-2">
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button onClick={() => handleDeleteBill(bill.id)} className="p-2 text-slate-600 hover:text-red-600 rounded-xl hover:bg-red-50">
+                        <button onClick={() => handleDeleteBill(bill.id)} className="p-0.5 md:p-2 text-slate-600 hover:text-red-600 rounded-xl hover:bg-red-50">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </td>
@@ -223,7 +223,7 @@ export function Bills() {
               })}
               {filteredBills.length === 0 && (
                 <tr>
-                  <td colSpan={profile?.role === 'admin' ? 7 : 6} className="px-6 py-12 text-center text-sm text-slate-500 font-medium">
+                  <td colSpan={profile?.role === 'admin' ? 7 : 6} className="px-2 py-6 text-center text-sm text-slate-500 font-medium">
                     No bills found.
                   </td>
                 </tr>

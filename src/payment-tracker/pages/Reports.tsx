@@ -417,7 +417,7 @@ export function Reports() {
                 </tr>
               ))}
               {reportRows.length === 0 && (
-                <tr><td colSpan={tableHeaders.length} className="px-6 py-12 text-center text-slate-400 text-sm">No data available.</td></tr>
+                <tr><td colSpan={tableHeaders.length} className="px-2 py-6 text-center text-slate-400 text-sm">No data available.</td></tr>
               )}
             </tbody>
             {reportRows.length > 0 && (

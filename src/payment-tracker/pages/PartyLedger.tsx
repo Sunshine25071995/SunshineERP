@@ -380,7 +380,7 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
               })}
               {ledgerEntries.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-sm">No entries recorded.</td>
+                  <td colSpan={6} className="px-2 py-6 text-center text-slate-400 text-sm">No entries recorded.</td>
                 </tr>
               )}
             </tbody>
