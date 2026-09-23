@@ -26,7 +26,7 @@ export function PaymentTrackerModule() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-80px)] bg-slate-50 overflow-hidden rounded-xl shadow-inner border border-slate-200">
+    <div className="flex flex-col md:flex-row h-full min-h-[500px] md:h-[calc(100vh-140px)] bg-slate-50 overflow-hidden rounded-xl shadow-inner border border-slate-200">
       {/* Sidebar */}
       <div className="hidden md:flex flex-col w-64 bg-white shadow-xl z-20 border-r border-slate-100">
         <div className="flex-1 overflow-y-auto py-4">
@@ -53,6 +53,30 @@ export function PaymentTrackerModule() {
         </div>
       </div>
 
+      {/* Mobile Top Navigation */}
+      <div className="md:hidden bg-white border-b border-slate-200 overflow-x-auto hide-scrollbar shrink-0">
+        <nav className="flex px-2 py-2 space-x-2">
+          {navigation.map((item) => {
+            const isActive = currentView === item.id || (item.id === 'parties' && currentView === 'partyLedger');
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavigate(item.id)}
+                className={cn(
+                  "flex items-center whitespace-nowrap px-3 py-2 rounded-xl text-xs font-bold transition-colors",
+                  isActive 
+                    ? "bg-indigo-100 text-indigo-700" 
+                    : "bg-slate-50 text-slate-600 border border-slate-200"
+                )}
+              >
+                <item.icon className={cn("h-4 w-4 mr-1.5", isActive ? "text-indigo-700" : "text-slate-500")} />
+                {item.name}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden relative">
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
@@ -65,30 +89,7 @@ export function PaymentTrackerModule() {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-        <nav className="flex justify-around items-center h-16 px-1">
-          {navigation.map((item) => {
-            const isActive = currentView === item.id || (item.id === 'parties' && currentView === 'partyLedger');
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavigate(item.id)}
-                className={cn(
-                  "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors relative",
-                  isActive ? "text-indigo-600" : "text-slate-500 hover:text-slate-900"
-                )}
-              >
-                {isActive && (
-                  <span className="absolute top-0 w-8 h-1 bg-indigo-600 rounded-b-full"></span>
-                )}
-                <item.icon className={cn("h-5 w-5", isActive && "text-indigo-600")} />
-                <span className="text-[10px] font-medium leading-none">{item.name}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+
     </div>
   );
 }
