@@ -137,7 +137,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
 
       <button
         onClick={() => setIsAddModalOpen(true)}
-        className="md:hidden fab-btn fixed bottom-20 right-6 z-40 bg-indigo-600 text-white p-4 rounded-2xl shadow-lg hover:bg-indigo-700 flex items-center justify-center"
+        className="md:hidden fab-btn fixed bottom-20 right-6 z-40 bg-indigo-600 text-white p-4 rounded-[20px] shadow-lg hover:bg-indigo-700 flex items-center justify-center"
       >
         <Plus className="h-6 w-6" />
       </button>
@@ -151,7 +151,7 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
             <input
               type="text"
               placeholder="Search parties..."
-              className={inputClasses.replace('rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50', 'border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 pl-10')}
+              className={inputClasses.replace('rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50', 'border-none rounded-[20px] bg-slate-100 focus:ring-2 focus:ring-indigo-500 pl-10')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -161,10 +161,15 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
         {/* Mobile Card List */}
         <div className="md:hidden flex flex-col gap-3 ">
           {filteredParties.map((party) => (
-            <div key={party.id} className="app-card p-4 rounded-2xl bg-white flex flex-col gap-3">
+            <div key={party.id} className={`app-card p-5 rounded-[24px] border-none flex flex-col gap-3 ${
+                party.status === 'PAID' ? 'bg-emerald-50' :
+                party.status === 'OVERDUE' ? 'bg-rose-50' :
+                party.status === 'PARTIALLY PAID' ? 'bg-blue-50' :
+                'bg-amber-50'
+            }`}>
               <div className="flex justify-between items-start">
                 <div>
-                  <button onClick={() => onNavigate('partyLedger', party.id)} className="text-lg font-bold text-slate-900 hover:text-indigo-600 text-left">
+                  <button onClick={() => onNavigate('partyLedger', party.id)} className="text-xl font-black text-slate-900 hover:text-indigo-600 text-left">
                     {party.party_name}
                   </button>
                   <p className="text-xs text-slate-500 mt-0.5">{party.mobile || 'No contact'}</p>

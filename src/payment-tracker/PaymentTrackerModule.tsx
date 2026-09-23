@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dashboard } from './pages/Dashboard';
 import { Parties } from './pages/Parties';
 import { PartyLedger } from './pages/PartyLedger';
@@ -12,9 +12,22 @@ export function PaymentTrackerModule() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedPartyId, setSelectedPartyId] = useState<string | undefined>();
 
+  useEffect(() => {
+    window.history.replaceState({ paymentView: 'dashboard' }, '');
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && e.state.paymentView) {
+        setCurrentView(e.state.paymentView);
+        if (e.state.partyId) setSelectedPartyId(e.state.partyId);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const handleNavigate = (view: string, id?: string) => {
     setCurrentView(view);
     if (id) setSelectedPartyId(id);
+    window.history.pushState({ paymentView: view, partyId: id }, '');
   };
 
   const navigation = [

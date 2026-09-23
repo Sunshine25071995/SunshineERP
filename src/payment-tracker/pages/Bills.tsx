@@ -154,7 +154,7 @@ export function Bills() {
       {profile?.role === 'admin' && (
         <button
           onClick={openAddModal}
-          className="md:hidden fab-btn fixed bottom-20 right-6 z-40 bg-indigo-600 text-white p-4 rounded-2xl shadow-lg hover:bg-indigo-700 flex items-center justify-center"
+          className="md:hidden fab-btn fixed bottom-20 right-6 z-40 bg-indigo-600 text-white p-4 rounded-[20px] shadow-lg hover:bg-indigo-700 flex items-center justify-center"
         >
           <Plus className="h-6 w-6" />
         </button>
@@ -169,7 +169,7 @@ export function Bills() {
             <input
               type="text"
               placeholder="Search by bill no or party..."
-              className={inputClasses.replace('rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50', 'border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 pl-10')}
+              className={inputClasses.replace('rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50', 'border-none rounded-[20px] bg-slate-100 focus:ring-2 focus:ring-indigo-500 pl-10')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -181,10 +181,15 @@ export function Bills() {
           {filteredBills.map((bill) => {
             const party = parties.find(p => p.id === bill.party_id);
             return (
-              <div key={bill.id} className="app-card p-4 rounded-2xl bg-white flex flex-col gap-3">
+              <div key={bill.id} className={`app-card p-5 rounded-[24px] border-none flex flex-col gap-3 ${
+                  bill.status === 'PAID' ? 'bg-emerald-50' : 
+                  bill.status === 'OVERDUE' ? 'bg-rose-50' : 
+                  bill.status === 'PARTIALLY PAID' ? 'bg-blue-50' : 
+                  'bg-amber-50'
+              }`}>
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">{party?.party_name}</h3>
+                    <h3 className="text-xl font-black text-slate-900">{party?.party_name}</h3>
                     <p className="text-xs text-slate-500 mt-0.5 font-medium">{bill.bill_number} · {formatDate(bill.bill_date)}</p>
                   </div>
                   <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold ${

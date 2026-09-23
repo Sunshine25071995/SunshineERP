@@ -267,9 +267,6 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => onNavigate('parties')} className="text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
               <UserRound className="h-6 w-6 text-indigo-500" />
