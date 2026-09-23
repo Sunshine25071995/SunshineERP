@@ -88,68 +88,60 @@ export function Dashboard() {
   };
 
   return (
-    <div className="w-full flex flex-col h-[calc(100vh-5rem)] space-y-4 sm:space-y-5 pb-[80px] md:pb-4 overflow-x-hidden" ref={dashboardRef}>
+    <div className="w-full flex flex-col space-y-4 pb-[100px] overflow-x-hidden font-sans" ref={dashboardRef}>
       {/* Header */}
-      <div className="w-full flex items-center justify-between shrink-0 bg-white p-4 rounded-3xl shadow-sm border-none">
-        <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
-          <TrendingUp className="h-6 w-6 text-indigo-500" />
-          Dashboard Overview
+      <div className="w-full flex items-center justify-between shrink-0 bg-transparent py-2 border-none">
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          Dashboard
         </h1>
-        <div className="action-buttons-container">
-          <button 
-            onClick={handleWhatsApp}
-            disabled={isExporting}
-            className="flex items-center gap-1.5 bg-emerald-500 text-white rounded-2xl px-5 py-2.5 font-bold hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50"
-          >
-            <Share2 className="h-5 w-5" /> 
-            <span className="hidden sm:inline">{isExporting ? 'Sharing...' : 'WhatsApp'}</span>
-            <span className="sm:hidden">{isExporting ? '...' : 'Share'}</span>
-          </button>
-        </div>
+        <button 
+          onClick={handleWhatsApp}
+          disabled={isExporting}
+          className="flex items-center gap-1.5 bg-indigo-600 text-white rounded-full px-5 py-2.5 font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50"
+        >
+          <Share2 className="h-5 w-5" /> 
+          <span className="hidden sm:inline">{isExporting ? 'Sharing...' : 'Share'}</span>
+        </button>
       </div>
 
       {/* 4 Main Metrics in a compact grid */}
-      <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 shrink-0">
-        <div className="bg-[#FDE047] text-black p-6 rounded-[32px] border-none flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-2 mb-2 sm:mb-3 opacity-80">
-            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="text-sm sm:text-base font-bold">Receivable</span>
+      <div className="w-full grid grid-cols-2 gap-4 shrink-0">
+        <div className="bg-[#FDE047] text-black p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
+          <div className="flex items-center gap-2 mb-2 opacity-80">
+            <span className="text-sm font-bold">Outstanding</span>
           </div>
-          <span className="text-3xl lg:text-4xl font-black tracking-tighter break-all">{formatCurrency(totalOutstanding)}</span>
+          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalOutstanding)}</span>
         </div>
         
-        <div className="bg-[#818CF8] text-white p-6 rounded-[32px] border-none flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-2 mb-2 sm:mb-3 opacity-90">
-            <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="text-sm sm:text-base font-bold">Received</span>
+        <div className="bg-[#818CF8] text-white p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
+          <div className="flex items-center gap-2 mb-2 opacity-90">
+            <span className="text-sm font-bold">Received</span>
           </div>
-          <span className="text-3xl lg:text-4xl font-black tracking-tighter break-all">{formatCurrency(totalReceived)}</span>
+          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalReceived)}</span>
         </div>
 
-        <div className="bg-[#FCA5A5] text-black p-6 rounded-[32px] border-none flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-2 mb-2 sm:mb-3 opacity-80">
-            <ReceiptText className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="text-sm sm:text-base font-bold">Total Sales</span>
+        <div className="bg-[#FCA5A5] text-black p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
+          <div className="flex items-center gap-2 mb-2 opacity-80">
+            <span className="text-sm font-bold">Total Sales</span>
           </div>
-          <span className="text-3xl lg:text-4xl font-black tracking-tighter break-all">{formatCurrency(totalSales)}</span>
+          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalSales)}</span>
         </div>
 
-        <div className="bg-[#6EE7B7] text-black p-6 rounded-[32px] border-none flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-2 mb-2 sm:mb-3 opacity-80">
-            <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="text-sm sm:text-base font-bold">Month Sales</span>
+        <div className="bg-[#6EE7B7] text-black p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
+          <div className="flex items-center gap-2 mb-2 opacity-80">
+            <span className="text-sm font-bold">Month Sales</span>
           </div>
-          <span className="text-3xl lg:text-4xl font-black tracking-tighter break-all">{formatCurrency(monthSales)}</span>
+          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(monthSales)}</span>
         </div>
       </div>
 
       {/* Main Content Area: Chart and Top Receivables */}
-      <div className="w-full flex flex-col lg:flex-row gap-4 sm:gap-5 flex-1 min-h-0">
+      <div className="w-full flex flex-col lg:flex-row gap-4 flex-1 mt-2">
         
         {/* Chart Section */}
-        <div className="flex-1 bg-white p-6 rounded-3xl shadow-sm border-none flex flex-col min-h-[240px]">
-          <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-4 shrink-0">Sales vs Collection (Last 6 Months)</h3>
-          <div className="flex-1 min-h-0">
+        <div className="flex-1 bg-white p-5 rounded-[28px] shadow-sm border-none flex flex-col min-h-[300px]">
+          <h3 className="text-lg font-bold text-slate-900 mb-4 shrink-0 tracking-tight">Sales vs Collection</h3>
+          <div className="flex-1 min-h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} dy={10} />
@@ -163,22 +155,25 @@ export function Dashboard() {
         </div>
 
         {/* Top Receivables Section */}
-        <div className="lg:w-80 bg-white p-6 rounded-3xl shadow-sm border-none flex flex-col shrink-0">
-          <div className="flex items-center gap-2 mb-4 shrink-0">
-            <Users className="h-6 w-6 text-rose-500" />
-            <h3 className="text-lg sm:text-xl font-black text-slate-900">Top Receivables</h3>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto min-h-0 space-y-3 pr-2 scrollbar-hide">
+        <div className="lg:w-80 flex flex-col shrink-0 gap-3">
+          <h3 className="text-lg font-bold text-slate-900 tracking-tight px-1 mt-2">Top Receivables</h3>
+          <div className="flex flex-col gap-2">
             {partyOutstanding.length > 0 ? (
               partyOutstanding.map((party, idx) => (
-                <div key={idx} className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 border-none shadow-sm">
-                  <span className="text-sm font-bold text-slate-800 truncate pr-2">{party.name}</span>
-                  <span className="text-base font-black text-rose-600 shrink-0">{formatCurrency(party.outstanding)}</span>
+                <div key={idx} className="flex items-center bg-white p-4 rounded-[24px] shadow-sm">
+                  <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg shrink-0 mr-4">
+                    {party.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-bold text-slate-900 truncate">{party.name}</p>
+                  </div>
+                  <div className="text-right shrink-0 ml-2">
+                    <p className="text-base font-black text-rose-600">{formatCurrency(party.outstanding)}</p>
+                  </div>
                 </div>
               ))
             ) : (
-              <div className="h-full flex items-center justify-center text-sm font-bold text-slate-400">
+              <div className="p-6 text-center text-sm font-bold text-slate-400 bg-white rounded-[24px]">
                 No receivables found
               </div>
             )}
