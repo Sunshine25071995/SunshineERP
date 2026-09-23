@@ -120,8 +120,8 @@ export function Payments() {
         <Plus className="h-6 w-6" />
       </button>
 
-      <div className="w-full bg-white shadow-sm rounded-2xl border border-slate-100 overflow-hidden">
-        <div className="p-4 border-b border-slate-100">
+      <div className="w-full">
+        <div className="pb-4">
           <div className="relative w-full sm:max-w-sm">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <Search className="h-4 w-4 text-slate-400" />
@@ -137,7 +137,7 @@ export function Payments() {
         </div>
         
         {/* Mobile Card List */}
-        <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50">
+        <div className="md:hidden flex flex-col gap-3 ">
           {filteredPayments.map((payment) => {
             const party = parties.find(p => p.id === payment.party_id);
             return (

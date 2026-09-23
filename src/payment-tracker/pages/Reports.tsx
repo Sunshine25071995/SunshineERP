@@ -448,7 +448,7 @@ export function Reports() {
         </div>
 
         {/* Mobile card view */}
-        <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50">
+        <div className="md:hidden flex flex-col gap-3 ">
           {reportRows.map((row, idx) => (
             <div key={idx} className="app-card p-4 rounded-2xl bg-white flex flex-col gap-2">
               {reportType === 'outstanding' && (
