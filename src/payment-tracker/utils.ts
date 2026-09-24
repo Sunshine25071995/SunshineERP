@@ -15,13 +15,38 @@ export function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-export function formatDate(timestamp: number) {
-  return format(new Date(timestamp), 'dd/MM/yyyy');
+export function safeDate(val: any): Date {
+  if (!val) return new Date();
+  if (typeof val === 'number') return new Date(val);
+  if (typeof val === 'string') {
+    const num = Number(val);
+    if (!isNaN(num) && num > 1000000000) return new Date(num);
+    const parsed = new Date(val);
+    return isNaN(parsed.getTime()) ? new Date() : parsed;
+  }
+  if (val && typeof val === 'object') {
+    if (typeof val.seconds === 'number') return new Date(val.seconds * 1000);
+    if (typeof val.toDate === 'function') return val.toDate();
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date() : d;
 }
 
-export function calculateDueDays(billDate: number, fullyPaidDate: number | null | undefined) {
-  const end = fullyPaidDate ? new Date(fullyPaidDate) : new Date();
-  const start = new Date(billDate);
-  const diff = differenceInDays(end, start);
-  return Math.max(0, diff); // Never negative
+export function formatDate(timestamp: any) {
+  try {
+    return format(safeDate(timestamp), 'dd/MM/yyyy');
+  } catch {
+    return '-';
+  }
+}
+
+export function calculateDueDays(billDate: any, fullyPaidDate: any) {
+  try {
+    const end = fullyPaidDate ? safeDate(fullyPaidDate) : new Date();
+    const start = safeDate(billDate);
+    const diff = differenceInDays(end, start);
+    return Math.max(0, diff);
+  } catch {
+    return 0;
+  }
 }

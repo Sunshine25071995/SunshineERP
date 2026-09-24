@@ -3,6 +3,7 @@ import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { format } from 'date-fns';
 import { Activity } from 'lucide-react';
+import { ensureInitialActivityLog } from '../services/activityLog';
 
 interface ActivityLogEntry {
   id: string;
@@ -20,12 +21,23 @@ export const ActivityLog: React.FC = () => {
   useEffect(() => {
     async function fetchLogs() {
       try {
-        const q = query(collection(db, 'activityLogs'), orderBy('timestamp', 'desc'), limit(50));
-        const snapshot = await getDocs(q);
-        const fetchedLogs: ActivityLogEntry[] = [];
-        snapshot.forEach((doc) => {
-          fetchedLogs.push({ id: doc.id, ...doc.data() } as ActivityLogEntry);
-        });
+        await ensureInitialActivityLog();
+        let fetchedLogs: ActivityLogEntry[] = [];
+        try {
+          const q = query(collection(db, 'activityLogs'), orderBy('timestamp', 'desc'), limit(50));
+          const snapshot = await getDocs(q);
+          snapshot.forEach((doc) => {
+            fetchedLogs.push({ id: doc.id, ...doc.data() } as ActivityLogEntry);
+          });
+        } catch (err1) {
+          console.warn('Ordered query failed, falling back to unordered fetch:', err1);
+          const snapshot = await getDocs(collection(db, 'activityLogs'));
+          snapshot.forEach((doc) => {
+            fetchedLogs.push({ id: doc.id, ...doc.data() } as ActivityLogEntry);
+          });
+          fetchedLogs.sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
+          fetchedLogs = fetchedLogs.slice(0, 50);
+        }
         setLogs(fetchedLogs);
       } catch (error) {
         console.error('Error fetching activity logs:', error);

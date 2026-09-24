@@ -1,13 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService } from '../db';
 import { Bill, Party, Payment } from '../types';
-import { formatCurrency, formatDate } from '../utils';
+import { formatCurrency, formatDate, safeDate } from '../utils';
 import { Printer, Download, Share2, AlertTriangle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { format, subMonths, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, Legend } from 'recharts';
+
+const formatDateSafe = (d: any, fmt: string = 'dd/MM/yy') => {
+  try {
+    return format(safeDate(d), fmt);
+  } catch {
+    return '-';
+  }
+};
 
 export function Reports() {
   const [reportType, setReportType] = useState('outstanding');
@@ -26,9 +34,9 @@ export function Reports() {
           dbService.getBills(),
           dbService.getPayments()
         ]);
-        setParties(pt);
-        setBills(b);
-        setPayments(p);
+        setParties(pt || []);
+        setBills(b || []);
+        setPayments(p || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -49,38 +57,38 @@ export function Reports() {
   let reportRows: ReportRow[] = [];
   let tableHeaders: string[] = [];
 
-  const totalBills = bills.reduce((s, b) => s + b.bill_amount, 0);
-  const totalReceived = bills.reduce((s, b) => s + b.paid_amount, 0);
-  const totalOutstanding = bills.reduce((s, b) => s + b.outstanding_amount, 0);
-  const totalPayments = payments.reduce((s, p) => s + p.amount, 0);
+  const totalBills = bills.reduce((s, b) => s + (b.bill_amount || 0), 0);
+  const totalReceived = bills.reduce((s, b) => s + (b.paid_amount || 0), 0);
+  const totalOutstanding = bills.reduce((s, b) => s + (b.outstanding_amount || 0), 0);
+  const totalPayments = payments.reduce((s, p) => s + (p.amount || 0), 0);
 
   if (reportType === 'outstanding') {
     tableHeaders = ['Party Name', 'Total Bills', 'Received', 'Outstanding'];
     reportRows = parties.map(party => {
       const pBills = bills.filter(b => b.party_id === party.id);
-      const outstanding = pBills.reduce((sum, b) => sum + b.outstanding_amount, 0);
-      const totalSales = pBills.reduce((sum, b) => sum + b.bill_amount, 0);
-      const received = pBills.reduce((sum, b) => sum + b.paid_amount, 0);
-      return { party_name: party.party_name, totalSales, received, outstanding };
+      const outstanding = pBills.reduce((sum, b) => sum + (b.outstanding_amount || 0), 0);
+      const totalSales = pBills.reduce((sum, b) => sum + (b.bill_amount || 0), 0);
+      const received = pBills.reduce((sum, b) => sum + (b.paid_amount || 0), 0);
+      return { party_name: party.party_name || 'Unknown', totalSales, received, outstanding };
     }).filter(p => p.outstanding > 0 || p.received > 0);
   } else if (reportType === 'sales') {
     tableHeaders = ['Date', 'Bill No', 'Party', 'Amount', 'Paid', 'Outstanding', 'Status'];
     reportRows = bills.map(b => ({
-      date: new Date(b.bill_date),
-      billNo: b.bill_number,
+      date: safeDate(b.bill_date),
+      billNo: b.bill_number || '-',
       party: parties.find(p => p.id === b.party_id)?.party_name || '-',
-      amount: b.bill_amount,
-      paid: b.paid_amount,
-      outstanding: b.outstanding_amount,
-      status: b.status,
+      amount: b.bill_amount || 0,
+      paid: b.paid_amount || 0,
+      outstanding: b.outstanding_amount || 0,
+      status: b.status || 'DUE',
     }));
   } else if (reportType === 'collections') {
     tableHeaders = ['Date', 'Party', 'Amount', 'Mode', 'Ref No'];
     reportRows = payments.map(p => ({
-      date: new Date(p.payment_date),
+      date: safeDate(p.payment_date),
       party: parties.find(pt => pt.id === p.party_id)?.party_name || '-',
-      amount: p.amount,
-      mode: p.payment_mode,
+      amount: p.amount || 0,
+      mode: p.payment_mode || 'Cash',
       ref: p.reference_number || '-',
     }));
   }
@@ -97,17 +105,17 @@ export function Reports() {
       const mEnd = endOfMonth(d);
       
       const sales = bills.filter(b => {
-        const bDate = new Date(b.bill_date);
+        const bDate = safeDate(b.bill_date);
         return bDate >= mStart && bDate <= mEnd;
-      }).reduce((sum, b) => sum + b.bill_amount, 0);
+      }).reduce((sum, b) => sum + (b.bill_amount || 0), 0);
 
       const coll = payments.filter(p => {
-        const pDate = new Date(p.payment_date);
+        const pDate = safeDate(p.payment_date);
         return pDate >= mStart && pDate <= mEnd;
-      }).reduce((sum, p) => sum + p.amount, 0);
+      }).reduce((sum, p) => sum + (p.amount || 0), 0);
 
       months.push({
-        name: format(d, 'MMM yyyy'),
+        name: formatDateSafe(d, 'MMM yyyy'),
         sales,
         collection: coll
       });
@@ -115,20 +123,20 @@ export function Reports() {
 
     // 2. Party-wise outstanding (Top 5)
     const partyOut = parties.map(p => {
-      const outstanding = bills.filter(b => b.party_id === p.id).reduce((s, b) => s + b.outstanding_amount, 0);
-      return { name: p.party_name, outstanding };
+      const outstanding = bills.filter(b => b.party_id === p.id).reduce((s, b) => s + (b.outstanding_amount || 0), 0);
+      return { name: p.party_name || '-', outstanding };
     }).filter(p => p.outstanding > 0)
       .sort((a, b) => b.outstanding - a.outstanding)
       .slice(0, 5);
 
     // 3. Top Defaulters (Oldest unpaid bills)
-    const unpaidBills = bills.filter(b => b.outstanding_amount > 0)
+    const unpaidBills = bills.filter(b => (b.outstanding_amount || 0) > 0)
       .map(b => {
-        const days = differenceInDays(new Date(), new Date(b.bill_date));
+        const days = differenceInDays(new Date(), safeDate(b.bill_date));
         return {
           ...b,
           party: parties.find(p => p.id === b.party_id)?.party_name || '-',
-          days
+          days: Math.max(0, days)
         };
       })
       .sort((a, b) => b.days - a.days)
@@ -539,7 +547,7 @@ export function Reports() {
                     <td className="px-5 py-3 text-sm text-right font-black text-red-600">{formatCurrency(row.outstanding)}</td>
                   </>}
                   {reportType === 'sales' && <>
-                    <td className="px-5 py-3 text-sm text-slate-700 font-medium">{format(row.date, 'dd/MM/yy')}</td>
+                    <td className="px-5 py-3 text-sm text-slate-700 font-medium">{formatDateSafe(row.date)}</td>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{row.billNo}</td>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{row.party}</td>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{formatCurrency(row.amount)}</td>
@@ -548,7 +556,7 @@ export function Reports() {
                     <td className="px-5 py-3 text-right">{statusBadge(row.status)}</td>
                   </>}
                   {reportType === 'collections' && <>
-                    <td className="px-5 py-3 text-sm text-slate-700 font-medium">{format(row.date, 'dd/MM/yy')}</td>
+                    <td className="px-5 py-3 text-sm text-slate-700 font-medium">{formatDateSafe(row.date)}</td>
                     <td className="px-5 py-3 text-sm font-bold text-slate-900 text-right">{row.party}</td>
                     <td className="px-5 py-3 text-sm font-black text-emerald-600 text-right">+{formatCurrency(row.amount)}</td>
                     <td className="px-5 py-3 text-sm text-slate-600 text-right capitalize">{row.mode}</td>
@@ -615,7 +623,7 @@ export function Reports() {
                   <div className="flex items-center justify-between mb-1">
                     <div>
                       <span className="font-bold text-slate-900 text-lg">{row.party}</span>
-                      <p className="text-xs text-slate-500 font-medium">{row.billNo} · {format(row.date, 'dd/MM/yy')}</p>
+                      <p className="text-xs text-slate-500 font-medium">{row.billNo} · {formatDateSafe(row.date)}</p>
                     </div>
                     {statusBadge(row.status)}
                   </div>
@@ -640,7 +648,7 @@ export function Reports() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-bold text-slate-900 text-lg">{row.party}</p>
-                      <p className="text-xs text-slate-500 mt-0.5 font-medium">{format(row.date, 'dd/MM/yy')} · {row.mode} {row.ref !== '-' ? `· ${row.ref}` : ''}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 font-medium">{formatDateSafe(row.date)} · {row.mode} {row.ref !== '-' ? `· ${row.ref}` : ''}</p>
                     </div>
                     <p className="font-black text-emerald-600 text-base bg-emerald-50 px-3 py-1.5 rounded-lg">+{formatCurrency(row.amount)}</p>
                   </div>

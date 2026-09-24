@@ -50,10 +50,12 @@
   }
   input[type="number"] { -moz-appearance: textfield; }
 
-  /* Better date inputs on iOS */
-  input[type="date"] {
-    -webkit-appearance: none;
-    appearance: none;
+  /* Ensure inputs always have dark text regardless of browser dark mode */
+  input, select, textarea {
+    color: #0f172a !important;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #64748b !important;
   }
 }
 
