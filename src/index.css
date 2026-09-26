@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Roboto", system-ui, -apple-system, sans-serif;
+  --font-sans: "Fira Sans", "Roboto", system-ui, -apple-system, sans-serif;
+  --font-mono: "Fira Code", monospace;
 }
 
 /* ============================================================
-   SUNSHINE ERP - Material Design 3 Style System
-   Mobile-First, Professional App Design
+   SUNSHINE ERP - Material Design 3 & UI/UX Pro Max System
+   Mobile-First, Enterprise Data & ERP Design
    ============================================================ */
 
 @layer base {
@@ -28,7 +29,7 @@
     min-height: 100%;
     min-height: -webkit-fill-available;
     overscroll-behavior: none;
-    font-family: "Roboto", system-ui, sans-serif;
+    font-family: "Fira Sans", "Roboto", system-ui, sans-serif;
   }
 
   /* Better focus ring - accessibility */
