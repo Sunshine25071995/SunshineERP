@@ -5,6 +5,7 @@ import { Layers, Plus, Trash2, Edit2, Check, X, Search, ChevronRight, FileText }
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { useBackButton } from '../utils/useBackButton';
+import { getUserPermissions } from '../utils/permissions';
 
 const formatToDDMM = (dateStr: string) => {
   if (!dateStr) return '—';
@@ -47,6 +48,8 @@ const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ lab
 const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono font-black text-black placeholder:text-gray-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
 
 export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser, jobCards, prodRolls, prodWastages, slitRolls }) => {
+  const perms = getUserPermissions(currentUser);
+  const canEdit = perms.production.edit;
   const [searchQuery, setSearchQuery] = useState('');
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
@@ -302,14 +305,18 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
               <span className="font-mono text-3xl font-black text-emerald-900 bg-emerald-100 px-4 py-0.5.5 rounded-xl border border-emerald-300">
                 {selectedJobCard.jobCode}
               </span>
-              <select value={selectedJobCard.status || 'pending'}
-                onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
-                className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
-                <option value="running">🔥 Running</option>
-                <option value="pending">⏳ Pending</option>
-                <option value="completed">✅ Completed</option>
-                <option value="dispatched">🚚 Dispatched</option>
-              </select>
+              {canEdit ? (
+                <select value={selectedJobCard.status || 'pending'}
+                  onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
+                  className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
+                  <option value="running">🔥 Running</option>
+                  <option value="pending">⏳ Pending</option>
+                  <option value="completed">✅ Completed</option>
+                  <option value="dispatched">🚚 Dispatched</option>
+                </select>
+              ) : (
+                <StatusBadge status={selectedJobCard.status} />
+              )}
             </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap text-sm text-gray-600">
               <span><span className="font-semibold">Party:</span> {selectedJobCard.partyCode}</span>
@@ -351,31 +358,33 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
 
       {activeTab === 'rolls' && (
         <div className="space-y-4 animate-fade-in">
-          <div className="app-card p-4">
-            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-emerald-600" />
-              Add Production Roll · <span className="font-mono text-emerald-600">{nextRollNo}</span>
-            </h3>
-            <form onSubmit={handleAddRoll} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Gross Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} required className={inputCls} /></FormField>
-                <FormField label="Core Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={coreWeight} onChange={e => setCoreWeight(e.target.value)} className={inputCls} /></FormField>
-                <FormField label="Joints"><input type="number" min="0" placeholder="0" value={joints} onChange={e => setJoints(e.target.value)} className={inputCls} /></FormField>
-                <FormField label="Date"><input type="date" value={rollDate} onChange={e => setRollDate(e.target.value)} className={inputCls} /></FormField>
-              </div>
-              {grossWeight && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-emerald-700">Net Weight</span>
-                  <span className="font-mono text-lg font-black text-emerald-900">
-                    {formatWeight(Math.max(0, (parseFloat(grossWeight) || 0) - (parseFloat(coreWeight) || 0)))} kg
-                  </span>
+          {canEdit && (
+            <div className="app-card p-4">
+              <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-emerald-600" />
+                Add Production Roll · <span className="font-mono text-emerald-600">{nextRollNo}</span>
+              </h3>
+              <form onSubmit={handleAddRoll} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField label="Gross Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} required className={inputCls} /></FormField>
+                  <FormField label="Core Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={coreWeight} onChange={e => setCoreWeight(e.target.value)} className={inputCls} /></FormField>
+                  <FormField label="Joints"><input type="number" min="0" placeholder="0" value={joints} onChange={e => setJoints(e.target.value)} className={inputCls} /></FormField>
+                  <FormField label="Date"><input type="date" value={rollDate} onChange={e => setRollDate(e.target.value)} className={inputCls} /></FormField>
                 </div>
-              )}
-              <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors btn-press shadow-sm">
-                <Plus className="w-4 h-4" /><span>Add Roll {nextRollNo}</span>
-              </button>
-            </form>
-          </div>
+                {grossWeight && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-emerald-700">Net Weight</span>
+                    <span className="font-mono text-lg font-black text-emerald-900">
+                      {formatWeight(Math.max(0, (parseFloat(grossWeight) || 0) - (parseFloat(coreWeight) || 0)))} kg
+                    </span>
+                  </div>
+                )}
+                <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors btn-press shadow-sm">
+                  <Plus className="w-4 h-4" /><span>Add Roll {nextRollNo}</span>
+                </button>
+              </form>
+            </div>
+          )}
 
           {activeProdRolls.length > 0 && (
             <div className="app-card overflow-hidden">
@@ -428,10 +437,14 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                           <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-black text-gray-900 font-bold">{formatWeight(roll.netWeight)}</td>
                           <td className="px-1 py-0.5 border border-gray-300 font-mono font-semibold text-sm sm:text-base leading-tight font-bold text-gray-900">{roll.joints > 0 ? roll.joints : '-'}</td>
                           <td className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">
-                            <div className="flex items-center justify-center gap-1">
-                              <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
-                            </div>
+                            {canEdit ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
+                            ) : (
+                              <span>-</span>
+                            )}
                           </td>
                         </tr>
                       );

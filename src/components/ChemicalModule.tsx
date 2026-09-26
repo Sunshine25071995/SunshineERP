@@ -5,6 +5,7 @@ import { FlaskConical, Plus, Trash2, Edit2, Check, X, ShoppingCart } from 'lucid
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { LowStockAlert } from './LowStockAlert';
+import { getUserPermissions } from '../utils/permissions';
 
 interface ChemicalModuleProps {
   currentUser: User;
@@ -29,6 +30,8 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
   purchases,
   usages,
 }) => {
+  const perms = getUserPermissions(currentUser);
+  const canEdit = perms.chemical.edit;
   const [activeTab, setActiveTab] = useState<'usage' | 'purchase'>('usage');
   
   // Modals state
@@ -140,13 +143,15 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
           <h2 className="text-headline-small font-bold text-gray-900">Chemicals</h2>
           <p className="text-sm text-gray-500 mt-1">Stock & Usage Management</p>
         </div>
-        <button
-          onClick={() => setShowAddChemModal(true)}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-full transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New</span>
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowAddChemModal(true)}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-full transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New</span>
+          </button>
+        )}
       </div>
 
       <LowStockAlert chemicals={chemicals} purchases={purchases} usages={usages} />
@@ -267,7 +272,7 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
                           <div className="text-lg font-black font-mono text-gray-800">
                             {formatWeight(u.quantityUsed)}<span className="text-sm font-normal text-gray-500 ml-1">{chem?.unit}</span>
                           </div>
-                          {isOwner && (
+                          {canEdit && isOwner && (
                             <div className="flex items-center gap-1">
                               <button onClick={() => { setEditingUsageId(u.id); setEditQty(String(u.quantityUsed)); }} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
                               <button onClick={() => handleDeleteUsage(u.id)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-rose-50 text-gray-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
@@ -282,9 +287,11 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
             </div>
           </div>
           
-          <button onClick={() => setShowUsageModal(true)} className="fab-btn">
-            <Plus className="w-6 h-6" />
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowUsageModal(true)} className="fab-btn">
+              <Plus className="w-6 h-6" />
+            </button>
+          )}
         </div>
       )}
 
@@ -322,7 +329,7 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
                             <div className="text-lg font-black font-mono text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl">
                               +{formatWeight(p.quantity)} <span className="text-sm font-normal text-emerald-700">{chem?.unit}</span>
                             </div>
-                            {isOwner && (
+                            {canEdit && isOwner && (
                               <div className="flex items-center gap-1">
                                 <button onClick={() => { setEditingPurchaseId(p.id); setEditPurchaseQty(String(p.quantity)); }} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
                                 <button onClick={() => handleDeletePurchase(p.id)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-rose-50 text-gray-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
@@ -338,9 +345,11 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
             )}
           </div>
           
-          <button onClick={() => setShowPurchaseModal(true)} className="fab-btn">
-            <Plus className="w-6 h-6" />
-          </button>
+          {canEdit && (
+            <button onClick={() => setShowPurchaseModal(true)} className="fab-btn">
+              <Plus className="w-6 h-6" />
+            </button>
+          )}
         </div>
       )}
 

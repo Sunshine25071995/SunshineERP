@@ -5,6 +5,7 @@ import { Scissors, Plus, Trash2, Edit2, Check, X, CheckSquare, Square, Search, C
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { useBackButton } from '../utils/useBackButton';
+import { getUserPermissions } from '../utils/permissions';
 
 const formatToDDMM = (dateStr: string) => {
   if (!dateStr) return '—';
@@ -47,6 +48,8 @@ const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ lab
 const inputCls = "w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono font-black text-black placeholder:text-gray-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all";
 
 export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, jobCards, prodRolls, slitRolls, prodWastages }) => {
+  const perms = getUserPermissions(currentUser);
+  const canEdit = perms.slitting.edit;
   const [searchQuery, setSearchQuery] = useState('');
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
@@ -359,14 +362,18 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
               <span className="font-mono text-3xl font-black text-blue-900 bg-blue-100 px-4 py-0.5.5 rounded-xl border border-blue-300">
                 {selectedJobCard.jobCode}
               </span>
-              <select value={selectedJobCard.slittingStatus || 'pending'}
-                onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
-                className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
-                <option value="running">🔥 Running</option>
-                <option value="pending">⏳ Pending</option>
-                <option value="completed">✅ Completed</option>
-                <option value="dispatched">🚚 Dispatched</option>
-              </select>
+              {canEdit ? (
+                <select value={selectedJobCard.slittingStatus || 'pending'}
+                  onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
+                  className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
+                  <option value="running">🔥 Running</option>
+                  <option value="pending">⏳ Pending</option>
+                  <option value="completed">✅ Completed</option>
+                  <option value="dispatched">🚚 Dispatched</option>
+                </select>
+              ) : (
+                <StatusBadge status={selectedJobCard.slittingStatus} />
+              )}
             </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap text-sm text-gray-600">
               <span><span className="font-semibold">Party:</span> {selectedJobCard.partyCode}</span>
@@ -429,9 +436,9 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                   </thead>
                   <tbody>
                     {activeProdRolls.map(roll => (
-                      <tr key={roll.id} onClick={() => toggleTakenBySlitting(roll)}
-                        className={`cursor-pointer transition-colors text-center ${
-                          roll.takenBySlitting ? 'bg-[#C6E0B4]' : 'bg-white hover:bg-gray-50'
+                      <tr key={roll.id} onClick={() => canEdit && toggleTakenBySlitting(roll)}
+                        className={`${canEdit ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'} transition-colors text-center ${
+                          roll.takenBySlitting ? 'bg-[#C6E0B4]' : 'bg-white'
                         }`}>
                         <td className="px-1 py-0.5 border border-gray-300">
                           <div className={`mx-auto w-4 h-4 sm:w-5 sm:h-5 rounded-sm flex items-center justify-center ${
@@ -456,46 +463,48 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
 
       {activeTab === 'output' && (
         <div className="space-y-4 animate-fade-in">
-          <div className="app-card p-4">
-            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-blue-600" />
-              Add Slit Roll · <span className="font-mono text-blue-600">{nextRollNo}</span>
-            </h3>
-            <form onSubmit={handleAddSlitRoll} className="space-y-3">
-              <FormField label="Coil Size">
-                <div className="flex gap-2 flex-wrap mb-2">
-                  {(selectedJobCard.coilSizes || []).map(size => (
-                    <button key={size} type="button" onClick={() => setSelectedCoilSize(size)}
-                      className={`px-4 py-2.5 rounded-xl text-sm font-bold border transition-all btn-press ${
-                        selectedCoilSize === size
-                          ? 'bg-blue-600 border-blue-700 text-white shadow-sm'
-                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-blue-300'
-                      }`}>
-                      {size}
-                    </button>
-                  ))}
+          {canEdit && (
+            <div className="app-card p-4">
+              <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-blue-600" />
+                Add Slit Roll · <span className="font-mono text-blue-600">{nextRollNo}</span>
+              </h3>
+              <form onSubmit={handleAddSlitRoll} className="space-y-3">
+                <FormField label="Coil Size">
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {(selectedJobCard.coilSizes || []).map(size => (
+                      <button key={size} type="button" onClick={() => setSelectedCoilSize(size)}
+                        className={`px-4 py-2.5 rounded-xl text-sm font-bold border transition-all btn-press ${
+                          selectedCoilSize === size
+                            ? 'bg-blue-600 border-blue-700 text-white shadow-sm'
+                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-blue-300'
+                        }`}>
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="text" placeholder="Or type Coil Size manually" value={selectedCoilSize} onChange={e => setSelectedCoilSize(e.target.value)} required className={inputCls} />
+                </FormField>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField label="Meter"><input type="number" step="0.01" placeholder="0.00" value={meter} onChange={e => setMeter(e.target.value)} className={inputCls} /></FormField>
+                  <FormField label="Date"><input type="date" value={rollDate} onChange={e => setRollDate(e.target.value)} className={inputCls} /></FormField>
+                  <FormField label="Gross Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} required className={inputCls} /></FormField>
+                  <FormField label="Core Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={coreWeight} onChange={e => setCoreWeight(e.target.value)} className={inputCls} /></FormField>
                 </div>
-                <input type="text" placeholder="Or type Coil Size manually" value={selectedCoilSize} onChange={e => setSelectedCoilSize(e.target.value)} required className={inputCls} />
-              </FormField>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Meter"><input type="number" step="0.01" placeholder="0.00" value={meter} onChange={e => setMeter(e.target.value)} className={inputCls} /></FormField>
-                <FormField label="Date"><input type="date" value={rollDate} onChange={e => setRollDate(e.target.value)} className={inputCls} /></FormField>
-                <FormField label="Gross Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} required className={inputCls} /></FormField>
-                <FormField label="Core Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={coreWeight} onChange={e => setCoreWeight(e.target.value)} className={inputCls} /></FormField>
-              </div>
-              {grossWeight && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-blue-700">Net Weight</span>
-                  <span className="font-mono text-lg font-black text-blue-900">
-                    {formatWeight(Math.max(0, (parseFloat(grossWeight) || 0) - (parseFloat(coreWeight) || 0)))} kg
-                  </span>
-                </div>
-              )}
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors btn-press shadow-sm">
-                <Plus className="w-4 h-4" /><span>Add Roll {nextRollNo}</span>
-              </button>
-            </form>
-          </div>
+                {grossWeight && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-blue-700">Net Weight</span>
+                    <span className="font-mono text-lg font-black text-blue-900">
+                      {formatWeight(Math.max(0, (parseFloat(grossWeight) || 0) - (parseFloat(coreWeight) || 0)))} kg
+                    </span>
+                  </div>
+                )}
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors btn-press shadow-sm">
+                  <Plus className="w-4 h-4" /><span>Add Roll {nextRollNo}</span>
+                </button>
+              </form>
+            </div>
+          )}
 
           {activeSlitRolls.length > 0 && (
             <div className="app-card overflow-hidden">
@@ -553,10 +562,14 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                           <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-bold text-gray-900">{formatWeight(roll.coreWeight)}</td>
                           <td className="px-1 py-0.5 border border-gray-300 font-mono text-sm sm:text-base leading-tight font-black text-gray-900">{formatWeight(roll.netWeight)}</td>
                           <td className="px-1 py-0.5 border border-gray-300 text-sm sm:text-base leading-tight font-bold text-gray-900">
-                            <div className="flex items-center justify-center gap-1">
-                              <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
-                            </div>
+                            {canEdit ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <button onClick={() => startEditRoll(roll)} className="p-1 text-gray-500 hover:text-gray-700"><Edit2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => handleDeleteRoll(roll.id)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
+                            ) : (
+                              <span>-</span>
+                            )}
                           </td>
                         </tr>
                       );

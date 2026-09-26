@@ -135,13 +135,15 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
       )}
       <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Parties</h1>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="hidden md:inline-flex items-center justify-center bg-indigo-600 text-white rounded-full px-5 py-2.5 font-bold shadow-sm hover:bg-indigo-700"
-        >
-          <Plus className="-ml-1 mr-2 h-5 w-5" />
-          Add Party
-        </button>
+        {profile?.role === 'admin' && (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="hidden md:inline-flex items-center justify-center bg-indigo-600 text-white rounded-full px-5 py-2.5 font-bold shadow-sm hover:bg-indigo-700"
+          >
+            <Plus className="-ml-1 mr-2 h-5 w-5" />
+            Add Party
+          </button>
+        )}
       </div>
 
       <div className="w-full">
@@ -295,12 +297,14 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
       </div>
 
       {/* FAB */}
-      <button
-        onClick={() => setIsAddModalOpen(true)}
-        className="md:hidden fab-btn fixed bottom-24 right-5 w-14 h-14 rounded-full bg-indigo-600 text-white shadow-xl z-40 flex items-center justify-center hover:bg-indigo-700 transition-colors"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
+      {profile?.role === 'admin' && (
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="md:hidden fab-btn fixed bottom-24 right-5 w-14 h-14 rounded-full bg-indigo-600 text-white shadow-xl z-40 flex items-center justify-center hover:bg-indigo-700 transition-colors"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
 
       {/* Modals - Bottom Sheet Style */}
       {(isAddModalOpen || editingParty) && (

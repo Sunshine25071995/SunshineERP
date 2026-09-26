@@ -117,13 +117,15 @@ export function Payments() {
       )}
       <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Payments</h1>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="hidden md:inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 font-bold text-white shadow-sm hover:bg-indigo-700"
-        >
-          <Plus className="-ml-1 mr-2 h-5 w-5" />
-          Add Payment
-        </button>
+        {profile?.role === 'admin' && (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="hidden md:inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 font-bold text-white shadow-sm hover:bg-indigo-700"
+          >
+            <Plus className="-ml-1 mr-2 h-5 w-5" />
+            Add Payment
+          </button>
+        )}
       </div>
 
       <div className="w-full">
@@ -247,12 +249,14 @@ export function Payments() {
       </div>
 
       {/* FAB */}
-      <button
-        onClick={() => setIsAddModalOpen(true)}
-        className="md:hidden fab-btn fixed bottom-24 right-5 w-14 h-14 rounded-full bg-indigo-600 text-white shadow-xl z-40 flex items-center justify-center hover:bg-indigo-700 transition-colors"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
+      {profile?.role === 'admin' && (
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="md:hidden fab-btn fixed bottom-24 right-5 w-14 h-14 rounded-full bg-indigo-600 text-white shadow-xl z-40 flex items-center justify-center hover:bg-indigo-700 transition-colors"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
 
       {/* Add Payment Modal */}
       {isAddModalOpen && (

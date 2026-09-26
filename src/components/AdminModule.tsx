@@ -19,6 +19,7 @@ import {
 import { db } from '../firebaseClient';
 import { logActivity } from '../services/activityLog';
 import { ActivityLog } from './ActivityLog';
+import { getUserPermissions } from '../utils/permissions';
 
 interface AdminModuleProps {
   currentUser: User;
@@ -45,6 +46,8 @@ const selectCls = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages, permissions,
 }) => {
+  const perms = getUserPermissions(currentUser);
+  const canEdit = perms.admin.edit;
   const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog'>('home');
   const [jobCardSearch, setJobCardSearch] = useState('');
   const [outstandingPayments, setOutstandingPayments] = useState(0);
@@ -407,14 +410,18 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       <div onClick={e => e.stopPropagation()} className="flex flex-col gap-1 items-end">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[10px] font-bold text-gray-500 uppercase">Slit Status</span>
-                          <select value={jc.slittingStatus || 'pending'}
-                            onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'slittingStatus')}
-                            className="text-xs font-bold rounded-lg px-2 py-1.5 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none shadow-sm">
-                            <option value="running">🔥 Running</option>
-                            <option value="pending">⏳ Pending</option>
-                            <option value="completed">✅ Completed</option>
-                            <option value="dispatched">🚚 Dispatched</option>
-                          </select>
+                          {canEdit ? (
+                            <select value={jc.slittingStatus || 'pending'}
+                              onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'slittingStatus')}
+                              className="text-xs font-bold rounded-lg px-2 py-1.5 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none shadow-sm">
+                              <option value="running">🔥 Running</option>
+                              <option value="pending">⏳ Pending</option>
+                              <option value="completed">✅ Completed</option>
+                              <option value="dispatched">🚚 Dispatched</option>
+                            </select>
+                          ) : (
+                            <span className="text-xs font-bold text-gray-700 capitalize">{jc.slittingStatus || 'pending'}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -446,17 +453,19 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                           <FileText className="w-4 h-4" /><span>Generate PDF</span>
                         </button>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button onClick={(e) => { e.stopPropagation(); openJobCardEdit(jc); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={(e) => { e.stopPropagation(); setDeletingJobCard(jc); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                      </div>
+                      {canEdit && (
+                        <div className="flex items-center gap-1">
+                          <button onClick={(e) => { e.stopPropagation(); openJobCardEdit(jc); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setDeletingJobCard(jc); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-          {permissions?.edit !== false && (
+          {canEdit && (
             <button onClick={openJobCardCreate} className="fab-btn">
               <Plus className="w-6 h-6" />
             </button>
@@ -495,13 +504,15 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                         <span className={`text-xs font-bold ${u.active ? 'text-emerald-600' : 'text-rose-500'}`}>· {u.active ? 'Active' : 'Inactive'}</span>
                       </div>
                     </div>
-                    <button onClick={() => openUserEdit(u)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-gray-400 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
+                    {canEdit && (
+                      <button onClick={() => openUserEdit(u)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-gray-400 hover:text-gray-700"><Edit2 className="w-4 h-4" /></button>
+                    )}
                   </div>
                 );
               })}
             </div>
           )}
-          {permissions?.edit !== false && (
+          {canEdit && (
             <button onClick={openUserCreate} className="fab-btn">
               <Plus className="w-6 h-6" />
             </button>
