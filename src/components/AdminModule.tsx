@@ -318,35 +318,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       {/* HOME DASHBOARD */}
       {activeTab === 'home' && (
         <>
-          {currentUser.department === 'admin' && (
-            <div className="app-card p-6 bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md rounded-[28px] mb-4">
-              <h2 className="text-2xl font-black mb-1">Welcome back, {currentUser.name}! 👋</h2>
-              <p className="text-sm font-medium text-indigo-100 mb-6">Here's a summary of what's happening today.</p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
-                  <p className="text-xs font-bold text-indigo-50 uppercase tracking-wider mb-1">Pending Jobs</p>
-                  <p className="text-2xl font-black font-mono">{jobCards.filter(jc => jc.status === 'pending' || jc.slittingStatus === 'pending').length}</p>
-                </div>
-                <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
-                  <p className="text-xs font-bold text-indigo-50 uppercase tracking-wider mb-1">Outstanding</p>
-                  <p className="text-2xl font-black font-mono">₹{0 /* placeholder for outstandingPayments */}</p>
-                </div>
-                <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
-                  <p className="text-xs font-bold text-indigo-50 uppercase tracking-wider mb-1">Low Stock Chems</p>
-                  <p className="text-2xl font-black font-mono">
-                    {chemicals.filter(c => {
-                      const tp = purchases.filter(p => p.chemicalId === c.id).reduce((s, p) => s + (p.quantity || 0), 0);
-                      const tu = usages.filter(u => u.chemicalId === c.id).reduce((s, u) => s + (u.quantityUsed || 0), 0);
-                      const stock = tp - tu;
-                      const pct = tp > 0 ? (stock / tp) * 100 : 0;
-                      return pct <= 10;
-                    }).length}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+
           
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-2">
             {tabs.map(tab => (
