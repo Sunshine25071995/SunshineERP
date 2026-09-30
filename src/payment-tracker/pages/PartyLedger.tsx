@@ -89,125 +89,167 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
   const totalReceivedAmount = payments.reduce((sum, p) => sum + p.amount, 0);
   const totalPendingAmount = bills.reduce((sum, b) => sum + b.outstanding_amount, 0);
 
-  // ── Professional PDF: Left = Payments, Right = Bills ──────────────────────
+  // ── Professional Tally-style PDF ──────────────────────────────────────────────
   const handleDownloadPDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth(); // 297mm
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth(); // 210mm
+    const pageH = doc.internal.pageSize.getHeight(); // 297mm
     const margin = 10;
-    const colW = (pageW - margin * 3) / 2; // two equal columns
+    
+    // Sort bills and payments to get date range
+    const sortedCombined = [...bills.map(b => ({ date: b.bill_date })), ...payments.map(p => ({ date: p.payment_date }))].sort((a, b) => a.date - b.date);
+    const fromDate = sortedCombined.length > 0 ? format(new Date(sortedCombined[0].date), 'dd/MM/yyyy') : format(new Date(), 'dd/MM/yyyy');
+    const toDate = sortedCombined.length > 0 ? format(new Date(sortedCombined[sortedCombined.length - 1].date), 'dd/MM/yyyy') : format(new Date(), 'dd/MM/yyyy');
 
-    // ── Header ──
-    doc.setFillColor(30, 41, 59); // slate-800
-    doc.rect(0, 0, pageW, 22, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('SUNSHINE POLYFILM INDUSTRIES', pageW / 2, 8, { align: 'center' });
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Party Ledger Statement`, pageW / 2, 14, { align: 'center' });
-    doc.text(`Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, pageW / 2, 19, { align: 'center' });
+    function printHeader(pageNum: number) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('SUNSHINE POLYFILMS', pageW / 2, 15, { align: 'center' });
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('PLOT NO.4, SUR.NO.712,JUNAGADH RAJKOT HIGHWAY,', pageW / 2, 21, { align: 'center' });
+      doc.text('GITANJALI INDUSTRIAL ESTATE,KATHROTA-JUNAGADH 362315', pageW / 2, 26, { align: 'center' });
+      doc.text('GSTIN No:24AFQFS0867J1ZG', margin, 32);
+      doc.text('PAN No.:AFQFS0867J', pageW - margin, 32, { align: 'right' });
 
-    // Party info
-    doc.setTextColor(30, 41, 59);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text(party.party_name, margin, 30);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    if (party.mobile) doc.text(`Mobile: ${party.mobile}`, margin, 36);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text(`Account Statement For ${party?.party_name.toUpperCase()}`, margin, 38);
 
-    // Summary bar
-    const summaryY = 42;
-    doc.setFillColor(241, 245, 249);
-    doc.rect(margin, summaryY, pageW - margin * 2, 12, 'F');
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(71, 85, 105);
-    doc.text(`Total Bills: ${formatCurrency(totalBillsAmount)}`, margin + 4, summaryY + 5);
-    doc.text(`Total Received: ${formatCurrency(totalReceivedAmount)}`, margin + 80, summaryY + 5);
-    doc.setTextColor(220, 38, 38);
-    doc.text(`Outstanding: ${formatCurrency(totalPendingAmount)}`, margin + 170, summaryY + 5);
-    doc.setTextColor(30, 41, 59);
+      doc.setFontSize(9);
+      doc.text(`From ${fromDate} To ${toDate}`, margin, 44);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Page : ${pageNum}`, pageW - margin, 44, { align: 'right' });
 
-    const tableStartY = summaryY + 17;
+      doc.setLineWidth(0.5);
+      doc.line(margin, 46, pageW - margin, 46);
 
-    // ── LEFT SIDE: PAYMENTS ────────────────────────────────────────────
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setFillColor(16, 185, 129); // emerald-500
-    doc.rect(margin, tableStartY - 6, colW, 6, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.text('PAYMENTS RECEIVED', margin + 4, tableStartY - 1.5);
+      doc.text('Credit Particulars', margin + 20, 50);
+      doc.text('Debit Particulars', pageW / 2 + 20, 50);
 
-    const paymentRows = payments.map(p => [
-      format(new Date(p.payment_date), 'dd/MM/yy') || '',
-      p.payment_mode || '',
-      p.reference_number || '-',
-      formatCurrency(p.amount) || '',
-    ]);
-    const paymentTotal = formatCurrency(totalReceivedAmount) || '';
+      doc.line(margin, 52, pageW - margin, 52);
+    }
 
-    autoTable(doc, {
-      startY: tableStartY,
-      margin: { left: margin, right: margin + colW + margin },
-      tableWidth: colW,
-      head: [['Date', 'Mode', 'Reference', 'Amount']],
-      body: paymentRows,
-      foot: [['', '', 'TOTAL', paymentTotal]],
-      styles: { fontSize: 7.5, cellPadding: 2 },
-      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
-      footStyles: { fillColor: [236, 253, 245], textColor: [5, 150, 105], fontStyle: 'bold' },
-      columnStyles: { 3: { halign: 'right', fontStyle: 'bold' } },
-      alternateRowStyles: { fillColor: [240, 253, 250] },
+    const creditLines: { amount: string; particulars: string; rawAmount: number }[] = [];
+    payments.forEach(p => {
+      creditLines.push({
+        amount: p.amount.toFixed(2),
+        particulars: `${format(new Date(p.payment_date), 'dd/MM/yyyy')} BRct`,
+        rawAmount: p.amount
+      });
+      creditLines.push({
+        amount: '',
+        particulars: p.payment_mode + (p.reference_number ? ` - ${p.reference_number}` : ''),
+        rawAmount: 0
+      });
     });
 
-    // ── RIGHT SIDE: BILLS ──────────────────────────────────────────────
-    const rightX = margin + colW + margin;
-    doc.setFillColor(99, 102, 241); // indigo-500
-    doc.rect(rightX, tableStartY - 6, colW, 6, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.text('BILLS ISSUED', rightX + 4, tableStartY - 1.5);
-
-    const billRows = bills.map(b => {
-      const dueDays = calculateDueDays(b.bill_date, b.fully_paid_date);
-      const isCleared = b.outstanding_amount <= 0;
-      return [
-        format(new Date(b.bill_date), 'dd/MM/yy') || '',
-        b.bill_number || '',
-        formatCurrency(b.bill_amount) || '',
-        formatCurrency(b.outstanding_amount) || '',
-        `${dueDays}d${isCleared ? ' ✓' : ''}` || '',
-        b.status || '',
-      ];
+    const debitLines: { amount: string; particulars: string; rawAmount: number }[] = [];
+    bills.forEach(b => {
+      debitLines.push({
+        amount: b.bill_amount.toFixed(2),
+        particulars: `${format(new Date(b.bill_date), 'dd/MM/yyyy')} Sale`,
+        rawAmount: b.bill_amount
+      });
+      debitLines.push({ amount: '', particulars: `Sales A/c.`, rawAmount: 0 });
+      debitLines.push({ amount: '', particulars: `Bill No ${b.bill_number}`, rawAmount: 0 });
     });
 
-    autoTable(doc, {
-      startY: tableStartY,
-      margin: { left: rightX, right: margin },
-      tableWidth: colW,
-      head: [['Date', 'Bill No', 'Amount', 'Outstanding', 'Due Days', 'Status']],
-      body: billRows,
-      foot: [['', 'TOTAL', formatCurrency(totalBillsAmount) || '', formatCurrency(totalPendingAmount) || '', '', '']],
-      styles: { fontSize: 7.5, cellPadding: 2 },
-      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
-      footStyles: { fillColor: [238, 242, 255], textColor: [67, 56, 202], fontStyle: 'bold' },
-      columnStyles: {
-        2: { halign: 'right' },
-        3: { halign: 'right', fontStyle: 'bold', textColor: [220, 38, 38] },
-      },
-      alternateRowStyles: { fillColor: [245, 243, 255] },
-      didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 5) {
-          const status = (data.cell.raw || '') as string;
-          if (status === 'PAID') data.cell.styles.textColor = [5, 150, 105];
-          else if (status === 'OVERDUE' || status === 'DUE') data.cell.styles.textColor = [220, 38, 38];
-          else data.cell.styles.textColor = [99, 102, 241];
-        }
+    let currentY = 58;
+    const lineH = 4.5;
+    const marginBottom = 20;
+
+    let cIdx = 0;
+    let dIdx = 0;
+    let pageNum = 1;
+    let runningCredit = 0;
+    let runningDebit = 0;
+
+    printHeader(pageNum);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+
+    while (cIdx < creditLines.length || dIdx < debitLines.length) {
+      if (currentY > pageH - marginBottom) {
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${runningCredit.toFixed(2)} C/F -> On Page ${pageNum + 1}`, margin + 28, currentY, { align: 'right' });
+        doc.text(`${runningDebit.toFixed(2)} C/F -> On Page ${pageNum + 1}`, pageW / 2 + 28, currentY, { align: 'right' });
+        
+        doc.addPage();
+        pageNum++;
+        printHeader(pageNum);
+        currentY = 58;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${runningCredit.toFixed(2)} B/F -> From Page ${pageNum - 1}`, margin + 28, currentY, { align: 'right' });
+        doc.text(`${runningDebit.toFixed(2)} B/F -> From Page ${pageNum - 1}`, pageW / 2 + 28, currentY, { align: 'right' });
+        currentY += lineH + 2;
+        doc.setFont('helvetica', 'normal');
       }
-    });
 
-    doc.save(`${party.party_name}-ledger-${format(new Date(), 'ddMMyyyy')}.pdf`);
+      const cLine = creditLines[cIdx];
+      const dLine = debitLines[dIdx];
+
+      if (cLine) {
+        if (cLine.amount) {
+          doc.text(cLine.amount, margin + 28, currentY, { align: 'right' });
+          runningCredit += cLine.rawAmount;
+        }
+        doc.text(cLine.particulars, margin + 30, currentY);
+        cIdx++;
+      }
+
+      if (dLine) {
+        if (dLine.amount) {
+          doc.text(dLine.amount, pageW / 2 + 28, currentY, { align: 'right' });
+          runningDebit += dLine.rawAmount;
+        }
+        doc.text(dLine.particulars, pageW / 2 + 30, currentY);
+        dIdx++;
+      }
+
+      currentY += lineH;
+    }
+
+    const diff = Math.abs(runningDebit - runningCredit);
+    const isDbBalance = runningDebit > runningCredit;
+
+    currentY += 2;
+    if (currentY > pageH - marginBottom - 15) {
+      doc.addPage();
+      pageNum++;
+      printHeader(pageNum);
+      currentY = 58;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    if (isDbBalance) {
+       doc.text(runningCredit.toFixed(2), margin + 28, currentY, { align: 'right' });
+       currentY += lineH;
+       doc.text(diff.toFixed(2), margin + 28, currentY, { align: 'right' });
+       doc.text('DB Closing Balance', margin + 30, currentY);
+    } else if (diff > 0) {
+       doc.text(runningDebit.toFixed(2), pageW / 2 + 28, currentY, { align: 'right' });
+       currentY += lineH;
+       doc.text(diff.toFixed(2), pageW / 2 + 28, currentY, { align: 'right' });
+       doc.text('CR Closing Balance', pageW / 2 + 30, currentY);
+    }
+
+    currentY += 4;
+    doc.line(margin, currentY, pageW / 2 - 5, currentY);
+    doc.line(pageW / 2 + 5, currentY, pageW - margin, currentY);
+
+    currentY += lineH + 1;
+    const maxTotal = Math.max(runningCredit, runningDebit);
+    doc.text(maxTotal.toFixed(2), margin + 28, currentY, { align: 'right' });
+    doc.text(maxTotal.toFixed(2), pageW / 2 + 28, currentY, { align: 'right' });
+
+    currentY += 2;
+    doc.line(margin, currentY, pageW / 2 - 5, currentY);
+    doc.line(pageW / 2 + 5, currentY, pageW - margin, currentY);
+
+    doc.save(`${party?.party_name}-ledger-${format(new Date(), 'ddMMyyyy')}.pdf`);
   };
 
   // ── WhatsApp via html2canvas ────────────────────────────────────────────────
