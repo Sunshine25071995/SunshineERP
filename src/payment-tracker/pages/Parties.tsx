@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { dbService } from '../db';
 import { adminDbService } from '../db-admin';
 import { Party, Bill } from '../types';
-import { formatCurrency, calculateDueDays } from '../utils';
+import { formatCurrency, calculateDueDays, cn } from '../utils';
 import { Edit2, Trash2, Plus, Search, ChevronRight } from 'lucide-react';
 import { useAuth } from '../auth';
 import toast from 'react-hot-toast';
@@ -162,131 +162,73 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
           </div>
         </div>
         
-        {/* Mobile List View (Transaction style) */}
-        <div className="md:hidden flex flex-col bg-white rounded-[28px] p-2 shadow-sm">
-          {filteredParties.map((party, index) => (
-            <React.Fragment key={party.id}>
-              <div 
-                onClick={() => onNavigate('partyLedger', party.id)}
-                className="flex items-center p-3 hover:bg-slate-50 cursor-pointer transition-colors rounded-2xl"
-              >
-                <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg shrink-0 mr-4">
-                  {party.party_name.charAt(0).toUpperCase()}
-                </div>
-                
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <p className="text-base font-bold text-slate-900 truncate">{party.party_name}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-slate-500 font-medium">{party.totalBills} Bills</span>
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                      party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
-                      party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                      party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
-                      'bg-amber-100 text-amber-800'
-                    }`}>
-                      {party.status}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0 ml-3 flex flex-col items-end">
-                  {party.outstanding > 0 ? (
-                    <p className="text-base font-black text-rose-600">{formatCurrency(party.outstanding)}</p>
-                  ) : (
-                    <p className="text-base font-black text-emerald-600">Paid</p>
-                  )}
-                  {profile?.role === 'admin' && (
-                    <div className="flex gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => setEditingParty(party)} className="text-slate-400 hover:text-indigo-600">
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => handleDeleteParty(party.id)} className="text-slate-400 hover:text-red-600">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {index < filteredParties.length - 1 && (
-                <div className="mx-4 border-b border-slate-100"></div>
-              )}
-            </React.Fragment>
-          ))}
-          {filteredParties.length === 0 && (
-            <div className="text-center text-sm text-slate-500 font-medium py-8">
-              No parties found.
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Table */}
-        <div className="hidden md:block w-full overflow-x-auto bg-white rounded-[28px] shadow-sm p-4">
-          <table className="w-full divide-y divide-slate-100 whitespace-nowrap">
-            <thead className="text-slate-500 text-xs uppercase tracking-wider text-left">
+        {/* Responsive Edge-to-Edge Table */}
+        <div className="w-full bg-white sm:rounded-[28px] shadow-sm border-y sm:border border-slate-200 overflow-hidden -mx-4 sm:mx-0">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th scope="col" className="px-4 py-3 font-bold">Party Name</th>
-                <th scope="col" className="px-4 py-3 font-bold">Contact</th>
-                <th scope="col" className="px-4 py-3 font-bold text-center">Bills</th>
-                <th scope="col" className="px-4 py-3 font-bold text-right">Total Sales</th>
-                <th scope="col" className="px-4 py-3 font-bold text-right">Received</th>
-                <th scope="col" className="px-4 py-3 font-bold text-right">Outstanding</th>
-                <th scope="col" className="px-4 py-3 font-bold text-center">Status</th>
-                <th scope="col" className="px-4 py-3 font-bold text-right">Actions</th>
+                <th scope="col" className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">Party</th>
+                <th scope="col" className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Sales/Rec</th>
+                <th scope="col" className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Outstanding</th>
+                <th scope="col" className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredParties.map((party) => (
-                <tr key={party.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-4 text-sm font-bold text-slate-900">
-                    <button onClick={() => onNavigate('partyLedger', party.id)} className="hover:text-indigo-600 hover:underline">
+              {filteredParties.map((party, i) => (
+                <tr key={party.id} className={cn('transition-colors hover:bg-slate-50', i % 2 === 0 ? 'bg-white' : 'bg-slate-50/30')}>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3">
+                    <button onClick={() => onNavigate('partyLedger', party.id)} className="text-[11px] sm:text-sm font-bold text-slate-900 hover:text-indigo-600 text-left line-clamp-1">
                       {party.party_name}
                     </button>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className={cn(
+                        'inline-flex items-center px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] font-bold',
+                        party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
+                        party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                        party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
+                        'bg-amber-100 text-amber-800'
+                      )}>
+                        {party.status}
+                      </span>
+                      {party.mobile && <span className="text-[9px] sm:text-xs text-slate-500 hidden sm:inline">{party.mobile}</span>}
+                    </div>
                   </td>
-                  <td className="px-4 py-4 text-sm text-slate-600 font-medium">
-                    {party.mobile || '-'}
+                  <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-3 text-right">
+                    <div className="text-[10px] sm:text-xs font-bold text-slate-900">{formatCurrency(party.totalSales)}</div>
+                    <div className="text-[9px] sm:text-xs font-bold text-emerald-600">{formatCurrency(party.totalReceived)}</div>
                   </td>
-                  <td className="px-4 py-4 text-sm font-bold text-slate-900 text-center">
-                    {party.totalBills}
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right align-top sm:align-middle">
+                    <div className="text-[11px] sm:text-sm font-black text-rose-600">
+                      {party.outstanding > 0 ? formatCurrency(party.outstanding) : <span className="text-emerald-600">Paid</span>}
+                    </div>
+                    {/* Show sales/rec on mobile under outstanding to save space */}
+                    <div className="sm:hidden mt-0.5 flex flex-col items-end">
+                      <span className="text-[8px] text-slate-500">S: {formatCurrency(party.totalSales)}</span>
+                      <span className="text-[8px] text-emerald-600">R: {formatCurrency(party.totalReceived)}</span>
+                    </div>
                   </td>
-                  <td className="px-4 py-4 text-sm font-bold text-slate-900 text-right">
-                    {formatCurrency(party.totalSales)}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-bold text-emerald-600 text-right">
-                    {formatCurrency(party.totalReceived)}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-black text-rose-600 text-right">
-                    {party.outstanding > 0 ? formatCurrency(party.outstanding) : '-'}
-                  </td>
-                  <td className="px-4 py-4 text-center text-sm">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                      party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
-                      party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                      party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
-                      'bg-amber-100 text-amber-800'
-                    }`}>
-                      {party.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-right text-sm">
-                    <button onClick={() => onNavigate('partyLedger', party.id)} className="px-3 py-1.5 text-indigo-600 hover:bg-indigo-50 rounded-full mr-2 font-bold transition-colors">
-                      Ledger
-                    </button>
-                    {profile?.role === 'admin' && (
-                      <>
-                        <button onClick={() => setEditingParty(party)} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50 mr-1 transition-colors">
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => handleDeleteParty(party.id)} className="p-1.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-rose-50 transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right align-top sm:align-middle">
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1 sm:gap-2">
+                      <button onClick={() => onNavigate('partyLedger', party.id)} className="text-[10px] sm:text-xs px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded font-bold transition-colors">
+                        Ledger
+                      </button>
+                      {profile?.role === 'admin' && (
+                        <div className="flex gap-1 mt-1 sm:mt-0">
+                          <button onClick={() => setEditingParty(party)} className="p-1 text-slate-400 hover:text-indigo-600 rounded bg-slate-50 hover:bg-slate-100">
+                            <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                          <button onClick={() => handleDeleteParty(party.id)} className="p-1 text-slate-400 hover:text-rose-600 rounded bg-slate-50 hover:bg-slate-100">
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
               {filteredParties.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-500 font-medium">
+                  <td colSpan={4} className="px-4 py-8 text-center text-sm text-slate-500 font-medium">
                     No parties found.
                   </td>
                 </tr>

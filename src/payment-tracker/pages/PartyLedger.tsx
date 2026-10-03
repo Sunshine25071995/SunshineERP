@@ -355,23 +355,21 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
       </div>
 
       {/* LEDGER TABLE — rendered for html2canvas */}
-      <div ref={ledgerTableRef} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-800 px-5 py-3 flex items-center gap-2">
+      <div ref={ledgerTableRef} className="bg-white sm:rounded-2xl shadow-sm border-y sm:border border-slate-200 overflow-hidden -mx-4 sm:mx-0">
+        <div className="bg-slate-800 px-3 sm:px-5 py-2 sm:py-3 flex items-center gap-2">
           <FileText className="h-4 w-4 text-slate-300" />
-          <h2 className="text-sm font-black text-white tracking-wide uppercase">Account Ledger — {party.party_name}</h2>
-          <span className="ml-auto text-xs text-slate-400">{format(new Date(), 'dd/MM/yyyy')}</span>
+          <h2 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase truncate">Ledger — {party.party_name}</h2>
+          <span className="ml-auto text-[10px] sm:text-xs text-slate-400 whitespace-nowrap">{format(new Date(), 'dd/MM/yyyy')}</span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+        <div className="w-full">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-4 py-2.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Reference</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-indigo-600 uppercase tracking-wider text-right">Bill (Dr)</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-emerald-600 uppercase tracking-wider text-right">Received (Cr)</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-rose-600 uppercase tracking-wider text-right">Balance</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Due Days</th>
+                <th className="px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">Date/Ref</th>
+                <th className="px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold text-indigo-600 uppercase tracking-wider text-right">Dr (Bill)</th>
+                <th className="px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold text-emerald-600 uppercase tracking-wider text-right">Cr (Rec)</th>
+                <th className="px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold text-rose-600 uppercase tracking-wider text-right">Balance</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -379,58 +377,55 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
                 const isBill = entry.type === 'bill';
                 return (
                   <tr key={entry.id} className={cn('transition-colors', i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50')}>
-                    <td className="px-4 py-2.5 text-xs font-semibold text-slate-700 whitespace-nowrap">
-                      {formatDate(entry.date)}
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-slate-600 max-w-[140px] truncate">
-                      <div className="flex items-center gap-1.5">
+                    <td className="px-2 sm:px-4 py-2 sm:py-2.5">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-700 whitespace-nowrap">
+                        {formatDate(entry.date)}
+                      </div>
+                      <div className="text-[9px] sm:text-xs text-slate-500 max-w-[100px] sm:max-w-[140px] truncate flex items-center gap-1 mt-0.5">
                         {isBill
-                          ? <ReceiptText className="h-3 w-3 text-indigo-400 shrink-0" />
-                          : <Banknote className="h-3 w-3 text-emerald-400 shrink-0" />
+                          ? <ReceiptText className="h-2.5 w-2.5 text-indigo-400 shrink-0" />
+                          : <Banknote className="h-2.5 w-2.5 text-emerald-400 shrink-0" />
                         }
                         <span>{entry.ref}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 text-right text-xs font-bold text-indigo-700">
+                    <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-right text-[10px] sm:text-xs font-bold text-indigo-700 align-top">
                       {isBill ? formatCurrency(entry.billAmount) : '—'}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-xs font-bold text-emerald-600">
+                    <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-right text-[10px] sm:text-xs font-bold text-emerald-600 align-top">
                       {!isBill ? formatCurrency(entry.receivedAmount) : '—'}
                     </td>
-                    <td className={cn('px-4 py-2.5 text-right text-xs font-black', entry.balance > 0 ? 'text-rose-600' : 'text-emerald-600')}>
-                      {formatCurrency(Math.abs(entry.balance))}{entry.balance < 0 ? ' Adv' : ''}
-                    </td>
-                    <td className="px-4 py-2.5 text-center">
-                      {isBill ? (
-                        <span className={cn(
-                          'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold',
-                          entry.isCleared
-                            ? 'bg-slate-100 text-slate-500'
-                            : entry.dueDays! > 30
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-amber-100 text-amber-700'
-                        )}>
-                          {entry.dueDays}d{entry.isCleared ? ' ✓' : ''}
-                        </span>
-                      ) : <span className="text-slate-300 text-xs">—</span>}
+                    <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-right align-top">
+                      <div className={cn('text-[10px] sm:text-xs font-black', entry.balance > 0 ? 'text-rose-600' : 'text-emerald-600')}>
+                        {formatCurrency(Math.abs(entry.balance))}{entry.balance < 0 ? ' Cr' : ''}
+                      </div>
+                      {isBill && (
+                        <div className="mt-0.5 hidden sm:block">
+                          <span className={cn(
+                            'inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold',
+                            entry.isCleared ? 'bg-slate-100 text-slate-500' : entry.dueDays! > 30 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                          )}>
+                            {entry.dueDays}d{entry.isCleared ? ' ✓' : ''}
+                          </span>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
               })}
               {ledgerEntries.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-2 py-6 text-center text-slate-400 text-sm">No entries recorded.</td>
+                  <td colSpan={4} className="px-2 py-6 text-center text-slate-400 text-sm">No entries recorded.</td>
                 </tr>
               )}
             </tbody>
             {ledgerEntries.length > 0 && (
               <tfoot>
                 <tr className="bg-slate-800">
-                  <td colSpan={2} className="px-4 py-3 text-xs font-black text-white uppercase tracking-wider">TOTAL</td>
-                  <td className="px-4 py-3 text-right text-xs font-black text-indigo-300">{formatCurrency(totalBillsAmount)}</td>
-                  <td className="px-4 py-3 text-right text-xs font-black text-emerald-400">{formatCurrency(totalReceivedAmount)}</td>
-                  <td className="px-4 py-3 text-right text-xs font-black text-red-400">{formatCurrency(totalPendingAmount)}</td>
-                  <td></td>
+                  <td className="px-2 sm:px-4 py-2.5 text-[10px] sm:text-xs font-black text-white uppercase tracking-wider">TOTAL</td>
+                  <td className="px-2 sm:px-4 py-2.5 text-right text-[10px] sm:text-xs font-black text-indigo-300">{formatCurrency(totalBillsAmount)}</td>
+                  <td className="px-2 sm:px-4 py-2.5 text-right text-[10px] sm:text-xs font-black text-emerald-400">{formatCurrency(totalReceivedAmount)}</td>
+                  <td className="px-2 sm:px-4 py-2.5 text-right text-[10px] sm:text-xs font-black text-red-400">{formatCurrency(totalPendingAmount)}</td>
                 </tr>
               </tfoot>
             )}
