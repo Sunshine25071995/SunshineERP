@@ -196,7 +196,7 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-5xl mx-auto md:py-4 pb-[80px] md:pb-6">
+      <main className="flex-1 w-full md:px-6 md:py-4 pb-[80px] md:pb-6">
         {!currentUser ? (
           <LoginModal users={users} onLogin={handleLogin} />
         ) : (

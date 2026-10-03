@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { dbService } from '../db';
 import { adminDbService } from '../db-admin';
 import { Bill, Party } from '../types';
-import { formatCurrency, formatDate } from '../utils';
+import { formatCurrency, formatDate, cn } from '../utils';
 import { Plus, Search, Trash2, Edit, Receipt } from 'lucide-react';
 import { useAuth } from '../auth';
 import { collection, getDocs } from 'firebase/firestore';
@@ -65,13 +65,30 @@ export function Bills() {
     e.preventDefault();
     try {
       const formData = new FormData(e.currentTarget);
+      const billNumber = formData.get('bill_number') as string;
+      const partyId = formData.get('party_id') as string;
+      const amount = Number(formData.get('bill_amount'));
+      
+      if (!billNumber || billNumber.trim() === '') {
+        toast.error('Please enter a bill number');
+        return;
+      }
+      if (!partyId) {
+        toast.error('Please select a party');
+        return;
+      }
+      if (!amount || amount <= 0) {
+        toast.error('Please enter a valid amount');
+        return;
+      }
+
       const dateStr = formData.get('bill_date') as string;
       
       const newBill = {
-        bill_number: formData.get('bill_number') as string,
-        party_id: formData.get('party_id') as string,
+        bill_number: billNumber,
+        party_id: partyId,
         bill_date: new Date(dateStr).getTime(),
-        bill_amount: Number(formData.get('bill_amount')),
+        bill_amount: amount,
         notes: formData.get('notes') as string,
         job_card_ids: selectedJobCards,
         created_by: profile?.name || 'Admin',
@@ -97,10 +114,17 @@ export function Bills() {
     if (!editingBill) return;
     try {
       const formData = new FormData(e.currentTarget);
+      const billNumber = formData.get('bill_number') as string;
+      
+      if (!billNumber || billNumber.trim() === '') {
+        toast.error('Please enter a bill number');
+        return;
+      }
+
       const dateStr = formData.get('bill_date') as string;
       
       await dbService.updateBillDetails(editingBill.id, {
-        bill_number: formData.get('bill_number') as string,
+        bill_number: billNumber,
         bill_date: new Date(dateStr).getTime(),
         notes: formData.get('notes') as string,
         job_card_ids: selectedJobCards,
@@ -142,156 +166,120 @@ export function Bills() {
 
   if (loading) return <SkeletonLoader variant="list" />;
 
-  const inputClasses = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50 px-4 py-3 text-sm focus:outline-none transition-colors";
+  const inputClasses = "w-full bg-slate-100 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-50/50 px-4 py-2.5 text-sm outline-none transition-colors";
 
   return (
-    <div className="w-full space-y-6 pb-[100px] font-sans animate-slide-up">
+    <div className="w-full space-y-4 pb-[100px] font-sans animate-slide-up">
       {isPulling && (
         <div className="flex justify-center py-2">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
         </div>
       )}
-      <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Sales Bills</h1>
+      <div className="w-full flex flex-row items-center justify-between gap-4 px-2 sm:px-0">
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Sales Bills</h1>
         {profile?.role === 'admin' && (
           <button
             onClick={openAddModal}
-            className="hidden md:inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 font-bold text-white shadow-sm hover:bg-indigo-700"
+            className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base font-bold text-white shadow-sm hover:bg-indigo-700"
           >
-            <Plus className="-ml-1 mr-2 h-5 w-5" />
+            <Plus className="-ml-1 mr-1.5 h-4 w-4 sm:h-5 sm:w-5" />
             Add Sales Bill
           </button>
         )}
       </div>
 
       <div className="w-full">
-        <div className="pb-4">
+        <div className="pb-4 px-2 sm:px-0">
           <div className="relative w-full sm:max-w-md">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <Search className="h-5 w-5 text-slate-400" />
+              <Search className="h-4 w-4 text-slate-400" />
             </div>
             <input
               type="text"
               placeholder="Search by bill no or party..."
-              className="w-full border-none rounded-full bg-slate-100 focus:ring-2 focus:ring-indigo-500 py-3 pl-12 pr-4 text-base font-medium outline-none"
+              className="w-full border-none rounded-full bg-slate-100 focus:ring-2 focus:ring-indigo-500 py-2.5 pl-10 pr-4 text-sm font-medium outline-none"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
         
-        {/* Mobile List View (Transaction style) */}
-        <div className="md:hidden flex flex-col bg-white rounded-[28px] p-2 shadow-sm">
-          {filteredBills.map((bill, index) => {
-            const party = parties.find(p => p.id === bill.party_id);
-            return (
-              <React.Fragment key={bill.id}>
-                <div className="flex items-center p-3 hover:bg-slate-50 transition-colors rounded-2xl">
-                  <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mr-4">
-                    <Receipt className="h-6 w-6" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-bold text-slate-900 truncate">{bill.bill_number}</p>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                        bill.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 
-                        bill.status === 'OVERDUE' ? 'bg-rose-100 text-rose-800' : 
-                        bill.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' : 
-                        'bg-amber-100 text-amber-800'
-                      }`}>
-                        {bill.status}
-                      </span>
-                    </div>
-                    <p className="text-sm font-medium text-slate-500 truncate mt-0.5">{party?.party_name}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{formatDate(bill.bill_date)}</p>
-                  </div>
-
-                  <div className="text-right shrink-0 ml-3 flex flex-col items-end justify-center">
-                    <p className="text-base font-black text-slate-900">{formatCurrency(bill.bill_amount)}</p>
-                    {bill.outstanding_amount > 0 ? (
-                      <p className="text-xs font-bold text-rose-600 mt-1">Due: {formatCurrency(bill.outstanding_amount)}</p>
-                    ) : (
-                      <p className="text-xs font-bold text-emerald-600 mt-1">Paid</p>
-                    )}
-                    
-                    {profile?.role === 'admin' && (
-                      <div className="flex gap-2 mt-1">
-                        <button onClick={() => openEditModal(bill)} className="text-slate-400 hover:text-indigo-600">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => handleDeleteBill(bill.id)} className="text-slate-400 hover:text-rose-600">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {index < filteredBills.length - 1 && (
-                  <div className="mx-4 border-b border-slate-100"></div>
-                )}
-              </React.Fragment>
-            );
-          })}
-          {filteredBills.length === 0 && (
-            <div className="text-center text-sm text-slate-500 font-medium py-8">
-              No bills found.
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Table */}
-        <div className="hidden md:block w-full overflow-x-auto bg-white rounded-[28px] shadow-sm p-4">
-          <table className="w-full divide-y divide-slate-100 whitespace-nowrap">
-            <thead className="text-slate-500 text-xs uppercase tracking-wider text-left">
+        {/* Responsive Edge-to-Edge Table */}
+        <div className="w-full bg-white sm:rounded-[28px] shadow-sm border-y sm:border border-slate-200 overflow-hidden -mx-4 sm:mx-0">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th scope="col" className="px-4 py-3 font-bold">Date</th>
-                <th scope="col" className="px-4 py-3 font-bold">Bill No</th>
-                <th scope="col" className="px-4 py-3 font-bold">Party</th>
-                <th scope="col" className="px-4 py-3 font-bold text-right">Amount</th>
-                <th scope="col" className="px-4 py-3 font-bold text-right">Outstanding</th>
-                <th scope="col" className="px-4 py-3 font-bold text-center">Status</th>
-                {profile?.role === 'admin' && <th scope="col" className="px-4 py-3 font-bold text-right">Actions</th>}
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">Date/No</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">Party</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Amount/Due</th>
+                <th scope="col" className="hidden sm:table-cell px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Status</th>
+                {profile?.role === 'admin' && <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredBills.map((bill) => {
+              {filteredBills.map((bill, i) => {
                 const party = parties.find(p => p.id === bill.party_id);
                 return (
-                  <tr key={bill.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-4 text-sm text-slate-600 font-medium">
-                      {formatDate(bill.bill_date)}
+                  <tr key={bill.id} className={cn('transition-colors hover:bg-slate-50', i % 2 === 0 ? 'bg-white' : 'bg-slate-50/30')}>
+                    <td className="px-3 sm:px-4 py-2 sm:py-3">
+                      <div className="text-[11px] sm:text-sm font-bold text-slate-900 whitespace-nowrap">
+                        {bill.bill_number}
+                      </div>
+                      <div className="text-[9px] sm:text-xs text-slate-500 mt-0.5 whitespace-nowrap">
+                        {formatDate(bill.bill_date)}
+                      </div>
                     </td>
-                    <td className="px-4 py-4 text-sm font-bold text-slate-900">
-                      {bill.bill_number}
+                    <td className="px-3 sm:px-4 py-2 sm:py-3">
+                      <div className="text-[11px] sm:text-sm font-bold text-slate-900 line-clamp-2 sm:line-clamp-1">
+                        {party?.party_name}
+                      </div>
+                      <div className="sm:hidden mt-0.5">
+                        <span className={cn(
+                          'inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold',
+                          bill.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 
+                          bill.status === 'OVERDUE' ? 'bg-rose-100 text-rose-800' : 
+                          bill.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' : 
+                          'bg-amber-100 text-amber-800'
+                        )}>
+                          {bill.status}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-4 py-4 text-sm text-slate-900 font-bold">
-                      {party?.party_name}
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-right">
+                      <div className="text-[11px] sm:text-sm font-black text-slate-900">
+                        {formatCurrency(bill.bill_amount)}
+                      </div>
+                      {bill.outstanding_amount > 0 ? (
+                        <div className="text-[9px] sm:text-xs font-bold text-rose-600 mt-0.5">
+                          Due: {formatCurrency(bill.outstanding_amount)}
+                        </div>
+                      ) : (
+                        <div className="text-[9px] sm:text-xs font-bold text-emerald-600 mt-0.5">
+                          Paid
+                        </div>
+                      )}
                     </td>
-                    <td className="px-4 py-4 text-right text-sm font-black text-slate-900">
-                      {formatCurrency(bill.bill_amount)}
-                    </td>
-                    <td className="px-4 py-4 text-right text-sm font-black text-rose-600">
-                      {bill.outstanding_amount > 0 ? formatCurrency(bill.outstanding_amount) : '-'}
-                    </td>
-                    <td className="px-4 py-4 text-center text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                    <td className="hidden sm:table-cell px-3 sm:px-4 py-2 sm:py-3 text-center">
+                      <span className={cn(
+                        'inline-flex items-center px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold',
                         bill.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 
                         bill.status === 'OVERDUE' ? 'bg-rose-100 text-rose-800' : 
                         bill.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' : 
                         'bg-amber-100 text-amber-800'
-                      }`}>
+                      )}>
                         {bill.status}
                       </span>
                     </td>
                     {profile?.role === 'admin' && (
-                      <td className="px-4 py-4 text-right text-sm">
-                        <button onClick={() => openEditModal(bill)} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50 mr-1 transition-colors">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => handleDeleteBill(bill.id)} className="p-1.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-rose-50 transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-right">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
+                          <button onClick={() => openEditModal(bill)} className="p-1.5 sm:p-2 text-slate-400 hover:text-indigo-600 rounded bg-slate-50 hover:bg-slate-100">
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                          <button onClick={() => handleDeleteBill(bill.id)} className="p-1.5 sm:p-2 text-slate-400 hover:text-rose-600 rounded bg-slate-50 hover:bg-slate-100">
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -299,7 +287,7 @@ export function Bills() {
               })}
               {filteredBills.length === 0 && (
                 <tr>
-                  <td colSpan={profile?.role === 'admin' ? 7 : 6} className="px-4 py-8 text-center text-sm text-slate-500 font-medium">
+                  <td colSpan={profile?.role === 'admin' ? 5 : 4} className="px-4 py-8 text-center text-sm font-medium text-slate-500">
                     No bills found.
                   </td>
                 </tr>
@@ -319,28 +307,27 @@ export function Bills() {
         </button>
       )}
 
-      {/* Modals - Bottom Sheet Style */}
+      {/* Modals - Top Positioned */}
       {(isAddModalOpen || editingBill) && (
-        <div className="fixed inset-x-0 bottom-0 sm:inset-0 z-50 flex flex-col justify-end sm:justify-center bg-slate-900/40 sm:p-4 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-t-[28px] sm:rounded-3xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden max-h-[90vh] flex flex-col pb-safe animate-scale-in">
-            <div className="px-6 py-5 flex justify-between items-center bg-white relative">
-              <h3 className="text-xl font-black text-slate-900">{editingBill ? 'Edit Sales Bill' : 'Add Sales Bill'}</h3>
-              <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingBill(null); }} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-full bg-slate-50">
+        <div className="fixed inset-0 z-50 flex flex-col justify-start items-center bg-slate-900/60 p-4 pt-12 sm:pt-20 backdrop-blur-sm transition-all">
+          <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden max-h-[85vh] flex flex-col animate-scale-in">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white relative">
+              <h3 className="text-lg font-black text-slate-900">{editingBill ? 'Edit Sales Bill' : 'Add Sales Bill'}</h3>
+              <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingBill(null); }} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-full bg-slate-50 transition-colors">
                 &times;
               </button>
             </div>
-            <div className="overflow-y-auto px-6 pb-6">
+            <div className="overflow-y-auto px-6 py-5">
               <form onSubmit={editingBill ? handleEditBill : handleAddBill} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Bill Number *</label>
-                  <input required name="bill_number" defaultValue={editingBill?.bill_number} type="text" className={inputClasses} />
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Bill Number *</label>
+                  <input name="bill_number" defaultValue={editingBill?.bill_number} type="text" className={inputClasses} />
                 </div>
                 
                 {!editingBill && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Party *</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Party *</label>
                     <select 
-                      required 
                       name="party_id" 
                       value={selectedPartyId}
                       onChange={(e) => setSelectedPartyId(e.target.value)}
@@ -354,14 +341,14 @@ export function Bills() {
                   </div>
                 )}
 
-                <div className="bg-slate-50 p-4 rounded-2xl border-none">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Attach Job Cards</label>
                   <div className="max-h-32 overflow-y-auto space-y-2 pr-1">
                     {jobCards.length === 0 ? (
                       <p className="text-xs font-medium text-slate-500">No job cards available.</p>
                     ) : (
                       jobCards.map(jc => (
-                        <label key={jc.id} className="flex items-center gap-3 text-sm p-3 bg-white rounded-xl cursor-pointer hover:bg-indigo-50/50 shadow-sm transition-colors">
+                        <label key={jc.id} className="flex items-center gap-3 text-sm p-2.5 bg-white rounded-lg cursor-pointer hover:bg-indigo-50/50 shadow-sm border border-slate-100 transition-colors">
                           <input 
                             type="checkbox" 
                             checked={selectedJobCards.includes(jc.id)}
@@ -378,27 +365,27 @@ export function Bills() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Bill Date *</label>
-                    <input required name="bill_date" type="date" defaultValue={editingBill ? new Date(editingBill.bill_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} className={inputClasses} />
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Bill Date *</label>
+                    <input name="bill_date" type="date" defaultValue={editingBill ? new Date(editingBill.bill_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} className={inputClasses} />
                   </div>
                   {!editingBill && (
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Amount (₹) *</label>
-                      <input required name="bill_amount" type="number" min="1" step="0.01" className={inputClasses} />
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Amount (₹) *</label>
+                      <input name="bill_amount" type="number" min="1" step="0.01" className={inputClasses} />
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Notes</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Notes</label>
                   <textarea name="notes" defaultValue={editingBill?.notes} rows={2} className={inputClasses}></textarea>
                 </div>
                 
-                <div className="mt-8 flex justify-end space-x-3 pt-4">
-                  <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingBill(null); }} className="rounded-full px-6 py-3.5 font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 w-full sm:w-auto transition-colors">
+                <div className="mt-6 flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingBill(null); }} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 flex-1 sm:flex-none transition-colors">
                     Cancel
                   </button>
-                  <button type="submit" className="rounded-full px-6 py-3.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto transition-colors shadow-md">
-                    {editingBill ? 'Update' : 'Save'}
+                  <button type="submit" className="rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 flex-1 sm:flex-none transition-colors shadow-md">
+                    {editingBill ? 'Update Bill' : 'Save Bill'}
                   </button>
                 </div>
               </form>

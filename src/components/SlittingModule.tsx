@@ -241,7 +241,6 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
   if (!selectedJobCard) {
     return (
       <div className="space-y-4 animate-fade-in">
-        {slitRolls.filter(r => r.date === getTodayString()).length > 0 && (
         <div className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md rounded-[28px] mb-4">
           <h2 className="text-2xl font-black mb-1">Today's Slitting ✂️</h2>
           <div className="grid grid-cols-2 gap-3 mt-4">
@@ -259,7 +258,6 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
             </div>
           </div>
         </div>
-        )}
         
         <div className="flex items-center justify-between">
           <div className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-3 py-0.5 rounded-full">

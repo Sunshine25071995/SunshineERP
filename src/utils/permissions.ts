@@ -9,7 +9,7 @@ export const DEFAULT_PERMISSIONS: UserPermissions = {
 };
 
 export function getUserPermissions(user: User): UserPermissions {
-  if (user.loginId === '090909' || user.department === 'admin') {
+  if (user.loginId === '090909') {
     return {
       admin: { view: true, edit: true },
       chemical: { view: true, edit: true },
@@ -26,7 +26,13 @@ export function getUserPermissions(user: User): UserPermissions {
   // Fallback for legacy departments
   const p: UserPermissions = JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
   
-  if (user.department === 'chemical') {
+  if (user.department === 'admin') {
+    p.admin = { view: true, edit: true };
+    p.chemical = { view: true, edit: true };
+    p.production = { view: true, edit: true };
+    p.slitting = { view: true, edit: true };
+    p.payments = { view: true, edit: true };
+  } else if (user.department === 'chemical') {
     p.chemical = { view: true, edit: true };
   } else if (user.department === 'production') {
     p.production = { view: true, edit: true };

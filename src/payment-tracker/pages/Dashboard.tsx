@@ -117,32 +117,32 @@ export function Dashboard() {
 
       {/* 4 Main Metrics in a compact grid */}
       <div className="w-full grid grid-cols-2 gap-4 shrink-0">
-        <div className="bg-[#FDE047] text-black p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
-          <div className="flex items-center gap-2 mb-2 opacity-80">
-            <span className="text-sm font-bold">Outstanding</span>
+        <div className="bg-[#FDE047] text-black p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-80">
+            <span className="text-[11px] sm:text-sm font-bold">Outstanding</span>
           </div>
-          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalOutstanding)}</span>
+          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalOutstanding)}</span>
         </div>
         
-        <div className="bg-[#818CF8] text-white p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
-          <div className="flex items-center gap-2 mb-2 opacity-90">
-            <span className="text-sm font-bold">Received</span>
+        <div className="bg-[#818CF8] text-white p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-90">
+            <span className="text-[11px] sm:text-sm font-bold">Received</span>
           </div>
-          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalReceived)}</span>
+          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalReceived)}</span>
         </div>
 
-        <div className="bg-[#FCA5A5] text-black p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
-          <div className="flex items-center gap-2 mb-2 opacity-80">
-            <span className="text-sm font-bold">Total Sales</span>
+        <div className="bg-[#FCA5A5] text-black p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-80">
+            <span className="text-[11px] sm:text-sm font-bold">Total Sales</span>
           </div>
-          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalSales)}</span>
+          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalSales)}</span>
         </div>
 
-        <div className="bg-[#6EE7B7] text-black p-5 rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[140px]">
-          <div className="flex items-center gap-2 mb-2 opacity-80">
-            <span className="text-sm font-bold">Month Sales</span>
+        <div className="bg-[#6EE7B7] text-black p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-80">
+            <span className="text-[11px] sm:text-sm font-bold">Month Sales</span>
           </div>
-          <span className="text-2xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(monthSales)}</span>
+          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(monthSales)}</span>
         </div>
       </div>
 

@@ -31,11 +31,11 @@ export function PaymentTrackerModule() {
   };
 
   const navigation = [
-    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
-    { id: 'parties', name: 'Parties', icon: Users },
-    { id: 'bills', name: 'Bills', icon: Receipt },
-    { id: 'payments', name: 'Payments', icon: CreditCard },
-    { id: 'reports', name: 'Reports', icon: FileText },
+    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, activeBg: 'bg-[#818CF8]', activeText: 'text-white', iconActive: 'text-white' },
+    { id: 'parties', name: 'Parties', icon: Users, activeBg: 'bg-[#FDE047]', activeText: 'text-black', iconActive: 'text-black' },
+    { id: 'bills', name: 'Bills', icon: Receipt, activeBg: 'bg-[#FCA5A5]', activeText: 'text-black', iconActive: 'text-black' },
+    { id: 'payments', name: 'Payments', icon: CreditCard, activeBg: 'bg-[#6EE7B7]', activeText: 'text-black', iconActive: 'text-black' },
+    { id: 'reports', name: 'Reports', icon: FileText, activeBg: 'bg-[#C4B5FD]', activeText: 'text-black', iconActive: 'text-black' },
   ];
 
   return (
@@ -53,11 +53,11 @@ export function PaymentTrackerModule() {
                   className={cn(
                     "w-full flex items-center py-3 px-4 font-bold rounded-xl transition-colors text-left",
                     isActive 
-                      ? "bg-indigo-50 text-indigo-700" 
+                      ? `${item.activeBg} ${item.activeText} shadow-sm` 
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   )}
                 >
-                  <item.icon className={cn("h-5 w-5 flex-shrink-0 mr-3", isActive ? "text-indigo-700" : "text-slate-400")} />
+                  <item.icon className={cn("h-5 w-5 flex-shrink-0 mr-3", isActive ? item.iconActive : "text-slate-400")} />
                   <span className="whitespace-nowrap">{item.name}</span>
                 </button>
               )
@@ -78,11 +78,11 @@ export function PaymentTrackerModule() {
                 className={cn(
                   "flex items-center whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-bold transition-colors",
                   isActive 
-                    ? "bg-indigo-100 text-indigo-700" 
+                    ? `${item.activeBg} ${item.activeText} shadow-sm` 
                     : "bg-white text-slate-600 shadow-sm"
                 )}
               >
-                <item.icon className={cn("h-4 w-4 mr-1.5", isActive ? "text-indigo-700" : "text-slate-500")} />
+                <item.icon className={cn("h-4 w-4 mr-1.5", isActive ? item.iconActive : "text-slate-500")} />
                 {item.name}
               </button>
             );

@@ -4,6 +4,7 @@ import { db } from '../firebaseClient';
 import { format } from 'date-fns';
 import { Activity } from 'lucide-react';
 import { ensureInitialActivityLog } from '../services/activityLog';
+import { safeDate } from '../payment-tracker/utils';
 
 interface ActivityLogEntry {
   id: string;
@@ -96,7 +97,7 @@ export const ActivityLog: React.FC = () => {
                   {log.userName}
                 </p>
                 <p className="text-[11px] text-gray-400">
-                  {log.timestamp ? format(new Date(log.timestamp), 'dd MMM, hh:mm a') : 'Unknown'}
+                  {log.timestamp ? format(safeDate(log.timestamp), 'dd MMM, hh:mm a') : 'Unknown'}
                 </p>
               </div>
             </div>

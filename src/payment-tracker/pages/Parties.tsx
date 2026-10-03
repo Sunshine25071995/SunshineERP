@@ -3,7 +3,7 @@ import { dbService } from '../db';
 import { adminDbService } from '../db-admin';
 import { Party, Bill } from '../types';
 import { formatCurrency, calculateDueDays, cn } from '../utils';
-import { Edit2, Trash2, Plus, Search, ChevronRight } from 'lucide-react';
+import { Edit2, Trash2, Plus, Search, ChevronRight, MessageCircle, FileText } from 'lucide-react';
 import { useAuth } from '../auth';
 import toast from 'react-hot-toast';
 import { SkeletonLoader } from '../../components/SkeletonLoader';
@@ -120,122 +120,159 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
     }
   }
 
+  function shareWhatsApp(party: typeof partyStats[0]) {
+    let msg = `📊 *${party.party_name}*\n`;
+    msg += `━━━━━━━━━━━━━━━━\n`;
+    msg += `📦 Bills: ${party.totalBills}\n`;
+    msg += `💰 Sales: ${formatCurrency(party.totalSales)}\n`;
+    msg += `✅ Received: ${formatCurrency(party.totalReceived)}\n`;
+    msg += `🚨 Outstanding: ${formatCurrency(party.outstanding)}\n`;
+    msg += `\n_Sunshine Polyfilm Industries_`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
   const { isPulling } = usePullToRefresh(loadData);
 
   if (loading) return <SkeletonLoader variant="list" />;
 
-  const inputClasses = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 focus:border-indigo-600 focus:bg-indigo-50/50 px-4 py-3 text-sm focus:outline-none transition-colors";
+  const inputClasses = "w-full bg-slate-100 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-50/50 px-4 py-2.5 text-sm outline-none transition-colors";
+
+  // Summary totals
+  const totalOutstanding = filteredParties.reduce((s, p) => s + p.outstanding, 0);
+  const totalSales = filteredParties.reduce((s, p) => s + p.totalSales, 0);
+  const totalReceived = filteredParties.reduce((s, p) => s + p.totalReceived, 0);
 
   return (
-    <div className="w-full space-y-6 pb-[100px] font-sans animate-slide-up">
+    <div className="w-full space-y-4 pb-[100px] font-sans animate-slide-up">
       {isPulling && (
         <div className="flex justify-center py-2">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
         </div>
       )}
-      <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Parties</h1>
+
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Parties</h1>
         {profile?.role === 'admin' && (
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="hidden md:inline-flex items-center justify-center bg-indigo-600 text-white rounded-full px-5 py-2.5 font-bold shadow-sm hover:bg-indigo-700"
+            className="inline-flex items-center justify-center bg-indigo-600 text-white rounded-full px-4 py-2 text-sm font-bold shadow-sm hover:bg-indigo-700"
           >
-            <Plus className="-ml-1 mr-2 h-5 w-5" />
+            <Plus className="-ml-1 mr-1.5 h-4 w-4" />
             Add Party
           </button>
         )}
       </div>
 
-      <div className="w-full">
-        <div className="pb-4">
-          <div className="relative w-full sm:max-w-md">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <Search className="h-5 w-5 text-slate-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search parties..."
-              className="w-full border-none rounded-full bg-slate-100 focus:ring-2 focus:ring-indigo-500 py-3 pl-12 pr-4 text-base font-medium outline-none"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      {/* Summary Cards - like Dashboard */}
+      <div className="grid grid-cols-3 gap-3 px-1">
+        <div className="bg-[#FCA5A5] text-black p-3 rounded-[20px] border-none shadow-sm">
+          <p className="text-[10px] font-bold opacity-70">Total Sales</p>
+          <p className="text-sm sm:text-lg font-black tracking-tight break-all">{formatCurrency(totalSales)}</p>
+        </div>
+        <div className="bg-[#6EE7B7] text-black p-3 rounded-[20px] border-none shadow-sm">
+          <p className="text-[10px] font-bold opacity-70">Received</p>
+          <p className="text-sm sm:text-lg font-black tracking-tight break-all">{formatCurrency(totalReceived)}</p>
+        </div>
+        <div className="bg-[#FDE047] text-black p-3 rounded-[20px] border-none shadow-sm">
+          <p className="text-[10px] font-bold opacity-70">Outstanding</p>
+          <p className="text-sm sm:text-lg font-black tracking-tight break-all">{formatCurrency(totalOutstanding)}</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="px-1">
+        <div className="relative w-full sm:max-w-md">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+            <Search className="h-4 w-4 text-slate-400" />
           </div>
+          <input
+            type="text"
+            placeholder="Search parties..."
+            className="w-full border-none rounded-full bg-slate-100 focus:ring-2 focus:ring-indigo-500 py-2.5 pl-10 pr-4 text-sm font-medium outline-none"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        
-        {/* Responsive Edge-to-Edge Table */}
-        <div className="w-full bg-white sm:rounded-[28px] shadow-sm border-y sm:border border-slate-200 overflow-hidden -mx-4 sm:mx-0">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th scope="col" className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">Party</th>
-                <th scope="col" className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Sales/Rec</th>
-                <th scope="col" className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Outstanding</th>
-                <th scope="col" className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredParties.map((party, i) => (
-                <tr key={party.id} className={cn('transition-colors hover:bg-slate-50', i % 2 === 0 ? 'bg-white' : 'bg-slate-50/30')}>
-                  <td className="px-2 sm:px-4 py-2 sm:py-3">
-                    <button onClick={() => onNavigate('partyLedger', party.id)} className="text-[11px] sm:text-sm font-bold text-slate-900 hover:text-indigo-600 text-left line-clamp-1">
-                      {party.party_name}
-                    </button>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className={cn(
-                        'inline-flex items-center px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] font-bold',
-                        party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
-                        party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                        party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
-                        'bg-amber-100 text-amber-800'
-                      )}>
-                        {party.status}
-                      </span>
-                      {party.mobile && <span className="text-[9px] sm:text-xs text-slate-500 hidden sm:inline">{party.mobile}</span>}
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-3 text-right">
-                    <div className="text-[10px] sm:text-xs font-bold text-slate-900">{formatCurrency(party.totalSales)}</div>
-                    <div className="text-[9px] sm:text-xs font-bold text-emerald-600">{formatCurrency(party.totalReceived)}</div>
-                  </td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right align-top sm:align-middle">
-                    <div className="text-[11px] sm:text-sm font-black text-rose-600">
-                      {party.outstanding > 0 ? formatCurrency(party.outstanding) : <span className="text-emerald-600">Paid</span>}
-                    </div>
-                    {/* Show sales/rec on mobile under outstanding to save space */}
-                    <div className="sm:hidden mt-0.5 flex flex-col items-end">
-                      <span className="text-[8px] text-slate-500">S: {formatCurrency(party.totalSales)}</span>
-                      <span className="text-[8px] text-emerald-600">R: {formatCurrency(party.totalReceived)}</span>
-                    </div>
-                  </td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right align-top sm:align-middle">
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1 sm:gap-2">
-                      <button onClick={() => onNavigate('partyLedger', party.id)} className="text-[10px] sm:text-xs px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded font-bold transition-colors">
-                        Ledger
-                      </button>
-                      {profile?.role === 'admin' && (
-                        <div className="flex gap-1 mt-1 sm:mt-0">
-                          <button onClick={() => setEditingParty(party)} className="p-1 text-slate-400 hover:text-indigo-600 rounded bg-slate-50 hover:bg-slate-100">
-                            <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </button>
-                          <button onClick={() => handleDeleteParty(party.id)} className="p-1 text-slate-400 hover:text-rose-600 rounded bg-slate-50 hover:bg-slate-100">
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredParties.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-sm text-slate-500 font-medium">
-                    No parties found.
-                  </td>
-                </tr>
+      </div>
+
+      {/* Party List - Full width cards */}
+      <div className="flex flex-col gap-2 px-1">
+        {filteredParties.map((party) => (
+          <div key={party.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            {/* Party Name Row */}
+            <div className="flex items-center justify-between px-3 pt-3 pb-1">
+              <button 
+                onClick={() => onNavigate('partyLedger', party.id)} 
+                className="text-sm font-bold text-slate-900 hover:text-indigo-600 truncate max-w-[60%] text-left"
+              >
+                {party.party_name}
+              </button>
+              <span className={cn(
+                'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold',
+                party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
+                party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
+                'bg-amber-100 text-amber-800'
+              )}>
+                {party.status}
+              </span>
+            </div>
+
+            {/* Stats Row - compact 3-col */}
+            <div className="grid grid-cols-3 gap-1 px-3 py-2">
+              <div className="bg-slate-50 rounded-lg px-2 py-1.5 text-center">
+                <p className="text-[8px] text-slate-500 font-bold uppercase">Bills</p>
+                <p className="text-[11px] font-bold text-slate-900">{formatCurrency(party.totalSales)}</p>
+              </div>
+              <div className="bg-emerald-50 rounded-lg px-2 py-1.5 text-center">
+                <p className="text-[8px] text-emerald-600 font-bold uppercase">Received</p>
+                <p className="text-[11px] font-bold text-emerald-700">{formatCurrency(party.totalReceived)}</p>
+              </div>
+              <div className="bg-red-50 rounded-lg px-2 py-1.5 text-center">
+                <p className="text-[8px] text-red-500 font-bold uppercase">Due</p>
+                <p className="text-[11px] font-black text-red-600">
+                  {party.outstanding > 0 ? formatCurrency(party.outstanding) : '₹0'}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons Row - compact */}
+            <div className="flex items-center justify-between px-3 pb-2.5 pt-0.5 border-t border-slate-50">
+              <div className="flex items-center gap-1.5">
+                <button 
+                  onClick={() => onNavigate('partyLedger', party.id)} 
+                  className="flex items-center gap-1 text-[10px] px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg font-bold transition-colors"
+                >
+                  <FileText className="h-3 w-3" />
+                  Ledger
+                </button>
+                <button 
+                  onClick={() => shareWhatsApp(party)} 
+                  className="flex items-center gap-1 text-[10px] px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg font-bold transition-colors"
+                >
+                  <MessageCircle className="h-3 w-3" />
+                  WhatsApp
+                </button>
+              </div>
+              {profile?.role === 'admin' && (
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setEditingParty(party)} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </button>
+                  <button onClick={() => handleDeleteParty(party.id)} className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
+        ))}
+        {filteredParties.length === 0 && (
+          <div className="text-center text-sm text-slate-500 font-medium py-12 bg-white rounded-2xl shadow-sm">
+            No parties found.
+          </div>
+        )}
       </div>
 
       {/* FAB */}
@@ -248,50 +285,50 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
         </button>
       )}
 
-      {/* Modals - Bottom Sheet Style */}
+      {/* Modal - Top Positioned */}
       {(isAddModalOpen || editingParty) && (
-        <div className="fixed inset-x-0 bottom-0 sm:inset-0 z-50 flex flex-col justify-end sm:justify-center bg-slate-900/40 sm:p-4 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-t-[28px] sm:rounded-3xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden max-h-[90vh] flex flex-col pb-safe animate-scale-in">
-            <div className="px-6 py-5 flex justify-between items-center bg-white relative">
-              <h3 className="text-xl font-black text-slate-900">{editingParty ? 'Edit Party' : 'Add Party'}</h3>
-              <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingParty(null); }} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-full bg-slate-50">
+        <div className="fixed inset-0 z-50 flex flex-col justify-start items-center bg-slate-900/60 p-4 pt-12 sm:pt-20 backdrop-blur-sm transition-all">
+          <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden max-h-[85vh] flex flex-col animate-scale-in">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white relative">
+              <h3 className="text-lg font-black text-slate-900">{editingParty ? 'Edit Party' : 'Add Party'}</h3>
+              <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingParty(null); }} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-full bg-slate-50 transition-colors">
                 &times;
               </button>
             </div>
-            <div className="overflow-y-auto px-6 pb-6">
+            <div className="overflow-y-auto px-6 py-5">
               <form onSubmit={editingParty ? handleEditParty : handleAddParty} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Party Name *</label>
-                  <input required name="party_name" defaultValue={editingParty?.party_name} type="text" className={inputClasses} />
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Party Name *</label>
+                  <input name="party_name" defaultValue={editingParty?.party_name} type="text" className={inputClasses} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Mobile</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Mobile</label>
                     <input name="mobile" defaultValue={editingParty?.mobile} type="text" className={inputClasses} />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">GST Number</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">GST Number</label>
                     <input name="gst_number" defaultValue={editingParty?.gst_number} type="text" className={inputClasses} />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Email</label>
                   <input name="email" defaultValue={editingParty?.email} type="email" className={inputClasses} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Address</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Address</label>
                   <textarea name="address" defaultValue={editingParty?.address} rows={2} className={inputClasses}></textarea>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Opening Balance (₹)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5 ml-1">Opening Balance (₹)</label>
                   <input name="opening_balance" defaultValue={editingParty?.opening_balance || 0} type="number" step="0.01" className={inputClasses} />
                 </div>
                 
-                <div className="mt-8 flex justify-end space-x-3 pt-4">
-                  <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingParty(null); }} className="rounded-full px-6 py-3.5 font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 w-full sm:w-auto transition-colors">
+                <div className="mt-6 flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingParty(null); }} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 flex-1 sm:flex-none transition-colors">
                     Cancel
                   </button>
-                  <button type="submit" className="rounded-full px-6 py-3.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto transition-colors shadow-md">
+                  <button type="submit" className="rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 flex-1 sm:flex-none transition-colors shadow-md">
                     {editingParty ? 'Update' : 'Save'}
                   </button>
                 </div>
