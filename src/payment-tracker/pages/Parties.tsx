@@ -164,19 +164,19 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
         )}
       </div>
 
-      {/* Summary Cards - like Dashboard */}
-      <div className="grid grid-cols-3 gap-3 px-1">
-        <div className="bg-[#FCA5A5] text-black p-3 rounded-[20px] border-none shadow-sm">
-          <p className="text-[10px] font-bold opacity-70">Total Sales</p>
-          <p className="text-sm sm:text-lg font-black tracking-tight break-all">{formatCurrency(totalSales)}</p>
+      {/* Summary Cards - Vertically Aligned */}
+      <div className="flex flex-col gap-3 px-1">
+        <div className="bg-[#FCA5A5] text-black p-4 rounded-3xl border-none shadow-sm flex justify-between items-center">
+          <p className="text-xs sm:text-sm font-bold opacity-80 uppercase tracking-wider">Total Sales</p>
+          <p className="text-lg sm:text-2xl font-black tracking-tight break-all">{formatCurrency(totalSales)}</p>
         </div>
-        <div className="bg-[#6EE7B7] text-black p-3 rounded-[20px] border-none shadow-sm">
-          <p className="text-[10px] font-bold opacity-70">Received</p>
-          <p className="text-sm sm:text-lg font-black tracking-tight break-all">{formatCurrency(totalReceived)}</p>
+        <div className="bg-[#6EE7B7] text-black p-4 rounded-3xl border-none shadow-sm flex justify-between items-center">
+          <p className="text-xs sm:text-sm font-bold opacity-80 uppercase tracking-wider">Received</p>
+          <p className="text-lg sm:text-2xl font-black tracking-tight break-all">{formatCurrency(totalReceived)}</p>
         </div>
-        <div className="bg-[#FDE047] text-black p-3 rounded-[20px] border-none shadow-sm">
-          <p className="text-[10px] font-bold opacity-70">Outstanding</p>
-          <p className="text-sm sm:text-lg font-black tracking-tight break-all">{formatCurrency(totalOutstanding)}</p>
+        <div className="bg-[#FDE047] text-black p-4 rounded-3xl border-none shadow-sm flex justify-between items-center">
+          <p className="text-xs sm:text-sm font-bold opacity-80 uppercase tracking-wider">Outstanding</p>
+          <p className="text-lg sm:text-2xl font-black tracking-tight break-all">{formatCurrency(totalOutstanding)}</p>
         </div>
       </div>
 
@@ -219,19 +219,19 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
               </span>
             </div>
 
-            {/* Stats Row - compact 3-col */}
-            <div className="grid grid-cols-3 gap-1 px-3 py-2">
-              <div className="bg-slate-50 rounded-lg px-2 py-1.5 text-center">
-                <p className="text-[8px] text-slate-500 font-bold uppercase">Bills</p>
-                <p className="text-[11px] font-bold text-slate-900">{formatCurrency(party.totalSales)}</p>
+            {/* Stats - Vertically Aligned */}
+            <div className="flex flex-col gap-1.5 px-3 py-2">
+              <div className="bg-slate-50 rounded-xl px-3 py-2 flex justify-between items-center">
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Sales</p>
+                <p className="text-sm sm:text-base font-black text-slate-900">{formatCurrency(party.totalSales)}</p>
               </div>
-              <div className="bg-emerald-50 rounded-lg px-2 py-1.5 text-center">
-                <p className="text-[8px] text-emerald-600 font-bold uppercase">Received</p>
-                <p className="text-[11px] font-bold text-emerald-700">{formatCurrency(party.totalReceived)}</p>
+              <div className="bg-emerald-50 rounded-xl px-3 py-2 flex justify-between items-center">
+                <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">Received</p>
+                <p className="text-sm sm:text-base font-black text-emerald-700">{formatCurrency(party.totalReceived)}</p>
               </div>
-              <div className="bg-red-50 rounded-lg px-2 py-1.5 text-center">
-                <p className="text-[8px] text-red-500 font-bold uppercase">Due</p>
-                <p className="text-[11px] font-black text-red-600">
+              <div className="bg-red-50 rounded-xl px-3 py-2 flex justify-between items-center">
+                <p className="text-xs text-red-500 font-bold uppercase tracking-wider">Outstanding</p>
+                <p className="text-sm sm:text-base font-black text-red-600">
                   {party.outstanding > 0 ? formatCurrency(party.outstanding) : '₹0'}
                 </p>
               </div>

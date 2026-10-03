@@ -9,7 +9,8 @@ import { JobCardDetailModal } from './JobCardDetailModal';
 import { RollPDFModal } from './RollPDFModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
-  Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase, Activity
+  Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase, Activity,
+  ClipboardList, Database, Wallet, Boxes, Recycle, History
 } from 'lucide-react';
 import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
 import { WastageAnalytics } from './WastageAnalytics';
@@ -302,14 +303,14 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   };
 
   const tabs = [
-    { id: 'jobCards' as const, label: 'Job Cards', icon: FileText, count: jobCards.length, gradient: 'from-blue-500 to-blue-700', lightBg: 'bg-blue-50', lightText: 'text-blue-600' },
-    { id: 'users' as const, label: 'Users', icon: Users, count: users.length, gradient: 'from-violet-500 to-violet-700', lightBg: 'bg-violet-50', lightText: 'text-violet-600' },
-    { id: 'chemicals' as const, label: 'Chemicals', icon: FlaskConical, count: chemicals.length, gradient: 'from-emerald-500 to-emerald-700', lightBg: 'bg-emerald-50', lightText: 'text-emerald-600' },
-    { id: 'factoryRolls' as const, label: 'Rolls', icon: Layers, count: undefined, gradient: 'from-amber-500 to-amber-700', lightBg: 'bg-amber-50', lightText: 'text-amber-600' },
-    { id: 'paymentTracker' as const, label: 'Payments', icon: CreditCard, count: undefined, gradient: 'from-rose-500 to-rose-700', lightBg: 'bg-rose-50', lightText: 'text-rose-600' },
-    { id: 'stock' as const, label: 'Stock', icon: Briefcase, count: undefined, gradient: 'from-teal-500 to-teal-700', lightBg: 'bg-teal-50', lightText: 'text-teal-600' },
-    { id: 'wastage' as const, label: 'Wastage', icon: Activity, count: undefined, gradient: 'from-orange-500 to-orange-700', lightBg: 'bg-orange-50', lightText: 'text-orange-600' },
-    { id: 'activityLog' as const, label: 'Activity Log', icon: Activity, count: undefined, gradient: 'from-indigo-500 to-indigo-700', lightBg: 'bg-indigo-50', lightText: 'text-indigo-600' },
+    { id: 'jobCards' as const, label: 'Job Cards', icon: ClipboardList, count: jobCards.length, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/40' },
+    { id: 'users' as const, label: 'Users', icon: Users, count: users.length, gradient: 'from-violet-500 to-fuchsia-600', shadow: 'shadow-violet-500/40' },
+    { id: 'chemicals' as const, label: 'Chemicals', icon: FlaskConical, count: chemicals.length, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/40' },
+    { id: 'factoryRolls' as const, label: 'Rolls', icon: Database, count: undefined, gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/40' },
+    { id: 'paymentTracker' as const, label: 'Payments', icon: Wallet, count: undefined, gradient: 'from-rose-500 to-pink-600', shadow: 'shadow-rose-500/40' },
+    { id: 'stock' as const, label: 'Stock', icon: Boxes, count: undefined, gradient: 'from-cyan-500 to-blue-600', shadow: 'shadow-cyan-500/40' },
+    { id: 'wastage' as const, label: 'Wastage', icon: Recycle, count: undefined, gradient: 'from-orange-500 to-red-600', shadow: 'shadow-orange-500/40' },
+    { id: 'activityLog' as const, label: 'Activity Log', icon: History, count: undefined, gradient: 'from-indigo-500 to-purple-600', shadow: 'shadow-indigo-500/40' },
   ];
 
   return (
@@ -318,20 +319,22 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       {/* HOME DASHBOARD */}
       {activeTab === 'home' && (
         <>
-
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-2">
-            {tabs.map(tab => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 p-2">
+            {tabs.map((tab, idx) => (
               <button key={tab.id} onClick={() => navigateToTab(tab.id as any)}
-                className="relative app-card p-6 flex flex-col items-center justify-center gap-4 hover:shadow-lg transition-shadow bg-white rounded-3xl"
+                className={`relative group overflow-hidden p-6 flex flex-col items-center justify-center gap-4 rounded-[32px] bg-gradient-to-br ${tab.gradient} text-white shadow-lg ${tab.shadow} hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 animate-scale-in`}
+                style={{ animationDelay: `${idx * 50}ms` }}
               >
-                <div className={`p-4 rounded-2xl ${tab.lightBg} ${tab.lightText}`}>
-                  <tab.icon className="w-10 h-10" />
+                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-black opacity-10 rounded-full blur-xl"></div>
+                
+                <div className="relative z-10 p-4 rounded-2xl bg-white/20 backdrop-blur-md group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner">
+                  <tab.icon className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
                 </div>
-                <span className="text-base font-bold text-gray-900">{tab.label}</span>
+                <span className="relative z-10 text-sm sm:text-base font-black tracking-wide drop-shadow-sm">{tab.label}</span>
                 
                 {tab.count !== undefined && (
-                  <span className="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                  <span className="absolute top-4 right-4 text-xs font-black px-3 py-1 rounded-full bg-white text-slate-900 shadow-sm z-10">
                     {tab.count}
                   </span>
                 )}
