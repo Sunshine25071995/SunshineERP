@@ -94,100 +94,134 @@ export function Dashboard() {
   };
 
   return (
-    <div className="w-full flex flex-col space-y-4 pb-[100px] overflow-x-hidden font-sans animate-slide-up" ref={dashboardRef}>
+    <div className="w-full flex flex-col space-y-6 pb-[100px] overflow-x-hidden font-sans animate-slide-up" ref={dashboardRef}>
       {isPulling && (
         <div className="flex justify-center py-2">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
         </div>
       )}
+      
       {/* Header */}
       <div className="w-full flex items-center justify-between shrink-0 bg-transparent py-2 border-none">
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-          Dashboard
-        </h1>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Overview</h1>
+          <p className="text-sm font-medium text-slate-500 mt-1">Payment Tracker Analytics</p>
+        </div>
         <button 
           onClick={handleWhatsApp}
           disabled={isExporting}
-          className="flex items-center gap-1.5 bg-indigo-600 text-white rounded-full px-5 py-2.5 font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50"
+          className="flex items-center gap-2 bg-slate-900 text-white rounded-full px-5 py-2.5 font-bold hover:bg-slate-800 transition-colors shadow-lg disabled:opacity-50"
         >
-          <Share2 className="h-5 w-5" /> 
-          <span className="hidden sm:inline">{isExporting ? 'Sharing...' : 'Share'}</span>
+          <Share2 className="h-4 w-4" /> 
+          <span className="hidden sm:inline">{isExporting ? 'Sharing...' : 'Share Report'}</span>
         </button>
       </div>
 
-      {/* 4 Main Metrics in a compact grid */}
-      <div className="w-full grid grid-cols-2 gap-4 shrink-0">
-        <div className="bg-[#FDE047] text-black p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-80">
-            <span className="text-[11px] sm:text-sm font-bold">Outstanding</span>
-          </div>
-          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalOutstanding)}</span>
-        </div>
+      {/* Hero Metric - Outstanding */}
+      <div className="w-full bg-gradient-to-br from-rose-500 to-rose-600 rounded-[32px] p-6 sm:p-8 text-white shadow-xl shadow-rose-200 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-rose-400 opacity-30 rounded-full blur-2xl"></div>
         
-        <div className="bg-[#818CF8] text-white p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-90">
-            <span className="text-[11px] sm:text-sm font-bold">Received</span>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2 opacity-90">
+            <AlertCircle className="h-5 w-5" />
+            <span className="text-sm sm:text-base font-bold uppercase tracking-wider">Total Outstanding</span>
           </div>
-          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalReceived)}</span>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-sm break-all">
+            {formatCurrency(totalOutstanding)}
+          </h2>
+          <div className="mt-6 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+            <span className="text-xs sm:text-sm font-bold">Top Defaulter:</span>
+            <span className="text-xs sm:text-sm font-black truncate max-w-[150px]">{partyOutstanding[0]?.name || 'None'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Metrics */}
+      <div className="w-full grid grid-cols-2 gap-4">
+        <div className="bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-indigo-50 w-10 h-10 rounded-full flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-indigo-600" />
+            </div>
+            <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md">This Month</span>
+          </div>
+          <div>
+            <p className="text-xs sm:text-sm font-bold text-slate-500 mb-1">Total Sales</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(totalSales)}</p>
+          </div>
         </div>
 
-        <div className="bg-[#FCA5A5] text-black p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-80">
-            <span className="text-[11px] sm:text-sm font-bold">Total Sales</span>
+        <div className="bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-emerald-50 w-10 h-10 rounded-full flex items-center justify-center">
+              <IndianRupee className="h-5 w-5 text-emerald-600" />
+            </div>
+            <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md">All Time</span>
           </div>
-          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(totalSales)}</span>
-        </div>
-
-        <div className="bg-[#6EE7B7] text-black p-3 sm:p-5 rounded-[24px] sm:rounded-[28px] border-none flex flex-col justify-between shadow-sm min-h-[90px] sm:min-h-[140px]">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-80">
-            <span className="text-[11px] sm:text-sm font-bold">Month Sales</span>
+          <div>
+            <p className="text-xs sm:text-sm font-bold text-slate-500 mb-1">Total Received</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(totalReceived)}</p>
           </div>
-          <span className="text-xl sm:text-3xl font-black tracking-tighter break-all">{formatCurrency(monthSales)}</span>
         </div>
       </div>
 
       <PaymentDueAlert bills={bills} parties={parties} />
 
       {/* Main Content Area: Chart and Top Receivables */}
-      <div className="w-full flex flex-col lg:flex-row gap-4 flex-1 mt-2">
+      <div className="w-full flex flex-col lg:flex-row gap-6 mt-4">
         
         {/* Chart Section */}
-        <div className="flex-1 bg-white p-5 rounded-[28px] shadow-sm border-none flex flex-col min-h-[300px]">
-          <h3 className="text-lg font-bold text-slate-900 mb-4 shrink-0 tracking-tight">Sales vs Collection</h3>
-          <div className="flex-1 min-h-[200px]">
+        <div className="flex-1 bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col min-h-[350px]">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">Sales & Collections</h3>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-slate-200"></div><span className="text-[10px] font-bold text-slate-500 uppercase">Sales</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-500"></div><span className="text-[10px] font-bold text-slate-500 uppercase">Received</span></div>
+            </div>
+          </div>
+          <div className="flex-1 min-h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} tickFormatter={(val) => `₹${val/1000}k`} />
-                <RechartsTooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => formatCurrency(value)} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontWeight: 'bold'}} />
-                <Bar dataKey="sales" name="Sales" fill="#FCA5A5" radius={[6, 6, 0, 0]} maxBarSize={40} />
-                <Bar dataKey="collection" name="Collection" fill="#818CF8" radius={[6, 6, 0, 0]} maxBarSize={40} />
+              <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 'bold'}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 'bold'}} tickFormatter={(val) => `₹${val/1000}k`} />
+                <RechartsTooltip cursor={{fill: '#f8fafc'}} formatter={(value: number) => formatCurrency(value)} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)', fontWeight: 'bold', padding: '12px'}} />
+                <Bar dataKey="sales" name="Sales" fill="#e2e8f0" radius={[8, 8, 8, 8]} maxBarSize={30} />
+                <Bar dataKey="collection" name="Collection" fill="#6366f1" radius={[8, 8, 8, 8]} maxBarSize={30} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Top Receivables Section */}
-        <div className="lg:w-80 flex flex-col shrink-0 gap-3">
-          <h3 className="text-lg font-bold text-slate-900 tracking-tight px-1 mt-2">Top Receivables</h3>
-          <div className="flex flex-col gap-2">
+        <div className="lg:w-96 flex flex-col shrink-0">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">Top Receivables</h3>
+            <span className="bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider">High Priority</span>
+          </div>
+          <div className="flex flex-col gap-3">
             {partyOutstanding.length > 0 ? (
               partyOutstanding.map((party, idx) => (
-                <div key={idx} className="flex items-center bg-white p-4 rounded-[24px] shadow-sm">
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg shrink-0 mr-4">
-                    {party.name.charAt(0).toUpperCase()}
+                <div key={idx} className="flex items-center bg-white p-4 rounded-[24px] shadow-sm border border-slate-100 transition-transform hover:-translate-y-0.5">
+                  <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-black text-lg shrink-0 mr-4 border border-rose-100">
+                    {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-bold text-slate-900 truncate">{party.name}</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">{party.name}</p>
+                    <p className="text-[11px] font-bold text-slate-400 mt-0.5">Outstanding Balance</p>
                   </div>
-                  <div className="text-right shrink-0 ml-2">
+                  <div className="text-right shrink-0 ml-3">
                     <p className="text-base font-black text-rose-600">{formatCurrency(party.outstanding)}</p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="p-6 text-center text-sm font-bold text-slate-400 bg-white rounded-[24px]">
-                No receivables found
+              <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-50 rounded-[28px] border border-dashed border-slate-200">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <p className="text-sm font-bold text-slate-900">All Clear!</p>
+                <p className="text-xs font-medium text-slate-500 mt-1">No outstanding receivables found.</p>
               </div>
             )}
           </div>

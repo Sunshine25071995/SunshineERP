@@ -145,7 +145,7 @@ export function Reports() {
     // 4. Payment Mode breakdown
     const pModes = new Map<string, number>();
     payments.forEach(p => {
-      pModes.set(p.payment_mode || 'Cash', (pModes.get(p.payment_mode || 'Cash') || 0) + p.amount);
+      pModes.set(p.payment_mode || 'Cash', (pModes.get(p.payment_mode || 'Cash') || 0) + (p.amount || 0));
     });
     const modesData = Array.from(pModes.entries()).map(([name, value]) => ({ name, value }));
 

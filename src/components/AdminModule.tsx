@@ -704,18 +704,17 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               }
 
               return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                <div className="flex flex-col mt-4 border border-gray-200 rounded-xl overflow-hidden bg-white">
                   {stockList.map((item, i) => (
-                    <div key={i} className="app-card p-4 flex flex-col justify-between gap-3 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-gray-900">{item.size}</span>
-                          <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-md">{item.micron} Mic</span>
-                        </div>
-                        <div className="text-sm font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">{item.count} Rolls</div>
+                    <div key={i} className={`flex items-center justify-between p-4 ${i !== stockList.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                      <div className="w-1/3 text-sm sm:text-base font-bold text-gray-900">
+                        {item.size} x {item.micron} Mic
                       </div>
-                      <div className="text-2xl font-black font-mono text-emerald-700">
-                        {formatWeight(item.weight)}<span className="text-sm font-normal text-gray-500 ml-1">kg</span>
+                      <div className="w-1/3 text-center text-sm sm:text-base font-black text-emerald-700">
+                        {formatWeight(item.weight)} KG
+                      </div>
+                      <div className="w-1/3 text-right text-sm sm:text-base font-bold text-gray-500">
+                        {item.count} Rolls
                       </div>
                     </div>
                   ))}
