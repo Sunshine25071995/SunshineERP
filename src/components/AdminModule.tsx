@@ -177,6 +177,55 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     };
     try {
       if (editingJobCard) {
+        const oldCoilSizes = editingJobCard.coilSizes || [];
+        const newCoilSizes = jcCoilSizesList;
+        const oldSize = editingJobCard.size || '';
+        const newSize = jcSize.trim();
+
+        // If coil size or size was changed, sync to existing slit rolls
+        const jcSlitRolls = slitRolls.filter(r => r.jobCardId === editingJobCard.id);
+        if (jcSlitRolls.length > 0) {
+          const updates: { id: string; coilSize: string }[] = [];
+
+          if (newCoilSizes.length === 1) {
+            // Job card has exactly one coil size: all its rolls should have this coil size
+            const target = newCoilSizes[0];
+            jcSlitRolls.forEach(r => {
+              if (r.coilSize !== target) {
+                updates.push({ id: r.id, coilSize: target });
+              }
+            });
+          } else if (newCoilSizes.length > 1) {
+            // Check if one coil size was replaced with another
+            const removed = oldCoilSizes.filter(s => !newCoilSizes.includes(s));
+            const added = newCoilSizes.filter(s => !oldCoilSizes.includes(s));
+            if (removed.length === 1 && added.length === 1) {
+              const fromSize = removed[0];
+              const toSize = added[0];
+              jcSlitRolls.forEach(r => {
+                if (r.coilSize === fromSize) {
+                  updates.push({ id: r.id, coilSize: toSize });
+                }
+              });
+            }
+          } else if (newCoilSizes.length === 0 && oldSize !== newSize && newSize) {
+            jcSlitRolls.forEach(r => {
+              if (r.coilSize === oldSize || !r.coilSize) {
+                updates.push({ id: r.id, coilSize: newSize });
+              }
+            });
+          }
+
+          for (let i = 0; i < updates.length; i += 400) {
+            const chunk = updates.slice(i, i + 400);
+            const batch = writeBatch(db);
+            chunk.forEach(u => {
+              batch.update(doc(db, 'slittingRolls', u.id), { coilSize: u.coilSize });
+            });
+            await batch.commit();
+          }
+        }
+
         await updateDoc(doc(db, 'jobCards', editingJobCard.id), data);
         await logActivity('Job Card Updated', `Updated JC: ${data.jobCode}`, currentUser.id || currentUser.loginId, currentUser.name);
       } else {
@@ -648,7 +697,12 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                 completedSlitRolls.forEach(roll => {
                   const jc = completedJobCards.find(j => j.id === roll.jobCardId);
                   if (jc) {
-                    const size = roll.coilSize || jc.size;
+                    let size = roll.coilSize || jc.size;
+                    if (jc.coilSizes && jc.coilSizes.length === 1) {
+                      size = jc.coilSizes[0];
+                    } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
+                      size = jc.coilSizes[0];
+                    }
                     const key = `${size}-${jc.micron}`;
                     if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0 };
                     stockGroups[key].weight += (roll.netWeight || 0);
@@ -693,7 +747,12 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               completedSlitRolls.forEach(roll => {
                 const jc = completedJobCards.find(j => j.id === roll.jobCardId);
                 if (jc) {
-                  const size = roll.coilSize || jc.size;
+                  let size = roll.coilSize || jc.size;
+                  if (jc.coilSizes && jc.coilSizes.length === 1) {
+                    size = jc.coilSizes[0];
+                  } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
+                    size = jc.coilSizes[0];
+                  }
                   const key = `${size}-${jc.micron}`;
                   if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0 };
                   stockGroups[key].weight += (roll.netWeight || 0);
