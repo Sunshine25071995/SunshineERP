@@ -52,6 +52,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog'>('home');
   const [jobCardSearch, setJobCardSearch] = useState('');
   const [outstandingPayments, setOutstandingPayments] = useState(0);
+  const [stockFilter, setStockFilter] = useState<'all' | 'completed' | 'running'>('all');
 
   useEffect(() => {
     if (currentUser.department === 'admin') {
@@ -684,18 +685,18 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       {/* ── TAB: STOCK ────────────────────────────────────────── */}
       {activeTab === 'stock' && (
         <div className="space-y-4 animate-fade-in">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-black text-gray-900">Finished Stock</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Inventory from Completed Job Cards</p>
+              <p className="text-sm text-gray-500 mt-0.5">Inventory from Running & Completed Job Cards</p>
             </div>
             <button
               onClick={async () => {
-                const completedJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed');
-                const completedSlitRolls = slitRolls.filter(r => completedJobCards.some(jc => jc.id === r.jobCardId));
-                const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number }> = {};
-                completedSlitRolls.forEach(roll => {
-                  const jc = completedJobCards.find(j => j.id === roll.jobCardId);
+                const relevantJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed' || jc.slittingStatus === 'running');
+                const relevantSlitRolls = slitRolls.filter(r => relevantJobCards.some(jc => jc.id === r.jobCardId));
+                const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number, status: 'completed' | 'running' }> = {};
+                relevantSlitRolls.forEach(roll => {
+                  const jc = relevantJobCards.find(j => j.id === roll.jobCardId);
                   if (jc) {
                     let size = roll.coilSize || jc.size;
                     if (jc.coilSizes && jc.coilSizes.length === 1) {
@@ -703,8 +704,9 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                     } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
                       size = jc.coilSizes[0];
                     }
-                    const key = `${size}-${jc.micron}`;
-                    if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0 };
+                    const status = jc.slittingStatus === 'running' ? 'running' : 'completed';
+                    const key = `${size}-${jc.micron}-${status}`;
+                    if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0, status };
                     stockGroups[key].weight += (roll.netWeight || 0);
                     stockGroups[key].count += 1;
                   }
@@ -716,7 +718,8 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                   msg += `No stock available.\n`;
                 } else {
                   stockList.forEach(item => {
-                    msg += `📐 *${item.size} x ${item.micron} Mic*\n`;
+                    const tag = item.status === 'running' ? ' *(🔥 Running)*' : '';
+                    msg += `📐 *${item.size} x ${item.micron} Mic*${tag}\n`;
                     msg += `⚖️ *${formatWeight(item.weight)} Kg*  |  📦 *${item.count} Rolls*\n`;
                     msg += `----------------------------\n`;
                   });
@@ -733,57 +736,113 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                 }
               }}
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-colors btn-press shadow-sm"
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-colors btn-press shadow-sm self-start sm:self-auto"
             >
               <span>Share to WhatsApp</span>
             </button>
           </div>
 
-          <div className="app-card overflow-hidden">
-            {(() => {
-              const completedJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed');
-              const completedSlitRolls = slitRolls.filter(r => completedJobCards.some(jc => jc.id === r.jobCardId));
-              const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number }> = {};
-              completedSlitRolls.forEach(roll => {
-                const jc = completedJobCards.find(j => j.id === roll.jobCardId);
-                if (jc) {
-                  let size = roll.coilSize || jc.size;
-                  if (jc.coilSizes && jc.coilSizes.length === 1) {
-                    size = jc.coilSizes[0];
-                  } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
-                    size = jc.coilSizes[0];
-                  }
-                  const key = `${size}-${jc.micron}`;
-                  if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0 };
-                  stockGroups[key].weight += (roll.netWeight || 0);
-                  stockGroups[key].count += 1;
+          {(() => {
+            const relevantJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed' || jc.slittingStatus === 'running');
+            const relevantSlitRolls = slitRolls.filter(r => relevantJobCards.some(jc => jc.id === r.jobCardId));
+            const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number, status: 'completed' | 'running' }> = {};
+            relevantSlitRolls.forEach(roll => {
+              const jc = relevantJobCards.find(j => j.id === roll.jobCardId);
+              if (jc) {
+                let size = roll.coilSize || jc.size;
+                if (jc.coilSizes && jc.coilSizes.length === 1) {
+                  size = jc.coilSizes[0];
+                } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
+                  size = jc.coilSizes[0];
                 }
-              });
-              const stockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
-
-              if (stockList.length === 0) {
-                return <div className="p-8 text-center text-sm text-gray-400">No completed stock available.</div>;
+                const status = jc.slittingStatus === 'running' ? 'running' : 'completed';
+                const key = `${size}-${jc.micron}-${status}`;
+                if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0, status };
+                stockGroups[key].weight += (roll.netWeight || 0);
+                stockGroups[key].count += 1;
               }
+            });
+            const allStockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
+            const completedCount = allStockList.filter(s => s.status === 'completed').length;
+            const runningCount = allStockList.filter(s => s.status === 'running').length;
 
-              return (
-                <div className="flex flex-col mt-4 border border-gray-200 rounded-xl overflow-hidden bg-white">
-                  {stockList.map((item, i) => (
-                    <div key={i} className={`flex items-center justify-between p-4 ${i !== stockList.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                      <div className="w-1/3 text-sm sm:text-base font-bold text-gray-900">
-                        {item.size} x {item.micron} Mic
-                      </div>
-                      <div className="w-1/3 text-center text-sm sm:text-base font-black text-emerald-700">
-                        {formatWeight(item.weight)} KG
-                      </div>
-                      <div className="w-1/3 text-right text-sm sm:text-base font-bold text-gray-500">
-                        {item.count} Rolls
-                      </div>
-                    </div>
-                  ))}
+            const filteredList = allStockList.filter(item => {
+              if (stockFilter === 'completed') return item.status === 'completed';
+              if (stockFilter === 'running') return item.status === 'running';
+              return true;
+            });
+
+            return (
+              <div className="space-y-3">
+                {/* Filter Pills */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                  <button
+                    onClick={() => setStockFilter('all')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                      stockFilter === 'all'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    All ({allStockList.length})
+                  </button>
+                  <button
+                    onClick={() => setStockFilter('completed')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      stockFilter === 'completed'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <span>Completed ({completedCount})</span>
+                  </button>
+                  <button
+                    onClick={() => setStockFilter('running')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      stockFilter === 'running'
+                        ? 'bg-amber-500 text-white shadow-sm'
+                        : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
+                    }`}
+                  >
+                    <span>🔥 Running ({runningCount})</span>
+                  </button>
                 </div>
-              );
-            })()}
-          </div>
+
+                <div className="app-card overflow-hidden">
+                  {filteredList.length === 0 ? (
+                    <div className="p-8 text-center text-sm text-gray-400">
+                      {stockFilter === 'running' ? 'No running stock currently.' : stockFilter === 'completed' ? 'No completed stock available.' : 'No stock available.'}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white">
+                      {filteredList.map((item, i) => (
+                        <div key={i} className={`flex items-center justify-between p-4 ${i !== filteredList.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                          <div className="w-1/3 text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                            <span>{item.size} x {item.micron} Mic</span>
+                            {item.status === 'running' ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1 animate-pulse">
+                                🔥 Running
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                Completed
+                              </span>
+                            )}
+                          </div>
+                          <div className="w-1/3 text-center text-sm sm:text-base font-black text-emerald-700">
+                            {formatWeight(item.weight)} KG
+                          </div>
+                          <div className="w-1/3 text-right text-sm sm:text-base font-bold text-gray-500">
+                            {item.count} Rolls
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
