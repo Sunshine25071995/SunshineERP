@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, getDocFromServer } from 'firebase/firestore';
 import { db } from './firebaseClient';
 import { seedInitialUsersIfNeeded } from './services/seedService';
@@ -19,8 +19,8 @@ import { ProductionModule } from './components/ProductionModule';
 import { SlittingModule } from './components/SlittingModule';
 import { PaymentTrackerModule } from './payment-tracker/PaymentTrackerModule';
 import { getUserPermissions } from './utils/permissions';
-import { Toaster } from 'react-hot-toast';
-import { LayoutDashboard, Wallet, Factory, Scissors, FlaskConical, LogOut } from 'lucide-react';
+import { Toaster, toast } from 'react-hot-toast';
+import { LayoutDashboard, Wallet, Factory, Scissors, FlaskConical, LogOut, RefreshCw } from 'lucide-react';
 import { NotificationCenter } from './components/NotificationCenter';
 import { InstallPwaModal, HeaderInstallButton } from './components/InstallPwaModal';
 import { GlobalSearch } from './components/GlobalSearch';
@@ -28,6 +28,59 @@ import { GlobalSearch } from './components/GlobalSearch';
 export default function App() {
   const [isLive, setIsLive] = useState(false);
   const [navigateTo, setNavigateTo] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Auto-reload on Service Worker controllerchange (PWA auto-update)
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      let refreshing = false;
+      const onControllerChange = () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.update();
+        const interval = setInterval(() => reg.update(), 45000);
+        const onFocus = () => reg.update();
+        window.addEventListener('focus', onFocus);
+        return () => {
+          clearInterval(interval);
+          window.removeEventListener('focus', onFocus);
+        };
+      }).catch(() => {});
+
+      return () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      };
+    }
+  }, []);
+
+  const handleForceUpdate = async () => {
+    setIsUpdating(true);
+    toast.loading('Checking for updates...', { id: 'app-update' });
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      toast.success('App updated! Refreshing...', { id: 'app-update' });
+      setTimeout(() => {
+        window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+      }, 500);
+    } catch {
+      window.location.reload();
+    }
+  };
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     try {
       const saved = localStorage.getItem('sunshine_app_user');
@@ -175,6 +228,16 @@ export default function App() {
           )}
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={handleForceUpdate}
+            disabled={isUpdating}
+            className="h-9 px-2.5 sm:px-3 rounded-full bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-600 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-xs"
+            title="Update App to latest version"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? 'animate-spin text-indigo-600' : ''}`} />
+            <span className="hidden sm:inline">Update</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">v2.5</span>
+          </button>
           <HeaderInstallButton />
           {currentUser && (
             <>
