@@ -118,6 +118,14 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   const [jcCoilSizesList, setJcCoilSizesList] = useState<string[]>([]);
   const [jcTotalQty, setJcTotalQty] = useState('');
   const [jcStatus, setJcStatus] = useState<JobCardStatus>('pending');
+  const [jcNotes, setJcNotes] = useState('');
+
+  // Dispatch state
+  const [dispatchModalJc, setDispatchModalJc] = useState<JobCard | null>(null);
+  const [dispatchVehicleNo, setDispatchVehicleNo] = useState('');
+  const [dispatchDriverName, setDispatchDriverName] = useState('');
+  const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isDispatching, setIsDispatching] = useState(false);
 
   // User state
   const [showUserModal, setShowUserModal] = useState(false);
@@ -145,7 +153,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     setJcDate(new Date().toISOString().split('T')[0]);
     setJcPartyCode(''); setJcSize(''); setJcMicron('');
     setJcCoilSizesInput(''); setJcCoilSizesList(['230mm', '250mm']);
-    setJcTotalQty(''); setJcStatus('pending');
+    setJcTotalQty(''); setJcStatus('pending'); setJcNotes('');
     setShowJobCardModal(true);
   };
 
@@ -155,7 +163,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     setJcDate(jc.date || new Date().toISOString().split('T')[0]);
     setJcPartyCode(jc.partyCode); setJcSize(jc.size); setJcMicron(jc.micron || '');
     setJcCoilSizesList(jc.coilSizes || []); setJcCoilSizesInput((jc.coilSizes || []).join(', '));
-    setJcTotalQty(String(jc.totalQuantity || '')); setJcStatus(jc.status);
+    setJcTotalQty(String(jc.totalQuantity || '')); setJcStatus(jc.status); setJcNotes(jc.notes || '');
     setShowJobCardModal(true);
   };
 
@@ -350,6 +358,135 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       setSyncMsg('❌ Backend not reachable. Start server.js first.');
     }
     setSyncLoading(false);
+  };
+
+  const openDispatchModal = (jc: JobCard, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDispatchModalJc(jc);
+    setDispatchVehicleNo(jc.vehicleNo || '');
+    setDispatchDriverName(jc.driverName || '');
+    setDispatchDate(jc.dispatchedAt || new Date().toISOString().split('T')[0]);
+  };
+
+  const handleConfirmDispatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dispatchModalJc) return;
+    setIsDispatching(true);
+    try {
+      await updateDoc(doc(db, 'jobCards', dispatchModalJc.id), {
+        status: 'dispatched',
+        slittingStatus: 'dispatched',
+        isDispatched: true,
+        vehicleNo: dispatchVehicleNo.trim(),
+        driverName: dispatchDriverName.trim(),
+        dispatchedAt: dispatchDate,
+      });
+      await logActivity('Job Card Dispatched', `Dispatched ${dispatchModalJc.jobCode} via ${dispatchVehicleNo}`, currentUser.id || currentUser.loginId, currentUser.name);
+      setDispatchModalJc(null);
+    } catch (err: any) {
+      alert('Failed to dispatch: ' + (err?.message || err));
+    } finally {
+      setIsDispatching(false);
+    }
+  };
+
+  const handlePrintStock = () => {
+    const relevantJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed' || jc.slittingStatus === 'running');
+    const relevantSlitRolls = slitRolls.filter(r => relevantJobCards.some(jc => jc.id === r.jobCardId));
+    const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number, status: 'completed' | 'running' }> = {};
+    relevantSlitRolls.forEach(roll => {
+      const jc = relevantJobCards.find(j => j.id === roll.jobCardId);
+      if (jc) {
+        let size = roll.coilSize || jc.size;
+        if (jc.coilSizes && jc.coilSizes.length === 1) {
+          size = jc.coilSizes[0];
+        } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
+          size = jc.coilSizes[0];
+        }
+        const status = jc.slittingStatus === 'running' ? 'running' : 'completed';
+        const key = `${size}-${jc.micron}-${status}`;
+        if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0, status };
+        stockGroups[key].weight += (roll.netWeight || 0);
+        stockGroups[key].count += 1;
+      }
+    });
+    const stockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
+
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('Please allow popups to print stock inventory.');
+      return;
+    }
+    const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    const rows = stockList.map((item, idx) => `
+      <tr style="border-bottom: 1px solid #e2e8f0; ${item.status === 'running' ? 'background: #fffbeb;' : ''}">
+        <td style="padding: 10px; font-weight: bold; width: 40px;">${idx + 1}</td>
+        <td style="padding: 10px; font-weight: bold; font-family: monospace;">${item.size} x ${item.micron} Mic ${item.status === 'running' ? '<span style="color: #d97706; font-size: 11px;">(🔥 Running)</span>' : ''}</td>
+        <td style="padding: 10px; text-align: right; font-weight: bold; color: #047857;">${formatWeight(item.weight)} KG</td>
+        <td style="padding: 10px; text-align: right; font-weight: bold;">${item.count} Rolls</td>
+      </tr>
+    `).join('');
+
+    const totalKg = stockList.reduce((s, i) => s + i.weight, 0);
+    const totalRolls = stockList.reduce((s, i) => s + i.count, 0);
+
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Finished Stock Inventory - Sunshine Polyfilm</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 30px; color: #1e293b; }
+            .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; }
+            .title { font-size: 24px; font-weight: 900; margin: 0; color: #1e1b4b; }
+            .sub { font-size: 13px; color: #64748b; margin-top: 4px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+            th { background: #0f172a; color: white; padding: 10px; text-align: left; }
+            th.right { text-align: right; }
+            tfoot tr { background: #f1f5f9; font-weight: bold; }
+            @media print {
+              body { margin: 15mm; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1 class="title">SUNSHINE POLYFILM INDUSTRIES</h1>
+            <p class="sub">Finished Stock Inventory Report · Generated on ${dateStr} at ${timeStr}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;">#</th>
+                <th>Size & Micron</th>
+                <th class="right">Total Weight</th>
+                <th class="right">Roll Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="padding: 12px; font-weight: bold;">TOTAL FINISHED INVENTORY</td>
+                <td style="padding: 12px; text-align: right; color: #047857; font-size: 16px;">${formatWeight(totalKg)} KG</td>
+                <td style="padding: 12px; text-align: right; font-size: 16px;">${totalRolls} Rolls</td>
+              </tr>
+            </tfoot>
+          </table>
+          <div style="margin-top: 30px; text-align: center; color: #94a3b8; font-size: 12px;">
+            Generated via Sunshine ERP System
+          </div>
+          <script>
+            setTimeout(() => { window.print(); }, 400);
+          </script>
+        </body>
+      </html>
+    `);
+    win.document.close();
   };
 
   const tabs = [
@@ -915,6 +1052,70 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-full mt-4 transition-colors text-base shadow-md">
                 {editingJobCard ? 'Update Job Card' : 'Create Job Card'}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: DISPATCH FORM ──────────────────────────────── */}
+      {dispatchModalJc && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 animate-fade-in">
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setDispatchModalJc(null)} />
+          <div className="relative bg-white w-full max-w-md rounded-t-[28px] sm:rounded-2xl shadow-2xl animate-scale-in z-50 p-6">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-900">🚚 Dispatch Job Card</h3>
+                <p className="text-xs text-gray-500 font-mono mt-0.5">{dispatchModalJc.jobCode} · {getPartyName(dispatchModalJc.partyCode)}</p>
+              </div>
+              <button onClick={() => setDispatchModalJc(null)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleConfirmDispatch} className="space-y-4">
+              <FormField label="Vehicle Number">
+                <input
+                  type="text"
+                  placeholder="e.g. GJ-05-AB-1234"
+                  value={dispatchVehicleNo}
+                  onChange={e => setDispatchVehicleNo(e.target.value)}
+                  required
+                  className={inputCls}
+                />
+              </FormField>
+              <FormField label="Driver / Recipient Name">
+                <input
+                  type="text"
+                  placeholder="e.g. Ramesh Bhai"
+                  value={dispatchDriverName}
+                  onChange={e => setDispatchDriverName(e.target.value)}
+                  className={inputCls}
+                />
+              </FormField>
+              <FormField label="Dispatch Date">
+                <input
+                  type="date"
+                  value={dispatchDate}
+                  onChange={e => setDispatchDate(e.target.value)}
+                  required
+                  className={inputCls}
+                />
+              </FormField>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDispatchModalJc(null)}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isDispatching}
+                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md disabled:opacity-50"
+                >
+                  {isDispatching ? 'Saving...' : 'Confirm Dispatch'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

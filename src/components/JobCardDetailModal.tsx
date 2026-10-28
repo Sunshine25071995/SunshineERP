@@ -111,6 +111,34 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
             ))}
           </div>
 
+          {/* Notes & Remarks */}
+          {jobCard.notes && (
+            <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3">
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <span>📝</span> Notes / Remarks
+              </p>
+              <p className="text-sm text-amber-950 font-medium whitespace-pre-wrap">{jobCard.notes}</p>
+            </div>
+          )}
+
+          {/* Dispatch Info */}
+          {(jobCard.isDispatched || jobCard.dispatchedAt) && (
+            <div className="bg-purple-50/80 border border-purple-200 rounded-xl p-3 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
+                  <span>🚚</span> Dispatch Details
+                </p>
+                <p className="text-sm font-bold text-purple-950 mt-0.5">
+                  Vehicle: <span className="font-mono">{jobCard.vehicleNo || '—'}</span>
+                  {jobCard.driverName ? <span> · Driver: {jobCard.driverName}</span> : ''}
+                </p>
+              </div>
+              <span className="text-xs font-bold bg-purple-200 text-purple-900 px-3 py-1 rounded-full">
+                {jobCard.dispatchedAt || 'Dispatched'}
+              </span>
+            </div>
+          )}
+
           {/* Coil Sizes */}
           {jobCard.coilSizes && jobCard.coilSizes.length > 0 && (
             <div>

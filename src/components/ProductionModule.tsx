@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, JobCard, ProductionRoll, ProductionWastage, SlittingRoll } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
-import { Layers, Plus, Trash2, Edit2, Check, X, Search, ChevronRight, FileText } from 'lucide-react';
+import { Layers, Plus, Trash2, Edit2, Check, X, Search, ChevronRight, FileText, Target, TrendingUp, Scale } from 'lucide-react';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { useBackButton } from '../utils/useBackButton';
@@ -51,6 +51,20 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
   const perms = getUserPermissions(currentUser);
   const canEdit = perms.production.edit;
   const [searchQuery, setSearchQuery] = useState('');
+  const [dailyTarget, setDailyTarget] = useState<string>(() => {
+    return localStorage.getItem('sunshine_prod_target') || '3000';
+  });
+  const [isEditingTarget, setIsEditingTarget] = useState(false);
+  const [tempTarget, setTempTarget] = useState(dailyTarget);
+
+  const handleSaveTarget = () => {
+    const val = parseFloat(tempTarget) || 0;
+    if (val > 0) {
+      setDailyTarget(String(val));
+      localStorage.setItem('sunshine_prod_target', String(val));
+    }
+    setIsEditingTarget(false);
+  };
 
   const statusPriority: Record<string, number> = { running: 1, pending: 2, completed: 3, dispatched: 4 };
   const sortedJobCards = [...jobCards].sort((a, b) =>

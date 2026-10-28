@@ -238,8 +238,12 @@ export const ChemicalModule: React.FC<ChemicalModuleProps> = ({
                 );
               })}
               {usages.length === 0 && (
-                <div className="col-span-full p-8 text-center text-sm text-gray-500 bg-gray-50 rounded-2xl">
-                  No usage recorded yet.
+                <div className="col-span-full p-10 text-center bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="w-12 h-12 rounded-2xl bg-white shadow-xs flex items-center justify-center mx-auto mb-3 text-slate-400">
+                    <FlaskConical className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">No chemical usage recorded</p>
+                  <p className="text-xs text-slate-400 mt-1">Usage entries will appear here once logged</p>
                 </div>
               )}
             </div>

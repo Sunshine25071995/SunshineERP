@@ -33,6 +33,12 @@ export interface JobCard {
   slittingStatus?: JobCardStatus;
   createdBy: string; // user loginId
   createdAt?: any;
+  // Dispatch fields
+  dispatchedAt?: string;
+  vehicleNo?: string;
+  driverName?: string;
+  isDispatched?: boolean;
+  notes?: string;
 }
 
 export interface Chemical {

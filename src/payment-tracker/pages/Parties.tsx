@@ -1,15 +1,27 @@
+import { JobCard, SlittingRoll } from '../../types';
+import { getPartyName } from '../../utils/parties';
+import { formatWeight } from '../../utils/formatters';
 import React, { useEffect, useState } from 'react';
 import { dbService } from '../db';
 import { adminDbService } from '../db-admin';
 import { Party, Bill } from '../types';
 import { formatCurrency, calculateDueDays, cn } from '../utils';
-import { Edit2, Trash2, Plus, Search, ChevronRight, MessageCircle, FileText } from 'lucide-react';
+import { Edit2, Trash2, Plus, Search, ChevronRight, MessageCircle, FileText, Briefcase, X, Layers } from 'lucide-react';
 import { useAuth } from '../auth';
 import toast from 'react-hot-toast';
 import { SkeletonLoader } from '../../components/SkeletonLoader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 
-export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string) => void }) {
+export function Parties({
+  onNavigate,
+  jobCards = [],
+  slitRolls = []
+}: {
+  onNavigate: (view: string, id?: string) => void;
+  jobCards?: JobCard[];
+  slitRolls?: SlittingRoll[];
+}) {
+  const [selectedPartyForJobs, setSelectedPartyForJobs] = useState<Party | null>(null);
   const [parties, setParties] = useState<Party[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,6 +265,14 @@ export function Parties({ onNavigate }: { onNavigate: (view: string, id?: string
                 >
                   <MessageCircle className="h-3 w-3" />
                   WhatsApp
+                </button>
+                <button 
+                  onClick={() => setSelectedPartyForJobs(party)} 
+                  className="flex items-center gap-1 text-[10px] px-2.5 py-1 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-lg font-bold transition-colors"
+                  title="View Job Cards for this party"
+                >
+                  <Briefcase className="h-3 w-3" />
+                  Jobs
                 </button>
               </div>
               {profile?.role === 'admin' && (

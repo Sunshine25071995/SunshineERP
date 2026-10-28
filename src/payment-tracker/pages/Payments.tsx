@@ -207,8 +207,14 @@ export function Payments() {
               })}
               {filteredPayments.length === 0 && (
                 <tr>
-                  <td colSpan={profile?.role === 'admin' ? 4 : 3} className="px-4 py-8 text-center text-sm font-medium text-slate-500">
-                    No payments found.
+                  <td colSpan={profile?.role === 'admin' ? 4 : 3} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3 text-slate-400">
+                        <CreditCard className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-bold text-slate-700">No payments recorded</p>
+                      <p className="text-xs text-slate-400 mt-1">{search ? 'No payments matching your search' : 'Record your first received payment below'}</p>
+                    </div>
                   </td>
                 </tr>
               )}

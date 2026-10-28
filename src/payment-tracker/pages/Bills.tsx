@@ -287,8 +287,14 @@ export function Bills() {
               })}
               {filteredBills.length === 0 && (
                 <tr>
-                  <td colSpan={profile?.role === 'admin' ? 5 : 4} className="px-4 py-8 text-center text-sm font-medium text-slate-500">
-                    No bills found.
+                  <td colSpan={profile?.role === 'admin' ? 5 : 4} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3 text-slate-400">
+                        <Receipt className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-bold text-slate-700">No bills found</p>
+                      <p className="text-xs text-slate-400 mt-1">{search ? 'Try adjusting your search query' : 'Create your first bill to get started'}</p>
+                    </div>
                   </td>
                 </tr>
               )}

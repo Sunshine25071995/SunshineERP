@@ -1,3 +1,4 @@
+import { JobCard, SlittingRoll } from '../types';
 import React, { useState, useEffect } from 'react';
 import { Dashboard } from './pages/Dashboard';
 import { Parties } from './pages/Parties';
@@ -8,7 +9,12 @@ import { Reports } from './pages/Reports';
 import { LayoutDashboard, Users, Receipt, CreditCard, FileText } from 'lucide-react';
 import { cn } from './utils';
 
-export function PaymentTrackerModule() {
+interface PaymentTrackerModuleProps {
+  jobCards?: JobCard[];
+  slitRolls?: SlittingRoll[];
+}
+
+export function PaymentTrackerModule({ jobCards = [], slitRolls = [] }: PaymentTrackerModuleProps = {}) {
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedPartyId, setSelectedPartyId] = useState<string | undefined>();
 
@@ -94,7 +100,7 @@ export function PaymentTrackerModule() {
       <div className="flex flex-1 flex-col overflow-hidden relative w-full">
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-[100px] md:pb-8 w-full">
           {currentView === 'dashboard' && <Dashboard />}
-          {currentView === 'parties' && <Parties onNavigate={handleNavigate} />}
+          {currentView === 'parties' && <Parties onNavigate={handleNavigate} jobCards={jobCards} slitRolls={slitRolls} />}
           {currentView === 'partyLedger' && <PartyLedger id={selectedPartyId} onNavigate={handleNavigate} />}
           {currentView === 'bills' && <Bills />}
           {currentView === 'payments' && <Payments />}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, getDocFromServer } from 'firebase/firestore';
 import { db } from './firebaseClient';
 import { seedInitialUsersIfNeeded } from './services/seedService';
@@ -23,9 +23,11 @@ import { Toaster } from 'react-hot-toast';
 import { LayoutDashboard, Wallet, Factory, Scissors, FlaskConical, LogOut } from 'lucide-react';
 import { NotificationCenter } from './components/NotificationCenter';
 import { InstallPwaModal, HeaderInstallButton } from './components/InstallPwaModal';
+import { GlobalSearch } from './components/GlobalSearch';
 
 export default function App() {
   const [isLive, setIsLive] = useState(false);
+  const [navigateTo, setNavigateTo] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     try {
       const saved = localStorage.getItem('sunshine_app_user');
@@ -182,6 +184,7 @@ export default function App() {
                 </span>
                 <span className="text-sm font-semibold text-slate-800">{currentUser.name}</span>
               </div>
+              <GlobalSearch jobCards={jobCards} prodRolls={prodRolls} slitRolls={slitRolls} onNavigate={(mod) => setNavigateTo(mod)} />
               <NotificationCenter 
                 jobCards={jobCards}
                 chemicals={chemicals}
@@ -215,6 +218,8 @@ export default function App() {
             prodRolls={prodRolls}
             slitRolls={slitRolls}
             prodWastages={prodWastages}
+            navigateTo={navigateTo}
+            onNavigateDone={() => setNavigateTo(null)}
           />
         )}
       </main>
@@ -223,7 +228,7 @@ export default function App() {
 }
 
 function AppContainer(props: any) {
-  const { currentUser } = props;
+  const { currentUser, navigateTo, onNavigateDone } = props;
   const perms = getUserPermissions(currentUser);
 
   const availableTabs = [];
@@ -234,6 +239,13 @@ function AppContainer(props: any) {
   if (perms.chemical.view) availableTabs.push({ id: 'chemical', label: 'Chemical', icon: <FlaskConical className="w-6 h-6" /> });
 
   const [activeTab, setActiveTab] = useState(availableTabs.length > 0 ? availableTabs[0].id : '');
+
+  useEffect(() => {
+    if (navigateTo) {
+      setActiveTab(navigateTo);
+      onNavigateDone?.();
+    }
+  }, [navigateTo]);
 
   if (availableTabs.length === 0) {
     return <div className="text-center p-8 text-slate-500">You do not have permission to view any modules. Please contact an administrator.</div>;
@@ -268,7 +280,7 @@ function AppContainer(props: any) {
         {activeTab === 'slitting' && <SlittingModule {...props} />}
         {activeTab === 'payments' && (
           <div className="md:p-4">
-            <PaymentTrackerModule />
+            <PaymentTrackerModule jobCards={props.jobCards} slitRolls={props.slitRolls} />
           </div>
         )}
       </div>
@@ -296,3 +308,4 @@ function AppContainer(props: any) {
     </>
   );
 }
+

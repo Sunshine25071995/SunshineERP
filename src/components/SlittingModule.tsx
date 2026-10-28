@@ -504,6 +504,16 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
             </div>
           )}
 
+          {activeSlitRolls.length === 0 && (
+            <div className="app-card p-10 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                <Scissors className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-bold text-slate-700">No Output Rolls Yet</p>
+              <p className="text-xs text-slate-400 mt-1">Fill the form above to record the first slit roll</p>
+            </div>
+          )}
+
           {activeSlitRolls.length > 0 && (
             <div className="app-card overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
