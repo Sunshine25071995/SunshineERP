@@ -109,3 +109,22 @@ export interface JobCardWastageSummary {
   slittingOutputWeight: number;
   totalProdOutputWeight: number;
 }
+
+export interface ProductionPlan {
+  id: string;
+  partyName?: string;
+  size: string; // e.g. "190 mm"
+  quantityKg: number;
+  plantCount: 1 | 2;
+  shiftMode: '12hr' | '24hr';
+  ratePer12Hr: number; // default 850
+  startDateTime: string; // ISO string
+  completionDateTime: string; // ISO string
+  totalProductionHours: number;
+  sundaysSkipped: number;
+  status: 'planned' | 'in_progress' | 'completed';
+  jobCardId?: string;
+  notes?: string;
+  createdAt?: any;
+  createdBy?: string;
+}

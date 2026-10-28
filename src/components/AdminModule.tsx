@@ -10,7 +10,7 @@ import { RollPDFModal } from './RollPDFModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
   Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase, Activity,
-  ClipboardList, Database, Wallet, Boxes, Recycle, History
+  ClipboardList, Database, Wallet, Boxes, Recycle, History, CalendarDays, ArrowLeft
 } from 'lucide-react';
 import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
 import { WastageAnalytics } from './WastageAnalytics';
@@ -21,6 +21,7 @@ import { db } from '../firebaseClient';
 import { logActivity } from '../services/activityLog';
 import { ActivityLog } from './ActivityLog';
 import { getUserPermissions } from '../utils/permissions';
+import { ProductionPlanner } from './ProductionPlanner';
 
 interface AdminModuleProps {
   currentUser: User;
@@ -49,7 +50,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
 }) => {
   const perms = getUserPermissions(currentUser);
   const canEdit = perms.admin.edit;
-  const [activeTab, setActiveTab] = useState<'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'planner' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog'>('home');
   const [jobCardSearch, setJobCardSearch] = useState('');
   const [outstandingPayments, setOutstandingPayments] = useState(0);
   const [stockFilter, setStockFilter] = useState<'all' | 'completed' | 'running'>('all');
@@ -79,7 +80,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const navigateToTab = (tabId: 'home' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog') => {
+  const navigateToTab = (tabId: 'home' | 'planner' | 'jobCards' | 'users' | 'chemicals' | 'factoryRolls' | 'paymentTracker' | 'stock' | 'wastage' | 'activityLog') => {
     setActiveTab(tabId);
     window.history.pushState({ tab: tabId }, '');
   };
@@ -490,6 +491,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   };
 
   const tabs = [
+    { id: 'planner' as const, label: 'Plan', icon: CalendarDays, count: undefined, gradient: 'from-emerald-500 via-teal-600 to-cyan-600', shadow: 'shadow-emerald-500/40' },
     { id: 'jobCards' as const, label: 'Job Cards', icon: ClipboardList, count: jobCards.length, gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/40' },
     { id: 'users' as const, label: 'Users', icon: Users, count: users.length, gradient: 'from-violet-500 to-fuchsia-600', shadow: 'shadow-violet-500/40' },
     { id: 'chemicals' as const, label: 'Chemicals', icon: FlaskConical, count: chemicals.length, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/40' },
@@ -529,6 +531,27 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
             ))}
           </div>
         </>
+      )}
+
+      {/* ON-SCREEN BACK NAVIGATION FOR ACTIVE TABS */}
+      {activeTab !== 'home' && (
+        <div className="flex items-center justify-between px-2 pb-2">
+          <button
+            onClick={() => navigateToTab('home')}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs sm:text-sm font-extrabold shadow-xs transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-600" />
+            <span>← Back to Dashboard</span>
+          </button>
+          <span className="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider">
+            {tabs.find(t => t.id === activeTab)?.label || activeTab}
+          </span>
+        </div>
+      )}
+
+      {/* ── TAB: PRODUCTION PLANNER ───────────────────────────── */}
+      {activeTab === 'planner' && (
+        <ProductionPlanner jobCards={jobCards} currentUser={currentUser} />
       )}
 
       {/* ── TAB: ACTIVITY LOG ─────────────────────────────────── */}
