@@ -33,7 +33,7 @@ export function calculateProductionCompletion({
   quantityKg,
   plantCount,
   shiftMode,
-  ratePer12Hr = 850,
+  ratePer24Hr = 850,
   dayShiftStartHour = 8,
   dayShiftEndHour = 20,
 }: {
@@ -41,13 +41,13 @@ export function calculateProductionCompletion({
   quantityKg: number;
   plantCount: 1 | 2;
   shiftMode: '12hr' | '24hr';
-  ratePer12Hr?: number;
+  ratePer24Hr?: number;
   dayShiftStartHour?: number;
   dayShiftEndHour?: number;
 }): CompletionResult | null {
   if (!quantityKg || quantityKg <= 0) return null;
 
-  const hourlyRate = (ratePer12Hr * plantCount) / 12;
+  const hourlyRate = (ratePer24Hr * plantCount) / 24;
   const totalProductionHours = quantityKg / hourlyRate;
   let remainingMinutes = Math.round(totalProductionHours * 60);
 
@@ -159,7 +159,7 @@ export const ProductionPlanner: React.FC<ProductionPlannerProps> = ({ jobCards, 
   const [partyName, setPartyName] = useState('');
   const [plantCount, setPlantCount] = useState<1 | 2>(2);
   const [shiftMode, setShiftMode] = useState<'12hr' | '24hr'>('24hr');
-  const [ratePer12Hr, setRatePer12Hr] = useState<number>(850);
+  const [ratePer24Hr, setRatePer24Hr] = useState<number>(850);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Default start date: current local datetime formatted for <input type="datetime-local" />
@@ -238,9 +238,9 @@ export const ProductionPlanner: React.FC<ProductionPlannerProps> = ({ jobCards, 
       quantityKg: Number(quantityKg),
       plantCount,
       shiftMode,
-      ratePer12Hr,
+      ratePer24Hr,
     });
-  }, [startDateTime, quantityKg, plantCount, shiftMode, ratePer12Hr]);
+  }, [startDateTime, quantityKg, plantCount, shiftMode, ratePer24Hr]);
 
   // All 4 Scenarios Comparison
   const scenarios = useMemo(() => {
@@ -258,7 +258,7 @@ export const ProductionPlanner: React.FC<ProductionPlannerProps> = ({ jobCards, 
         quantityKg: Number(quantityKg),
         plantCount: c.plantCount,
         shiftMode: c.shiftMode,
-        ratePer12Hr,
+        ratePer24Hr,
       });
       return {
         ...c,
@@ -266,7 +266,7 @@ export const ProductionPlanner: React.FC<ProductionPlannerProps> = ({ jobCards, 
         isSelected: plantCount === c.plantCount && shiftMode === c.shiftMode,
       };
     });
-  }, [startDateTime, quantityKg, plantCount, shiftMode, ratePer12Hr]);
+  }, [startDateTime, quantityKg, plantCount, shiftMode, ratePer24Hr]);
 
   // Save Plan to Firestore
   const handleSavePlan = async () => {
@@ -282,7 +282,7 @@ export const ProductionPlanner: React.FC<ProductionPlannerProps> = ({ jobCards, 
         quantityKg: Number(quantityKg),
         plantCount,
         shiftMode,
-        ratePer12Hr,
+        ratePer24Hr,
         startDateTime,
         completionDateTime: result.completionDate.toISOString(),
         totalProductionHours: result.totalProductionHours,
@@ -461,7 +461,7 @@ _Generated via Sunshine ERP System_`;
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-200">Factory Extruders</div>
               <div className="text-lg font-black">2 Plants Available</div>
-              <div className="text-[11px] text-indigo-100">Standard: 850 KG / 12 Hr per machine</div>
+              <div className="text-[11px] text-indigo-100">Standard: 850 KG / 24 Hr per machine (425 KG / 12 Hr shift)</div>
             </div>
           </div>
         </div>
@@ -662,7 +662,7 @@ _Generated via Sunshine ERP System_`;
                         <span>1 Plant (Single Machine)</span>
                       </div>
                       <div className="text-xs text-slate-500 font-medium mt-0.5">
-                        Capacity: 850 KG / 12 Hours (~70.8 kg/hr)
+                        Capacity: 850 KG / 24 Hours (~35.4 kg/hr | 425 kg / 12hr)
                       </div>
                     </div>
                   </button>
@@ -691,7 +691,7 @@ _Generated via Sunshine ERP System_`;
                         </span>
                       </div>
                       <div className="text-xs text-slate-500 font-medium mt-0.5">
-                        Capacity: 1,700 KG / 12 Hours (~141.7 kg/hr)
+                        Capacity: 1,700 KG / 24 Hours (~70.8 kg/hr | 850 kg / 12hr)
                       </div>
                     </div>
                   </button>
@@ -723,7 +723,7 @@ _Generated via Sunshine ERP System_`;
                     <div>
                       <div className="text-sm font-extrabold text-slate-900">12 Hours / Day</div>
                       <div className="text-xs text-slate-500 font-medium mt-0.5">
-                        Day Shift Only (8:00 AM to 8:00 PM)
+                        Day Shift (8:00 AM to 8:00 PM) • 425 kg/day (1 Plant) | 850 kg/day (2 Plants)
                       </div>
                     </div>
                   </button>
@@ -752,7 +752,7 @@ _Generated via Sunshine ERP System_`;
                         </span>
                       </div>
                       <div className="text-xs text-slate-500 font-medium mt-0.5">
-                        Continuous production around the clock
+                        Day & Night 24/7 • 850 kg/day (1 Plant) | 1,700 kg/day (2 Plants)
                       </div>
                     </div>
                   </button>
@@ -774,21 +774,21 @@ _Generated via Sunshine ERP System_`;
                   onClick={() => setShowAdvanced(!showAdvanced)}
                   className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1"
                 >
-                  <span>{showAdvanced ? '− Hide Machine Output Settings' : '+ Custom Machine Output (Default: 850 KG / 12 Hr)'}</span>
+                  <span>{showAdvanced ? '− Hide Machine Output Settings' : '+ Custom Machine Output (Default: 850 KG / 24 Hr)'}</span>
                 </button>
                 {showAdvanced && (
                   <div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                      Machine Capacity per 12-Hour Shift (KG)
+                      Machine Capacity per 24-Hour Day (KG)
                     </label>
                     <div className="flex items-center gap-3">
                       <input
                         type="number"
-                        value={ratePer12Hr}
-                        onChange={(e) => setRatePer12Hr(Number(e.target.value) || 850)}
+                        value={ratePer24Hr}
+                        onChange={(e) => setRatePer24Hr(Number(e.target.value) || 850)}
                         className="w-36 bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-900"
                       />
-                      <span className="text-xs text-slate-500">KG / 12 Hr per machine (Default: 850 kg)</span>
+                      <span className="text-xs text-slate-500">KG / 24 Hr per machine (Default: 850 kg | 425 kg per 12hr)</span>
                     </div>
                   </div>
                 )}
@@ -906,12 +906,12 @@ _Generated via Sunshine ERP System_`;
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
                 <span className="text-slate-500">Machine Production Rate:</span>
-                <span className="font-extrabold text-slate-800">{ratePer12Hr} KG / 12 Hr per machine</span>
+                <span className="font-extrabold text-slate-800">{ratePer24Hr} KG / 24 Hr per machine ({(ratePer24Hr / 2).toFixed(0)} KG / 12 Hr)</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-500">Total Speed:</span>
                 <span className="font-extrabold text-emerald-600">
-                  {((ratePer12Hr * plantCount) / 12).toFixed(1)} KG / Hour
+                  {((ratePer24Hr * plantCount) / 24).toFixed(1)} KG / Hour
                 </span>
               </div>
             </div>

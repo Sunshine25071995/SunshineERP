@@ -117,7 +117,7 @@ export interface ProductionPlan {
   quantityKg: number;
   plantCount: 1 | 2;
   shiftMode: '12hr' | '24hr';
-  ratePer12Hr: number; // default 850
+  ratePer24Hr: number; // default 850 kg per 24hr per machine (425 kg / 12hr)
   startDateTime: string; // ISO string
   completionDateTime: string; // ISO string
   totalProductionHours: number;
