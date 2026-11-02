@@ -128,3 +128,14 @@ export interface ProductionPlan {
   createdAt?: any;
   createdBy?: string;
 }
+
+export interface JobCardParty {
+  id: string;
+  code: string;
+  name: string;
+  contactPerson?: string;
+  phone?: string;
+  notes?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}

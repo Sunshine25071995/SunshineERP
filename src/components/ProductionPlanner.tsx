@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { JobCard, User, ProductionPlan } from '../types';
-import { PARTIES, getPartyName } from '../utils/parties';
+import { PARTIES, getPartyName, useJobCardParties } from '../utils/parties';
 import { formatWeight } from '../utils/formatters';
 import { db } from '../firebaseClient';
 import {
@@ -153,6 +153,7 @@ export function calculateProductionCompletion({
 }
 
 export const ProductionPlanner: React.FC<ProductionPlannerProps> = ({ jobCards, currentUser }) => {
+  const { parties: dynamicParties } = useJobCardParties();
   // Form State
   const [size, setSize] = useState('190 mm');
   const [quantityKg, setQuantityKg] = useState<number | ''>(5000);
@@ -579,9 +580,9 @@ _Generated via Sunshine ERP System_`;
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                 />
                 <datalist id="parties-list">
-                  {Object.entries(PARTIES).map(([code, name]) => (
-                    <option key={code} value={name}>
-                      {code} - {name}
+                  {dynamicParties.map((p) => (
+                    <option key={p.code} value={p.name}>
+                      {p.code} - {p.name}
                     </option>
                   ))}
                 </datalist>

@@ -4,13 +4,15 @@ import {
   ProductionRoll, SlittingRoll, ProductionWastage, Department, Shift, JobCardStatus,
 } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
-import { PARTIES, getPartyName } from '../utils/parties';
+import { PARTIES, getPartyName, useJobCardParties } from '../utils/parties';
 import { JobCardDetailModal } from './JobCardDetailModal';
 import { RollPDFModal } from './RollPDFModal';
+import { PartyManagementModal } from './PartyManagementModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
   Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase, Activity,
-  ClipboardList, Database, Wallet, Boxes, Recycle, History, CalendarDays, ArrowLeft
+  ClipboardList, Database, Wallet, Boxes, Recycle, History, CalendarDays, ArrowLeft,
+  Building
 } from 'lucide-react';
 import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
 import { WastageAnalytics } from './WastageAnalytics';
@@ -103,6 +105,8 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   });
 
   // Job Card state
+  const [showPartyModal, setShowPartyModal] = useState(false);
+  const { parties: jobCardPartiesList } = useJobCardParties();
   const [selectedJobCardForDetail, setSelectedJobCardForDetail] = useState<JobCard | null>(null);
   const [pdfModalJobCard, setPdfModalJobCard] = useState<JobCard | null>(null);
   const [showJobCardModal, setShowJobCardModal] = useState(false);
@@ -562,13 +566,34 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
       {/* ── TAB: JOB CARDS ────────────────────────────────────── */}
       {activeTab === 'jobCards' && (
         <div className="space-y-4 animate-fade-in relative">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input type="text" placeholder="Search job code, party…" value={jobCardSearch}
                 onChange={e => setJobCardSearch(e.target.value)}
                 className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm" />
               {jobCardSearch && <button onClick={() => setJobCardSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-4 h-4" /></button>}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPartyModal(true)}
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition shadow-sm whitespace-nowrap active:scale-95"
+                title="Manage Job Card Parties"
+              >
+                <Building className="w-4 h-4 text-indigo-600" />
+                <span>Manage Parties</span>
+              </button>
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={openJobCardCreate}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-sm shadow-indigo-600/20 whitespace-nowrap active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Job Card</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -1028,14 +1053,25 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                 <FormField label="Job Code"><input type="text" value={jcCode} onChange={e => setJcCode(e.target.value)} required className={inputCls} /></FormField>
                 <FormField label="Date"><input type="date" value={jcDate} onChange={e => setJcDate(e.target.value)} className={inputCls} /></FormField>
                 <div className="col-span-2">
-                  <FormField label="Party">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Party</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowPartyModal(true)}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Manage / Add Party</span>
+                      </button>
+                    </div>
                     <select value={jcPartyCode} onChange={e => setJcPartyCode(e.target.value)} required className={selectCls}>
                       <option value="">-- Select Party --</option>
-                      {Object.entries(PARTIES).map(([code, name]) => (
-                        <option key={code} value={code}>{name} ({code})</option>
+                      {jobCardPartiesList.map(p => (
+                        <option key={p.code} value={p.code}>{p.name} ({p.code})</option>
                       ))}
                     </select>
-                  </FormField>
+                  </div>
                 </div>
                 <FormField label="Size"><input type="text" placeholder="e.g. 1000mm" value={jcSize} onChange={e => setJcSize(e.target.value)} className={inputCls} /></FormField>
                 <FormField label="Micron"><input type="text" placeholder="e.g. 12" value={jcMicron} onChange={e => setJcMicron(e.target.value)} className={inputCls} /></FormField>
@@ -1263,6 +1299,17 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
           onClose={() => setPdfModalJobCard(null)}
         />
       )}
+
+      {/* ── MODAL: MANAGE PARTIES ──────────────────────────────── */}
+      <PartyManagementModal
+        isOpen={showPartyModal}
+        onClose={() => setShowPartyModal(false)}
+        jobCards={jobCards}
+        onPartySelect={(selectedCode) => {
+          setJcPartyCode(selectedCode);
+        }}
+        currentUser={currentUser}
+      />
     </div>
   );
 };
