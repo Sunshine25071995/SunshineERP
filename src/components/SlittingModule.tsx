@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
+import { getPartyName } from '../utils/parties';
 import { Scissors, Plus, Trash2, Edit2, Check, X, CheckSquare, Square, Search, ChevronRight, Package } from 'lucide-react';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
@@ -290,16 +291,23 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                   className={`w-full text-left app-card p-4 flex flex-col gap-3 cursor-pointer transition-all btn-press hover:shadow-md ${
                     isRunning ? 'border-emerald-300 bg-emerald-50/50 running-card' : ''
                   }`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-mono text-2xl font-black px-3 py-0.5.5 rounded-xl border shadow-sm ${
-                        isRunning ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-amber-100 border-amber-300 text-amber-900'
-                      }`}>{jc.jobCode}</span>
-                    </div>
+                  {/* Top Bar: Date & Status Badge */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold text-gray-400 font-mono tracking-wide">
+                      {formatToDDMM(jc.date)}
+                    </span>
                     <StatusBadge status={jc.slittingStatus || 'pending'} />
                   </div>
 
-                  <div className="text-sm font-semibold text-gray-700">{jc.partyCode}</div>
+                  {/* Centered Extra Big & Bold Job Card Number in Blue Font */}
+                  <div className="w-full flex flex-col items-center justify-center py-2.5 px-3 bg-blue-50/70 border border-blue-100/90 rounded-2xl text-center shadow-xs">
+                    <span className="font-mono text-3xl sm:text-4xl font-black text-blue-600 tracking-wider">
+                      {jc.jobCode}
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-gray-700 mt-1 line-clamp-1">
+                      {getPartyName(jc.partyCode)}
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-gray-50 rounded-xl p-2 border border-gray-100">
@@ -353,35 +361,45 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
   return (
     <div className="space-y-4 animate-slide-up">
       <div className="app-card p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Selected Job</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-3xl font-black text-blue-900 bg-blue-100 px-4 py-0.5.5 rounded-xl border border-blue-300">
-                {selectedJobCard.jobCode}
-              </span>
-              {canEdit ? (
-                <select value={selectedJobCard.slittingStatus || 'pending'}
-                  onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
-                  className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
-                  <option value="running">🔥 Running</option>
-                  <option value="pending">⏳ Pending</option>
-                  <option value="completed">✅ Completed</option>
-                  <option value="dispatched">🚚 Dispatched</option>
-                </select>
-              ) : (
-                <StatusBadge status={selectedJobCard.slittingStatus} />
-              )}
-            </div>
-            <div className="flex items-center gap-3 mt-2 flex-wrap text-sm text-gray-600">
-              <span><span className="font-semibold">Party:</span> {selectedJobCard.partyCode}</span>
-              <span><span className="font-semibold">Size:</span> {selectedJobCard.size}</span>
-              <span><span className="font-semibold">Micron:</span> {selectedJobCard.micron}μ</span>
-            </div>
+        {/* Top Shift & Status row */}
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status:</span>
+            {canEdit ? (
+              <select value={selectedJobCard.slittingStatus || 'pending'}
+                onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
+                className="text-xs font-bold rounded-xl px-2.5 py-1.5 border cursor-pointer bg-white border-blue-200 text-gray-800 focus:outline-none shadow-xs">
+                <option value="running">🔥 Running</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="completed">✅ Completed</option>
+                <option value="dispatched">🚚 Dispatched</option>
+              </select>
+            ) : (
+              <StatusBadge status={selectedJobCard.slittingStatus} />
+            )}
           </div>
           <div className="text-right shrink-0">
-            <p className="text-xs text-gray-400">Shift</p>
-            <p className="text-sm font-bold text-gray-700">{currentUser.shift || 'A'}</p>
+            <span className="text-xs text-gray-400 mr-1.5">Shift:</span>
+            <span className="text-sm font-black text-gray-800 bg-gray-100 px-2.5 py-0.5 rounded-lg font-mono">{currentUser.shift || 'A'}</span>
+          </div>
+        </div>
+
+        {/* Centered Extra Big & Bold Job Card Number in Blue Font */}
+        <div className="w-full flex flex-col items-center justify-center text-center py-2.5 px-4 bg-blue-50/70 border border-blue-100/90 rounded-2xl mb-3 shadow-xs">
+          <p className="text-[10px] font-bold text-blue-600/80 uppercase tracking-widest mb-0.5">Selected Job Card</p>
+          <span className="font-mono text-3xl sm:text-4xl font-black text-blue-600 tracking-wider">
+            {selectedJobCard.jobCode}
+          </span>
+          <div className="flex items-center justify-center gap-3 mt-1.5 flex-wrap text-xs sm:text-sm text-gray-700 font-semibold">
+            <span><span className="text-gray-400 font-medium">Party:</span> {getPartyName(selectedJobCard.partyCode)}</span>
+            <span>•</span>
+            <span><span className="text-gray-400 font-medium">Size:</span> {selectedJobCard.size}</span>
+            {selectedJobCard.micron && (
+              <>
+                <span>•</span>
+                <span><span className="text-gray-400 font-medium">Micron:</span> {selectedJobCard.micron}μ</span>
+              </>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100 text-center">
