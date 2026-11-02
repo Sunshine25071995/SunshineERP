@@ -306,6 +306,17 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
 
   return (
     <div className="w-full space-y-5 pb-12">
+      {/* BACK NAVIGATION */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => onNavigate('parties')}
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs sm:text-sm shadow-xs transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 text-slate-500" />
+          <span>← Back to Parties</span>
+        </button>
+      </div>
+
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="flex items-center gap-3">
@@ -355,14 +366,14 @@ export function PartyLedger({ id, onNavigate }: { id?: string, onNavigate: (view
       </div>
 
       {/* LEDGER TABLE — rendered for html2canvas */}
-      <div ref={ledgerTableRef} className="bg-white sm:rounded-2xl shadow-sm border-y sm:border border-slate-200 overflow-hidden -mx-4 sm:mx-0">
+      <div ref={ledgerTableRef} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
         <div className="bg-slate-800 px-3 sm:px-5 py-2 sm:py-3 flex items-center gap-2">
           <FileText className="h-4 w-4 text-slate-300" />
           <h2 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase truncate">Ledger — {party.party_name}</h2>
           <span className="ml-auto text-[10px] sm:text-xs text-slate-400 whitespace-nowrap">{format(new Date(), 'dd/MM/yyyy')}</span>
         </div>
 
-        <div className="w-full">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">

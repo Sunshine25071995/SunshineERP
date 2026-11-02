@@ -118,7 +118,7 @@ export function Dashboard() {
       </div>
 
       {/* Hero Metric - Outstanding */}
-      <div className="w-full bg-gradient-to-br from-rose-500 to-rose-600 rounded-[32px] p-6 sm:p-8 text-white shadow-xl shadow-rose-200 relative overflow-hidden">
+      <div className="w-full bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl sm:rounded-[32px] p-5 sm:p-8 text-white shadow-xl shadow-rose-200/50 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-rose-400 opacity-30 rounded-full blur-2xl"></div>
         
@@ -127,7 +127,7 @@ export function Dashboard() {
             <AlertCircle className="h-5 w-5" />
             <span className="text-sm sm:text-base font-bold uppercase tracking-wider">Total Outstanding</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-sm break-all">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight drop-shadow-sm">
             {formatCurrency(totalOutstanding)}
           </h2>
           <div className="mt-6 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -138,8 +138,8 @@ export function Dashboard() {
       </div>
 
       {/* Secondary Metrics */}
-      <div className="w-full grid grid-cols-2 gap-4">
-        <div className="bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex flex-col justify-between min-h-[120px]">
+      <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 flex flex-col justify-between min-h-[105px] sm:min-h-[120px]">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-indigo-50 w-10 h-10 rounded-full flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-indigo-600" />
@@ -148,11 +148,11 @@ export function Dashboard() {
           </div>
           <div>
             <p className="text-xs sm:text-sm font-bold text-slate-500 mb-1">Total Sales</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(totalSales)}</p>
+            <p className="text-base sm:text-2xl font-black text-slate-900 tracking-tight truncate">{formatCurrency(totalSales)}</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex flex-col justify-between min-h-[120px]">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-[28px] shadow-sm border border-slate-100 flex flex-col justify-between min-h-[105px] sm:min-h-[120px]">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-emerald-50 w-10 h-10 rounded-full flex items-center justify-center">
               <IndianRupee className="h-5 w-5 text-emerald-600" />
@@ -161,7 +161,7 @@ export function Dashboard() {
           </div>
           <div>
             <p className="text-xs sm:text-sm font-bold text-slate-500 mb-1">Total Received</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(totalReceived)}</p>
+            <p className="text-base sm:text-2xl font-black text-slate-900 tracking-tight truncate">{formatCurrency(totalReceived)}</p>
           </div>
         </div>
       </div>
@@ -172,7 +172,7 @@ export function Dashboard() {
       <div className="w-full flex flex-col lg:flex-row gap-6 mt-4">
         
         {/* Chart Section */}
-        <div className="flex-1 bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col min-h-[350px]">
+        <div className="flex-1 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-[32px] shadow-sm border border-slate-100 flex flex-col min-h-[300px] sm:min-h-[350px]">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-black text-slate-900 tracking-tight">Sales & Collections</h3>
             <div className="flex items-center gap-3">

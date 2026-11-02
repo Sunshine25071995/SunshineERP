@@ -162,10 +162,14 @@ export const dbService = {
 
   async updateBillDetails(id: string, data: Partial<Bill>) {
     const ref = doc(db, 'bills', id);
-    // Only allow updating safe fields without breaking allocations
+    // Allow updating bill fields including amount, status, date, notes, etc.
     await updateDoc(ref, {
       ...(data.bill_number && { bill_number: data.bill_number }),
       ...(data.bill_date && { bill_date: data.bill_date }),
+      ...(data.bill_amount !== undefined && { bill_amount: data.bill_amount }),
+      ...(data.outstanding_amount !== undefined && { outstanding_amount: data.outstanding_amount }),
+      ...(data.status !== undefined && { status: data.status }),
+      ...(data.fully_paid_date !== undefined && { fully_paid_date: data.fully_paid_date }),
       ...(data.job_card_ids !== undefined && { job_card_ids: data.job_card_ids }),
       ...(data.notes !== undefined && { notes: data.notes })
     });

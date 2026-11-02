@@ -176,19 +176,28 @@ export function Parties({
         )}
       </div>
 
-      {/* Summary Cards - Vertically Aligned */}
-      <div className="flex flex-col gap-3 px-1">
-        <div className="bg-[#FCA5A5] text-black p-4 rounded-3xl border-none shadow-sm flex justify-between items-center">
-          <p className="text-xs sm:text-sm font-bold opacity-80 uppercase tracking-wider">Total Sales</p>
-          <p className="text-lg sm:text-2xl font-black tracking-tight break-all">{formatCurrency(totalSales)}</p>
+      {/* Summary Cards - Vertically Aligned with High-Clarity Styling */}
+      <div className="flex flex-col gap-2.5 px-1">
+        <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
+          <div>
+            <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Total Sales</p>
+            <p className="text-xs text-slate-400 mt-0.5">{filteredParties.length} Parties</p>
+          </div>
+          <p className="text-xl sm:text-2xl font-black tracking-tight text-white">{formatCurrency(totalSales)}</p>
         </div>
-        <div className="bg-[#6EE7B7] text-black p-4 rounded-3xl border-none shadow-sm flex justify-between items-center">
-          <p className="text-xs sm:text-sm font-bold opacity-80 uppercase tracking-wider">Received</p>
-          <p className="text-lg sm:text-2xl font-black tracking-tight break-all">{formatCurrency(totalReceived)}</p>
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
+          <div>
+            <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider">Total Received</p>
+            <p className="text-xs text-emerald-200 mt-0.5">Collected Funds</p>
+          </div>
+          <p className="text-xl sm:text-2xl font-black tracking-tight text-white">{formatCurrency(totalReceived)}</p>
         </div>
-        <div className="bg-[#FDE047] text-black p-4 rounded-3xl border-none shadow-sm flex justify-between items-center">
-          <p className="text-xs sm:text-sm font-bold opacity-80 uppercase tracking-wider">Outstanding</p>
-          <p className="text-lg sm:text-2xl font-black tracking-tight break-all">{formatCurrency(totalOutstanding)}</p>
+        <div className="bg-gradient-to-r from-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
+          <div>
+            <p className="text-xs font-bold text-rose-100 uppercase tracking-wider">Total Outstanding</p>
+            <p className="text-xs text-rose-200 mt-0.5">Due Balance</p>
+          </div>
+          <p className="text-xl sm:text-2xl font-black tracking-tight text-white">{formatCurrency(totalOutstanding)}</p>
         </div>
       </div>
 
@@ -213,17 +222,22 @@ export function Parties({
         {filteredParties.map((party) => (
           <div key={party.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             {/* Party Name Row */}
-            <div className="flex items-center justify-between px-3 pt-3 pb-1">
-              <button 
-                onClick={() => onNavigate('partyLedger', party.id)} 
-                className="text-sm font-bold text-slate-900 hover:text-indigo-600 truncate max-w-[60%] text-left"
-              >
-                {party.party_name}
-              </button>
+            <div className="flex items-start justify-between gap-2 px-3.5 pt-3.5 pb-1">
+              <div className="flex-1 min-w-0 pr-1">
+                <button 
+                  onClick={() => onNavigate('partyLedger', party.id)} 
+                  className="text-sm sm:text-base font-extrabold text-slate-900 hover:text-indigo-600 text-left line-clamp-1 transition-colors"
+                >
+                  {party.party_name}
+                </button>
+                {party.mobile && (
+                  <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{party.mobile}</p>
+                )}
+              </div>
               <span className={cn(
-                'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold',
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 mt-0.5',
                 party.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' :
-                party.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                party.status === 'OVERDUE' ? 'bg-rose-100 text-rose-800' :
                 party.status === 'PARTIALLY PAID' ? 'bg-blue-100 text-blue-800' :
                 'bg-amber-100 text-amber-800'
               )}>
@@ -249,39 +263,39 @@ export function Parties({
               </div>
             </div>
 
-            {/* Action Buttons Row - compact */}
-            <div className="flex items-center justify-between px-3 pb-2.5 pt-0.5 border-t border-slate-50">
-              <div className="flex items-center gap-1.5">
+            {/* Action Buttons Row - Touch Friendly */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 pb-3 pt-1 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <button 
                   onClick={() => onNavigate('partyLedger', party.id)} 
-                  className="flex items-center gap-1 text-[10px] px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg font-bold transition-colors"
+                  className="flex items-center gap-1 text-xs px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl font-bold transition-colors"
                 >
-                  <FileText className="h-3 w-3" />
+                  <FileText className="h-3.5 w-3.5" />
                   Ledger
                 </button>
                 <button 
                   onClick={() => shareWhatsApp(party)} 
-                  className="flex items-center gap-1 text-[10px] px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg font-bold transition-colors"
+                  className="flex items-center gap-1 text-xs px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl font-bold transition-colors"
                 >
-                  <MessageCircle className="h-3 w-3" />
+                  <MessageCircle className="h-3.5 w-3.5" />
                   WhatsApp
                 </button>
                 <button 
                   onClick={() => setSelectedPartyForJobs(party)} 
-                  className="flex items-center gap-1 text-[10px] px-2.5 py-1 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-lg font-bold transition-colors"
+                  className="flex items-center gap-1 text-xs px-3 py-1.5 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl font-bold transition-colors"
                   title="View Job Cards for this party"
                 >
-                  <Briefcase className="h-3 w-3" />
+                  <Briefcase className="h-3.5 w-3.5" />
                   Jobs
                 </button>
               </div>
               {profile?.role === 'admin' && (
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setEditingParty(party)} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
-                    <Edit2 className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-1 shrink-0 ml-auto">
+                  <button onClick={() => setEditingParty(party)} className="p-2 text-slate-400 hover:text-indigo-600 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors" title="Edit Party">
+                    <Edit2 className="h-4 w-4" />
                   </button>
-                  <button onClick={() => handleDeleteParty(party.id)} className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
+                  <button onClick={() => handleDeleteParty(party.id)} className="p-2 text-slate-400 hover:text-rose-600 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors" title="Delete Party">
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               )}
@@ -307,7 +321,7 @@ export function Parties({
 
       {/* Modal - Top Positioned */}
       {(isAddModalOpen || editingParty) && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-start items-center bg-slate-900/60 p-4 pt-12 sm:pt-20 backdrop-blur-sm transition-all">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-sm transition-all overflow-y-auto">
           <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden max-h-[85vh] flex flex-col animate-scale-in">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white relative">
               <h3 className="text-lg font-black text-slate-900">{editingParty ? 'Edit Party' : 'Add Party'}</h3>

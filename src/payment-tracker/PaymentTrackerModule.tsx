@@ -37,15 +37,15 @@ export function PaymentTrackerModule({ jobCards = [], slitRolls = [] }: PaymentT
   };
 
   const navigation = [
-    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, activeBg: 'bg-[#818CF8]', activeText: 'text-white', iconActive: 'text-white' },
-    { id: 'parties', name: 'Parties', icon: Users, activeBg: 'bg-[#FDE047]', activeText: 'text-black', iconActive: 'text-black' },
-    { id: 'bills', name: 'Bills', icon: Receipt, activeBg: 'bg-[#FCA5A5]', activeText: 'text-black', iconActive: 'text-black' },
-    { id: 'payments', name: 'Payments', icon: CreditCard, activeBg: 'bg-[#6EE7B7]', activeText: 'text-black', iconActive: 'text-black' },
-    { id: 'reports', name: 'Reports', icon: FileText, activeBg: 'bg-[#C4B5FD]', activeText: 'text-black', iconActive: 'text-black' },
+    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
+    { id: 'parties', name: 'Parties', icon: Users },
+    { id: 'bills', name: 'Bills', icon: Receipt },
+    { id: 'payments', name: 'Payments', icon: CreditCard },
+    { id: 'reports', name: 'Reports', icon: FileText },
   ];
 
   return (
-    <div className="flex flex-col md:flex-row h-full min-h-[500px] md:h-[calc(100vh-140px)] bg-slate-50 overflow-hidden w-full">
+    <div className="flex flex-col md:flex-row min-h-0 md:h-[calc(100vh-140px)] bg-slate-50 md:overflow-hidden w-full">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex flex-col w-64 bg-white shadow-xl z-20 border-r border-slate-100">
         <div className="flex-1 overflow-y-auto py-4">
@@ -57,13 +57,13 @@ export function PaymentTrackerModule({ jobCards = [], slitRolls = [] }: PaymentT
                   key={item.id}
                   onClick={() => handleNavigate(item.id)}
                   className={cn(
-                    "w-full flex items-center py-3 px-4 font-bold rounded-xl transition-colors text-left",
+                    "w-full flex items-center py-3 px-4 font-bold rounded-xl transition-all text-left",
                     isActive 
-                      ? `${item.activeBg} ${item.activeText} shadow-sm` 
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" 
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   )}
                 >
-                  <item.icon className={cn("h-5 w-5 flex-shrink-0 mr-3", isActive ? item.iconActive : "text-slate-400")} />
+                  <item.icon className={cn("h-5 w-5 flex-shrink-0 mr-3", isActive ? "text-white" : "text-slate-400")} />
                   <span className="whitespace-nowrap">{item.name}</span>
                 </button>
               )
@@ -72,8 +72,8 @@ export function PaymentTrackerModule({ jobCards = [], slitRolls = [] }: PaymentT
         </div>
       </div>
 
-      {/* Mobile Top Navigation (Pill style) */}
-      <div className="md:hidden bg-slate-50 overflow-x-auto hide-scrollbar shrink-0 px-4 pt-4 pb-2 w-full">
+      {/* Mobile Top Navigation (Sticky & Touch-Friendly Pill Bar) */}
+      <div className="md:hidden sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md overflow-x-auto hide-scrollbar shrink-0 px-2 sm:px-4 py-2.5 border-b border-slate-200/80 w-full shadow-xs">
         <nav className="flex space-x-2">
           {navigation.map((item) => {
             const isActive = currentView === item.id || (item.id === 'parties' && currentView === 'partyLedger');
@@ -82,13 +82,13 @@ export function PaymentTrackerModule({ jobCards = [], slitRolls = [] }: PaymentT
                 key={item.id}
                 onClick={() => handleNavigate(item.id)}
                 className={cn(
-                  "flex items-center whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-bold transition-colors",
+                  "flex items-center whitespace-nowrap px-4 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all active:scale-95",
                   isActive 
-                    ? `${item.activeBg} ${item.activeText} shadow-sm` 
-                    : "bg-white text-slate-600 shadow-sm"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" 
+                    : "bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-100 shadow-xs"
                 )}
               >
-                <item.icon className={cn("h-4 w-4 mr-1.5", isActive ? item.iconActive : "text-slate-500")} />
+                <item.icon className={cn("h-4 w-4 mr-1.5", isActive ? "text-white" : "text-slate-500")} />
                 {item.name}
               </button>
             );
@@ -97,8 +97,8 @@ export function PaymentTrackerModule({ jobCards = [], slitRolls = [] }: PaymentT
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden relative w-full">
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-[100px] md:pb-8 w-full">
+      <div className="flex flex-1 flex-col min-h-0 relative w-full md:overflow-hidden">
+        <main className="flex-1 p-2.5 sm:p-4 md:p-6 lg:p-8 pb-[100px] md:pb-8 w-full md:overflow-y-auto">
           {currentView === 'dashboard' && <Dashboard />}
           {currentView === 'parties' && <Parties onNavigate={handleNavigate} jobCards={jobCards} slitRolls={slitRolls} />}
           {currentView === 'partyLedger' && <PartyLedger id={selectedPartyId} onNavigate={handleNavigate} />}
