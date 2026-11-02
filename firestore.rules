@@ -103,5 +103,20 @@ service cloud.firestore {
     match /allocations/{allocationId} {
       allow read, write: if true;
     }
+
+    // Job Card Parties collection
+    match /jobCardParties/{partyId} {
+      allow read, write: if true;
+    }
+
+    // Production Plans collection
+    match /productionPlans/{planId} {
+      allow read, write: if true;
+    }
+
+    // Activity Logs collection
+    match /activityLogs/{logId} {
+      allow read, write: if true;
+    }
   }
 }

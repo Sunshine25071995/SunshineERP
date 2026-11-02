@@ -8,8 +8,6 @@ import {
   updateDoc, 
   deleteDoc, 
   serverTimestamp, 
-  query, 
-  orderBy 
 } from 'firebase/firestore';
 import { db } from '../firebaseClient';
 import { JobCardParty } from '../types';
@@ -69,40 +67,86 @@ function initPartiesListener() {
   listenerAttached = true;
 
   try {
-    const partiesCol = collection(db, 'jobCardParties');
+    // We use the 'parties' collection which already has read/write permissions in Firebase Firestore rules
+    const partiesCol = collection(db, 'parties');
     onSnapshot(partiesCol, async (snapshot) => {
+      const list: JobCardParty[] = [];
+      const usedCodes = new Set<string>();
+
+      snapshot.forEach((d) => {
+        const data = d.data();
+        const partyName = (data.party_name || data.name || '').trim();
+        if (!partyName) return;
+
+        let code = (data.code || '').trim();
+        if (code) {
+          code = code.padStart(3, '0');
+          usedCodes.add(code);
+        }
+
+        list.push({
+          id: d.id,
+          code,
+          name: partyName,
+          contactPerson: data.contactPerson || '',
+          phone: data.mobile || data.phone || '',
+          notes: data.notes || '',
+          createdAt: data.created_at || data.createdAt,
+          updatedAt: data.updated_at || data.updatedAt,
+        });
+      });
+
+      // For any party without code, derive code
+      let nextCodeNum = 8;
+      for (const p of list) {
+        if (!p.code) {
+          const matchInitial = INITIAL_JOB_CARD_PARTIES.find(
+            init => init.name.toLowerCase() === p.name.toLowerCase()
+          );
+          if (matchInitial) {
+            p.code = matchInitial.code;
+          } else {
+            while (usedCodes.has(String(nextCodeNum).padStart(3, '0'))) {
+              nextCodeNum++;
+            }
+            p.code = String(nextCodeNum).padStart(3, '0');
+            nextCodeNum++;
+          }
+          usedCodes.add(p.code);
+        }
+      }
+
+      // Check if collection is empty, auto-seed the initial 7 parties
       if (snapshot.empty && !isSeeding) {
         isSeeding = true;
         try {
           for (const item of INITIAL_JOB_CARD_PARTIES) {
-            await setDoc(doc(db, 'jobCardParties', `seed_${item.code}`), {
+            await setDoc(doc(db, 'parties', `seed_${item.code}`), {
               code: item.code,
               name: item.name,
-              createdAt: serverTimestamp(),
+              party_name: item.name,
+              opening_balance: 0,
+              advance_balance: 0,
+              created_at: Date.now(),
             }, { merge: true });
           }
         } catch (seedErr) {
-          console.error('Error auto-seeding jobCardParties:', seedErr);
+          console.warn('Auto-seed parties notice:', seedErr);
         } finally {
           isSeeding = false;
         }
-        return;
       }
 
-      const list: JobCardParty[] = [];
-      snapshot.forEach((d) => {
-        const data = d.data();
-        list.push({
-          id: d.id,
-          code: data.code || '',
-          name: data.name || '',
-          contactPerson: data.contactPerson || '',
-          phone: data.phone || '',
-          notes: data.notes || '',
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-        });
-      });
+      // Ensure all 7 initial parties exist in the returned list
+      for (const init of INITIAL_JOB_CARD_PARTIES) {
+        if (!list.some(p => p.code === init.code)) {
+          list.push({
+            id: `seed_${init.code}`,
+            code: init.code,
+            name: init.name,
+          });
+        }
+      }
 
       // Sort by code: numeric comparison first, fallback to alphabetical
       list.sort((a, b) => {
@@ -117,7 +161,6 @@ function initPartiesListener() {
       cachedParties = list;
 
       // Update in-memory PARTIES lookup
-      // Clear out obsolete dynamic keys while preserving fallback
       for (const k of Object.keys(PARTIES)) {
         delete PARTIES[k];
       }
@@ -133,10 +176,10 @@ function initPartiesListener() {
         try { cb(list); } catch (e) { console.error(e); }
       });
     }, (error) => {
-      console.error('Error listening to jobCardParties:', error);
+      console.error('Error listening to parties:', error);
     });
   } catch (err) {
-    console.error('Failed to attach jobCardParties listener:', err);
+    console.error('Failed to attach parties listener:', err);
   }
 }
 
@@ -146,7 +189,6 @@ initPartiesListener();
 export function subscribeJobCardParties(callback: (parties: JobCardParty[]) => void): () => void {
   initPartiesListener();
   subscribers.add(callback);
-  // Emit immediately with current cache
   callback(cachedParties);
   return () => {
     subscribers.delete(callback);
@@ -191,23 +233,41 @@ export async function addJobCardParty(data: {
     throw new Error(`Party Code "${code}" already exists for "${existingWithCode.name}". Please use a different code.`);
   }
 
+  const phone = (data.phone || '').trim();
+  const contactPerson = (data.contactPerson || '').trim();
+  const notes = (data.notes || '').trim();
+
+  // Save to 'parties' collection with fields compatible with both Payment Tracker & Job Cards
   const docData = {
+    party_name: trimmedName,
     name: trimmedName,
     code,
-    contactPerson: (data.contactPerson || '').trim(),
-    phone: (data.phone || '').trim(),
-    notes: (data.notes || '').trim(),
+    mobile: phone,
+    phone,
+    contactPerson,
+    notes,
+    opening_balance: 0,
+    advance_balance: 0,
+    created_at: Date.now(),
     createdAt: serverTimestamp(),
   };
 
-  const docRef = await addDoc(collection(db, 'jobCardParties'), docData);
+  const docRef = await addDoc(collection(db, 'parties'), docData);
   const newParty: JobCardParty = {
     id: docRef.id,
-    ...docData,
+    code,
+    name: trimmedName,
+    contactPerson,
+    phone,
+    notes,
   };
 
   // Immediate local cache update
   PARTIES[code] = trimmedName;
+  cachedParties = [...cachedParties, newParty];
+  subscribers.forEach(cb => {
+    try { cb(cachedParties); } catch (e) { console.error(e); }
+  });
 
   return newParty;
 }
@@ -219,6 +279,7 @@ export async function updateJobCardParty(
   if (!id) throw new Error('Party ID is required for update.');
 
   const updatePayload: Record<string, any> = {
+    updated_at: Date.now(),
     updatedAt: serverTimestamp(),
   };
 
@@ -226,12 +287,12 @@ export async function updateJobCardParty(
     const trimmed = data.name.trim();
     if (!trimmed) throw new Error('Party name cannot be empty.');
     updatePayload.name = trimmed;
+    updatePayload.party_name = trimmed;
   }
 
   if (data.code !== undefined) {
     const trimmedCode = data.code.trim().padStart(3, '0');
     if (!trimmedCode) throw new Error('Party code cannot be empty.');
-    // Check if another party already has this code
     const existing = cachedParties.find(p => p.id !== id && p.code.toLowerCase() === trimmedCode.toLowerCase());
     if (existing) {
       throw new Error(`Party Code "${trimmedCode}" is already used by "${existing.name}".`);
@@ -240,13 +301,16 @@ export async function updateJobCardParty(
   }
 
   if (data.contactPerson !== undefined) updatePayload.contactPerson = data.contactPerson.trim();
-  if (data.phone !== undefined) updatePayload.phone = data.phone.trim();
+  if (data.phone !== undefined) {
+    updatePayload.phone = data.phone.trim();
+    updatePayload.mobile = data.phone.trim();
+  }
   if (data.notes !== undefined) updatePayload.notes = data.notes.trim();
 
-  await updateDoc(doc(db, 'jobCardParties', id), updatePayload);
+  await updateDoc(doc(db, 'parties', id), updatePayload);
 }
 
 export async function deleteJobCardParty(id: string): Promise<void> {
   if (!id) throw new Error('Party ID is required.');
-  await deleteDoc(doc(db, 'jobCardParties', id));
+  await deleteDoc(doc(db, 'parties', id));
 }
