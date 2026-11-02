@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, FileText, Layers, Scissors } from 'lucide-react';
-import { JobCard, ProductionRoll, SlittingRoll } from '../types';
+import { User, JobCard, ProductionRoll, SlittingRoll } from '../types';
 import { getPartyName } from '../utils/parties';
 
 interface GlobalSearchProps {
@@ -8,6 +8,7 @@ interface GlobalSearchProps {
   prodRolls: ProductionRoll[];
   slitRolls: SlittingRoll[];
   onNavigate: (module: string) => void;
+  currentUser?: User;
 }
 
 interface SearchResult {
@@ -23,6 +24,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   prodRolls,
   slitRolls,
   onNavigate,
+  currentUser,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -50,21 +52,24 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
   const q = query.toLowerCase().trim();
 
+  const isRestrictedDept = currentUser?.department === 'production' || currentUser?.department === 'slitting';
   const matchedJobCards: SearchResult[] = q
     ? jobCards
         .filter(
           (jc) =>
             (jc.jobCode || '').toLowerCase().includes(q) ||
-            (jc.partyCode || '').toLowerCase().includes(q) ||
-            (getPartyName(jc.partyCode) || '').toLowerCase().includes(q)
+            (!isRestrictedDept && (jc.partyCode || '').toLowerCase().includes(q)) ||
+            (!isRestrictedDept && (getPartyName(jc.partyCode) || '').toLowerCase().includes(q))
         )
         .slice(0, 8)
         .map((jc) => ({
           type: 'jobCard' as const,
           id: jc.id,
           title: jc.jobCode,
-          subtitle: `${getPartyName(jc.partyCode)} · ${jc.size} · ${jc.micron}μ`,
-          module: 'admin',
+          subtitle: isRestrictedDept 
+            ? `${jc.size} · ${jc.micron}μ`
+            : `${getPartyName(jc.partyCode)} · ${jc.size} · ${jc.micron}μ`,
+          module: currentUser?.department === 'production' ? 'production' : (currentUser?.department === 'slitting' ? 'slitting' : 'admin'),
         }))
     : [];
 

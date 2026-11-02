@@ -247,7 +247,7 @@ export default function App() {
                 </span>
                 <span className="text-sm font-semibold text-slate-800">{currentUser.name}</span>
               </div>
-              <GlobalSearch jobCards={jobCards} prodRolls={prodRolls} slitRolls={slitRolls} onNavigate={(mod) => setNavigateTo(mod)} />
+              <GlobalSearch jobCards={jobCards} prodRolls={prodRolls} slitRolls={slitRolls} onNavigate={(mod) => setNavigateTo(mod)} currentUser={currentUser} />
               <NotificationCenter 
                 jobCards={jobCards}
                 chemicals={chemicals}

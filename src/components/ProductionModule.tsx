@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, JobCard, ProductionRoll, ProductionWastage, SlittingRoll } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
-import { getPartyName } from '../utils/parties';
 import { Layers, Plus, Trash2, Edit2, Check, X, Search, ChevronRight, FileText, Target, TrendingUp, Scale } from 'lucide-react';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseClient';
@@ -77,8 +76,8 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
     const q = searchQuery.toLowerCase().trim();
     return (
       String(jc.jobCode || '').toLowerCase().includes(q) ||
-      String(jc.partyCode || '').toLowerCase().includes(q) ||
       String(jc.size || '').toLowerCase().includes(q) ||
+      String(jc.micron || '').toLowerCase().includes(q) ||
       String(jc.status || '').toLowerCase().includes(q)
     );
   });
@@ -236,7 +235,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
 
         <div className="relative">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input type="text" placeholder="Search job code, party, size…" value={searchQuery}
+          <input type="text" placeholder="Search job code, size, micron…" value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-sm" />
           {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-4 h-4" /></button>}
@@ -260,7 +259,7 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                     isRunning ? 'border-emerald-300 bg-emerald-50/50 running-card' : ''
                   }`}>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="text-sm font-semibold text-gray-700">{getPartyName(jc.partyCode)}</div>
+                    <span className="text-xs font-bold text-gray-400 font-mono tracking-wide">{formatToDDMM(jc.date)}</span>
                     <StatusBadge status={jc.status} />
                   </div>
 
@@ -332,9 +331,9 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
               )}
             </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap text-sm text-gray-600">
-              <span><span className="font-semibold">Party:</span> {getPartyName(selectedJobCard.partyCode)}</span>
               <span><span className="font-semibold">Size:</span> {selectedJobCard.size}</span>
               {selectedJobCard.micron && <span><span className="font-semibold">Micron:</span> {selectedJobCard.micron}μ</span>}
+              <span><span className="font-semibold">Target:</span> {formatWeight(selectedJobCard.totalQuantity)} kg</span>
             </div>
           </div>
           <div className="text-right shrink-0">
