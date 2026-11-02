@@ -65,7 +65,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
         <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-3 shrink-0">
           <div>
             <div className="flex items-center gap-2.5 flex-wrap mb-1">
-              <span className="font-mono text-3xl sm:text-4xl font-black text-blue-600 bg-blue-50 px-4 py-1.5 rounded-2xl border border-blue-200 shadow-sm">
+              <span className="font-mono text-3xl font-black text-amber-900 bg-amber-100 px-4 py-1.5 rounded-xl border border-amber-300 shadow-sm">
                 {jobCard.jobCode}
               </span>
               <StatusBadge status={jobCard.status} />

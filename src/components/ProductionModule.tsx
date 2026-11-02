@@ -259,22 +259,15 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
                   className={`w-full text-left app-card p-4 flex flex-col gap-3 cursor-pointer transition-all btn-press hover:shadow-md ${
                     isRunning ? 'border-emerald-300 bg-emerald-50/50 running-card' : ''
                   }`}>
-                  {/* Top Bar: Date & Status Badge */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold text-gray-400 font-mono tracking-wide">
-                      {formatToDDMM(jc.date)}
-                    </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm font-semibold text-gray-700">{getPartyName(jc.partyCode)}</div>
                     <StatusBadge status={jc.status} />
                   </div>
 
-                  {/* Centered Extra Big & Bold Job Card Number in Blue Font */}
-                  <div className="w-full flex flex-col items-center justify-center py-2.5 px-3 bg-blue-50/70 border border-blue-100/90 rounded-2xl text-center shadow-xs">
+                  <div className="text-center py-1">
                     <span className="font-mono text-3xl sm:text-4xl font-black text-blue-600 tracking-wider">
                       {jc.jobCode}
                     </span>
-                    <div className="text-xs sm:text-sm font-bold text-gray-700 mt-1 line-clamp-1">
-                      {getPartyName(jc.partyCode)}
-                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center">
@@ -318,45 +311,35 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({ currentUser,
   return (
     <div className="space-y-4 animate-slide-up">
       <div className="app-card p-4">
-        {/* Top Shift & Status row */}
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status:</span>
-            {canEdit ? (
-              <select value={selectedJobCard.status || 'pending'}
-                onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
-                className="text-xs font-bold rounded-xl px-2.5 py-1.5 border cursor-pointer bg-white border-blue-200 text-gray-800 focus:outline-none shadow-xs">
-                <option value="running">🔥 Running</option>
-                <option value="pending">⏳ Pending</option>
-                <option value="completed">✅ Completed</option>
-                <option value="dispatched">🚚 Dispatched</option>
-              </select>
-            ) : (
-              <StatusBadge status={selectedJobCard.status} />
-            )}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Selected Job</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-3xl font-black text-blue-600">
+                {selectedJobCard.jobCode}
+              </span>
+              {canEdit ? (
+                <select value={selectedJobCard.status || 'pending'}
+                  onChange={e => handleUpdateStatus(selectedJobCard.id, e.target.value)}
+                  className="text-xs font-bold rounded-lg px-2 py-1 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none">
+                  <option value="running">🔥 Running</option>
+                  <option value="pending">⏳ Pending</option>
+                  <option value="completed">✅ Completed</option>
+                  <option value="dispatched">🚚 Dispatched</option>
+                </select>
+              ) : (
+                <StatusBadge status={selectedJobCard.status} />
+              )}
+            </div>
+            <div className="flex items-center gap-3 mt-2 flex-wrap text-sm text-gray-600">
+              <span><span className="font-semibold">Party:</span> {getPartyName(selectedJobCard.partyCode)}</span>
+              <span><span className="font-semibold">Size:</span> {selectedJobCard.size}</span>
+              {selectedJobCard.micron && <span><span className="font-semibold">Micron:</span> {selectedJobCard.micron}μ</span>}
+            </div>
           </div>
           <div className="text-right shrink-0">
-            <span className="text-xs text-gray-400 mr-1.5">Shift:</span>
-            <span className="text-sm font-black text-gray-800 bg-gray-100 px-2.5 py-0.5 rounded-lg font-mono">{currentUser.shift || 'A'}</span>
-          </div>
-        </div>
-
-        {/* Centered Extra Big & Bold Job Card Number in Blue Font */}
-        <div className="w-full flex flex-col items-center justify-center text-center py-2.5 px-4 bg-blue-50/70 border border-blue-100/90 rounded-2xl mb-3 shadow-xs">
-          <p className="text-[10px] font-bold text-blue-600/80 uppercase tracking-widest mb-0.5">Selected Job Card</p>
-          <span className="font-mono text-3xl sm:text-4xl font-black text-blue-600 tracking-wider">
-            {selectedJobCard.jobCode}
-          </span>
-          <div className="flex items-center justify-center gap-3 mt-1.5 flex-wrap text-xs sm:text-sm text-gray-700 font-semibold">
-            <span><span className="text-gray-400 font-medium">Party:</span> {getPartyName(selectedJobCard.partyCode)}</span>
-            <span>•</span>
-            <span><span className="text-gray-400 font-medium">Size:</span> {selectedJobCard.size}</span>
-            {selectedJobCard.micron && (
-              <>
-                <span>•</span>
-                <span><span className="text-gray-400 font-medium">Micron:</span> {selectedJobCard.micron}μ</span>
-              </>
-            )}
+            <p className="text-xs text-gray-400">Shift</p>
+            <p className="text-sm font-bold text-gray-700">{currentUser.shift || 'A'}</p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100 text-center">

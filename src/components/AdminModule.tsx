@@ -609,33 +609,30 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                 const isRunning = jc.slittingStatus?.toLowerCase() === 'running';
                 return (
                   <div key={jc.id} onClick={() => setSelectedJobCardForDetail(jc)} className={`app-card p-4 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow ${isRunning ? 'border-emerald-300 bg-emerald-50/50 running-card' : ''}`}>
-                    {/* Top Bar: Date & Slit Status */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold text-gray-400 font-mono tracking-wide">{jc.date || ''}</span>
-                      <div onClick={e => e.stopPropagation()} className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase">Slit Status</span>
-                        {canEdit ? (
-                          <select value={jc.slittingStatus || 'pending'}
-                            onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'slittingStatus')}
-                            className="text-xs font-bold rounded-lg px-2 py-1.5 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none shadow-sm">
-                            <option value="running">🔥 Running</option>
-                            <option value="pending">⏳ Pending</option>
-                            <option value="completed">✅ Completed</option>
-                            <option value="dispatched">🚚 Dispatched</option>
-                          </select>
-                        ) : (
-                          <span className="text-xs font-bold text-gray-700 capitalize">{jc.slittingStatus || 'pending'}</span>
-                        )}
+                    {/* Top */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-col gap-2">
+                        <span className={`inline-block font-mono text-xl font-black px-3 py-1 rounded-xl border shadow-sm ${
+                          isRunning ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-amber-100 border-amber-300 text-amber-900'
+                        }`}>{jc.jobCode}</span>
+                        <div className="text-sm font-semibold text-gray-700">{getPartyName(jc.partyCode)}</div>
                       </div>
-                    </div>
-
-                    {/* Centered Extra Big & Bold Job Card Number in Blue Font */}
-                    <div className="w-full flex flex-col items-center justify-center py-2.5 px-3 bg-blue-50/70 border border-blue-100/90 rounded-2xl text-center shadow-xs">
-                      <span className="font-mono text-3xl sm:text-4xl font-black text-blue-600 tracking-wider">
-                        {jc.jobCode}
-                      </span>
-                      <div className="text-xs sm:text-sm font-bold text-gray-700 mt-1 line-clamp-1">
-                        {getPartyName(jc.partyCode)}
+                      <div onClick={e => e.stopPropagation()} className="flex flex-col gap-1 items-end">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">Slit Status</span>
+                          {canEdit ? (
+                            <select value={jc.slittingStatus || 'pending'}
+                              onChange={e => handleUpdateStatus(jc.id, e.target.value as JobCardStatus, 'slittingStatus')}
+                              className="text-xs font-bold rounded-lg px-2 py-1.5 border cursor-pointer bg-white border-gray-300 text-gray-700 focus:outline-none shadow-sm">
+                              <option value="running">🔥 Running</option>
+                              <option value="pending">⏳ Pending</option>
+                              <option value="completed">✅ Completed</option>
+                              <option value="dispatched">🚚 Dispatched</option>
+                            </select>
+                          ) : (
+                            <span className="text-xs font-bold text-gray-700 capitalize">{jc.slittingStatus || 'pending'}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
