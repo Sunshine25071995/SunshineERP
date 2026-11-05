@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { Scissors, Plus, Trash2, Edit2, Check, X, CheckSquare, Square, Search, ChevronRight, Package } from 'lucide-react';
@@ -103,6 +103,9 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
   const [editCore, setEditCore] = useState('');
   const [editDate, setEditDate] = useState('');
 
+  // Ref for fast data entry — focus returns to grossWeight after save
+  const grossWeightRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (selectedJobCard?.coilSizes?.length > 0) setSelectedCoilSize(selectedJobCard.coilSizes[0]);
     else setSelectedCoilSize('');
@@ -185,6 +188,8 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
         }).catch(err => console.error('Failed to sync to sheets', err));
       }
       setGrossWeight(''); setMeter('');
+      // Focus back to grossWeight for fast data entry
+      setTimeout(() => grossWeightRef.current?.focus(), 80);
     } catch (err) { alert('Error: ' + String(err)); }
   };
 
@@ -486,7 +491,15 @@ export const SlittingModule: React.FC<SlittingModuleProps> = ({ currentUser, job
                 <div className="grid grid-cols-2 gap-3">
                   <FormField label="Meter"><input type="number" step="0.01" placeholder="0.00" value={meter} onChange={e => setMeter(e.target.value)} className={inputCls} /></FormField>
                   <FormField label="Date"><input type="date" value={rollDate} onChange={e => setRollDate(e.target.value)} className={inputCls} /></FormField>
-                  <FormField label="Gross Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} required className={inputCls} /></FormField>
+                  <FormField label="Gross Wt (kg)"><input
+                    ref={grossWeightRef}
+                    type="number" step="0.001" placeholder="0.000"
+                    value={grossWeight} onChange={e => setGrossWeight(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); (e.currentTarget.form as HTMLFormElement)?.requestSubmit(); } }}
+                    required className={inputCls}
+                    inputMode="decimal"
+                    autoComplete="off"
+                  /></FormField>
                   <FormField label="Core Wt (kg)"><input type="number" step="0.001" placeholder="0.000" value={coreWeight} onChange={e => setCoreWeight(e.target.value)} className={inputCls} /></FormField>
                 </div>
                 {grossWeight && (

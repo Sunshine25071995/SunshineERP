@@ -963,38 +963,124 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               <button
                 onClick={async () => {
                   const stockList = computeFinishedStockList(jobCards, slitRolls);
-                  
-                  let msg = `📦 *FINISHED STOCK INVENTORY*\n━━━━━━━━━━━━━━━━━━━━\n\n`;
-                  if (stockList.length === 0) {
-                    msg += `No stock available.\n`;
-                  } else {
-                    stockList.forEach(item => {
-                      const tag = item.status === 'running' ? ' *(🔥 Running)*' : '';
-                      const jcText = item.jobCodes.length === 1
-                        ? item.jobCodes[0]
-                        : item.jobCardBreakdown.map(b => `${b.jobCode} (${formatWeight(b.weight)}kg)`).join(', ');
-                      msg += `📐 *${item.size} x ${item.micron} Mic*${tag}\n`;
-                      msg += `📋 *Job Card:* ${jcText}\n`;
-                      msg += `⚖️ *${formatWeight(item.weight)} Kg*  |  📦 *${item.count} Rolls*\n`;
-                      msg += `----------------------------\n`;
-                    });
-                  }
-                  msg += `\n_Generated via Sunshine ERP_`;
+                  if (stockList.length === 0) { alert('No stock available.'); return; }
 
-                  if (navigator.share) {
-                    try {
-                      await navigator.share({ text: msg });
-                    } catch {
-                      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                  // --- Draw stock table on canvas ---
+                  const colW = [110, 60, 100, 60, 90]; // Size, Mic, Weight, Rolls, Status
+                  const tableW = colW.reduce((a, b) => a + b, 0); // 420
+                  const paddingX = 20;
+                  const canvasW = tableW + paddingX * 2;
+                  const rowH = 28;
+                  const headerH = 36;
+                  const titleH = 48;
+                  const footerH = 32;
+                  const canvasH = titleH + headerH + rowH * stockList.length + footerH + paddingX;
+
+                  const canvas = document.createElement('canvas');
+                  const dpr = 2; // retina
+                  canvas.width = canvasW * dpr;
+                  canvas.height = canvasH * dpr;
+                  canvas.style.width = canvasW + 'px';
+                  canvas.style.height = canvasH + 'px';
+                  const ctx = canvas.getContext('2d')!;
+                  ctx.scale(dpr, dpr);
+
+                  // Background
+                  ctx.fillStyle = '#ffffff';
+                  ctx.fillRect(0, 0, canvasW, canvasH);
+
+                  // Title bar
+                  ctx.fillStyle = '#1e293b';
+                  ctx.fillRect(0, 0, canvasW, titleH);
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = 'bold 15px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.fillText('📦 FINISHED STOCK INVENTORY', canvasW / 2, 20);
+                  ctx.font = '11px sans-serif';
+                  ctx.fillStyle = '#94a3b8';
+                  ctx.fillText(`Sunshine ERP  ·  ${new Date().toLocaleDateString('en-IN')}`, canvasW / 2, 36);
+
+                  // Column headers
+                  const headers = ['Size (mm)', 'Mic', 'Weight (kg)', 'Rolls', 'Status'];
+                  const colAligns: CanvasTextAlign[] = ['center', 'center', 'right', 'center', 'center'];
+                  ctx.fillStyle = '#334155';
+                  ctx.fillRect(0, titleH, canvasW, headerH);
+
+                  let xOff = paddingX;
+                  headers.forEach((h, ci) => {
+                    ctx.fillStyle = '#e2e8f0';
+                    ctx.font = 'bold 10px sans-serif';
+                    ctx.textAlign = colAligns[ci];
+                    const cx = colAligns[ci] === 'right' ? xOff + colW[ci] - 6 : colAligns[ci] === 'center' ? xOff + colW[ci] / 2 : xOff + 6;
+                    ctx.fillText(h.toUpperCase(), cx, titleH + headerH / 2 + 4);
+                    xOff += colW[ci];
+                  });
+
+                  // Grid lines helper
+                  const drawGridLine = (x1: number, y1: number, x2: number, y2: number) => {
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                  };
+
+                  // Rows
+                  stockList.forEach((item, i) => {
+                    const y = titleH + headerH + i * rowH;
+                    ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+                    ctx.fillRect(0, y, canvasW, rowH);
+                    drawGridLine(0, y + rowH, canvasW, y + rowH);
+
+                    const cells = [
+                      item.size,
+                      item.micron,
+                      formatWeight(item.weight),
+                      String(item.count),
+                      item.status === 'running' ? '🔥 Run' : '✓ Done',
+                    ];
+                    xOff = paddingX;
+                    cells.forEach((val, ci) => {
+                      ctx.fillStyle = ci === 4 ? (item.status === 'running' ? '#b45309' : '#15803d') : '#0f172a';
+                      ctx.font = ci === 0 ? 'bold 11px sans-serif' : '11px sans-serif';
+                      ctx.textAlign = colAligns[ci];
+                      const cx = colAligns[ci] === 'right' ? xOff + colW[ci] - 6 : colAligns[ci] === 'center' ? xOff + colW[ci] / 2 : xOff + 6;
+                      ctx.fillText(val, cx, y + rowH / 2 + 4);
+                      drawGridLine(xOff + colW[ci], titleH, xOff + colW[ci], titleH + headerH + stockList.length * rowH);
+                      xOff += colW[ci];
+                    });
+                  });
+
+                  // Footer total row
+                  const footerY = titleH + headerH + stockList.length * rowH;
+                  ctx.fillStyle = '#1e293b';
+                  ctx.fillRect(0, footerY, canvasW, footerH);
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = 'bold 11px sans-serif';
+                  ctx.textAlign = 'left';
+                  ctx.fillText(`Total: ${stockList.length} sizes`, paddingX, footerY + footerH / 2 + 4);
+                  ctx.textAlign = 'right';
+                  ctx.fillText(`${formatWeight(stockList.reduce((s, x) => s + x.weight, 0))} kg  ·  ${stockList.reduce((s, x) => s + x.count, 0)} rolls`, canvasW - paddingX, footerY + footerH / 2 + 4);
+
+                  // Share as image
+                  canvas.toBlob(async (blob) => {
+                    if (!blob) return;
+                    const file = new File([blob], 'stock-report.png', { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                      try {
+                        await navigator.share({ files: [file], title: 'Finished Stock', text: 'Finished Stock Inventory — Sunshine ERP' });
+                        return;
+                      } catch { /* fall through */ }
                     }
-                  } else {
-                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-                  }
+                    // Fallback: download the image
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `stock-report-${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.png`;
+                    a.click();
+                  }, 'image/png');
                 }}
                 className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-colors btn-press shadow-sm"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Share to WhatsApp</span>
+                <span>Share Stock Image</span>
               </button>
             </div>
           </div>
