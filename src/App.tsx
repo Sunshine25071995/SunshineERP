@@ -267,7 +267,7 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 w-full md:px-6 md:py-4 pb-[80px] md:pb-6">
+      <main className="flex-1 w-full md:px-6 md:py-4 md:pb-6">
         {!currentUser ? (
           <LoginModal users={users} onLogin={handleLogin} />
         ) : (
@@ -348,26 +348,7 @@ function AppContainer(props: any) {
         )}
       </div>
 
-      {/* MD3 Bottom Navigation Bar for Mobile */}
-      {availableTabs.length > 1 && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-50 border-t border-slate-200 flex justify-around items-center h-[80px] pb-safe z-50">
-          {availableTabs.map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${isActive ? 'text-indigo-700' : 'text-slate-600 hover:text-slate-900'}`}
-              >
-                <div className={`px-4 py-1 rounded-full transition-all ${isActive ? 'bg-indigo-100' : ''}`}>
-                  {tab.icon}
-                </div>
-                <span className={`text-[11px] font-medium ${isActive ? 'font-bold' : ''}`}>{tab.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      )}
+
     </>
   );
 }
