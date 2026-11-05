@@ -1110,12 +1110,12 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       </colgroup>
                       <thead>
                         <tr className="bg-slate-700">
-                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Size</th>
-                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Mic</th>
-                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-right uppercase">Weight</th>
-                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Rolls</th>
-                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Status</th>
-                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Job Card</th>
+                          <th className="border border-slate-500 px-1.5 py-1 text-[10px] font-bold text-white text-center uppercase">Size</th>
+                          <th className="border border-slate-500 px-1.5 py-1 text-[10px] font-bold text-white text-center uppercase">Mic</th>
+                          <th className="border border-slate-500 px-1.5 py-1 text-[10px] font-bold text-white text-right uppercase">Weight</th>
+                          <th className="border border-slate-500 px-1.5 py-1 text-[10px] font-bold text-white text-center uppercase">Rolls</th>
+                          <th className="border border-slate-500 px-1.5 py-1 text-[10px] font-bold text-white text-center uppercase">Status</th>
+                          <th className="border border-slate-500 px-1.5 py-1 text-[10px] font-bold text-white text-center uppercase">Job Card</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1125,27 +1125,27 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                             className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}
                           >
                             {/* Size */}
-                            <td className="border border-gray-300 px-1.5 py-2 text-center font-black text-gray-900 truncate">
+                            <td className="border border-gray-300 px-1.5 py-1 text-center font-black text-gray-900 truncate">
                               {item.size}
                             </td>
 
                             {/* Micron */}
-                            <td className="border border-gray-300 px-1.5 py-2 text-center font-bold text-gray-900">
+                            <td className="border border-gray-300 px-1.5 py-1 text-center font-bold text-gray-900">
                               {item.micron}
                             </td>
 
                             {/* Weight */}
-                            <td className="border border-gray-300 px-1.5 py-2 text-right font-black text-gray-900 font-mono">
+                            <td className="border border-gray-300 px-1.5 py-1 text-right font-black text-gray-900 font-mono">
                               {formatWeight(item.weight)}
                             </td>
 
                             {/* Rolls */}
-                            <td className="border border-gray-300 px-1.5 py-2 text-center font-bold text-gray-900">
+                            <td className="border border-gray-300 px-1.5 py-1 text-center font-bold text-gray-900">
                               {item.count}
                             </td>
 
                             {/* Status */}
-                            <td className="border border-gray-300 px-1.5 py-2 text-center">
+                            <td className="border border-gray-300 px-1.5 py-1 text-center">
                               {item.status === 'running' ? (
                                 <span className="text-[9px] font-bold text-amber-800 animate-pulse">🔥 Run</span>
                               ) : (
@@ -1154,7 +1154,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                             </td>
 
                             {/* Job Card(s) */}
-                            <td className="border border-gray-300 px-1.5 py-2 text-center">
+                            <td className="border border-gray-300 px-1.5 py-1 text-center">
                               <div className="flex flex-wrap gap-1 justify-center">
                                 {item.jobCardBreakdown.map((jcInfo) => (
                                   <button
@@ -1179,16 +1179,16 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       {/* Grand Total Footer */}
                       <tfoot>
                         <tr className="bg-slate-700">
-                          <td colSpan={2} className="border border-slate-500 px-1.5 py-2 text-[10px] font-black text-white uppercase">
+                          <td colSpan={2} className="border border-slate-500 px-1.5 py-1 text-[10px] font-black text-white uppercase">
                             Total
                           </td>
-                          <td className="border border-slate-500 px-1.5 py-2 text-right font-black text-white font-mono">
+                          <td className="border border-slate-500 px-1.5 py-1 text-right font-black text-white font-mono">
                             {formatWeight(filteredList.reduce((s, x) => s + x.weight, 0))}
                           </td>
-                          <td className="border border-slate-500 px-1.5 py-2 text-center font-black text-white">
+                          <td className="border border-slate-500 px-1.5 py-1 text-center font-black text-white">
                             {filteredList.reduce((s, x) => s + x.count, 0)}
                           </td>
-                          <td colSpan={2} className="border border-slate-500 px-1.5 py-2"></td>
+                          <td colSpan={2} className="border border-slate-500 px-1.5 py-1"></td>
                         </tr>
                       </tfoot>
                     </table>
