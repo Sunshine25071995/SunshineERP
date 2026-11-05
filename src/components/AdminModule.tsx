@@ -1072,79 +1072,145 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                   </div>
                 </div>
 
-                <div className="app-card overflow-hidden">
-                  {filteredList.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-gray-400">
-                      {stockSearch 
-                        ? `No stock matching "${stockSearch}".`
-                        : stockFilter === 'running' 
-                          ? 'No running stock currently.' 
-                          : stockFilter === 'completed' 
-                            ? 'No completed stock available.' 
-                            : 'No stock available.'}
+                {/* ── PROFESSIONAL TABLE ── */}
+                {filteredList.length === 0 ? (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-sm text-gray-400 shadow-xs">
+                    {stockSearch
+                      ? `No stock matching "${stockSearch}".`
+                      : stockFilter === 'running'
+                        ? 'No running stock currently.'
+                        : stockFilter === 'completed'
+                          ? 'No completed stock available.'
+                          : 'No stock available.'}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-gray-200 bg-white shadow-xs overflow-hidden">
+                    {/* Summary Stats Bar */}
+                    <div className="flex items-center gap-4 px-4 py-2.5 bg-slate-50 border-b border-gray-200 overflow-x-auto">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                        {filteredList.length} Items
+                      </span>
+                      <span className="text-slate-300 font-thin">|</span>
+                      <span className="text-xs font-black text-emerald-700 whitespace-nowrap">
+                        ⚖️ {formatWeight(filteredList.reduce((s, x) => s + x.weight, 0))} KG Total
+                      </span>
+                      <span className="text-slate-300 font-thin">|</span>
+                      <span className="text-xs font-bold text-indigo-700 whitespace-nowrap">
+                        📦 {filteredList.reduce((s, x) => s + x.count, 0)} Rolls Total
+                      </span>
                     </div>
-                  ) : (
-                    <div className="flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white divide-y divide-gray-100">
-                      {filteredList.map((item, i) => (
-                        <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-slate-50/50 transition-colors">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-base font-black text-gray-900">{item.size} x {item.micron} Mic</span>
-                              {item.status === 'running' ? (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1 animate-pulse">
-                                  🔥 Running
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  Completed
-                                </span>
-                              )}
-                            </div>
 
-                            {/* Job Card Numbers with breakdown */}
-                            <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                              <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Job Card{item.jobCodes.length > 1 ? 's' : ''}:</span>
-                              {item.jobCardBreakdown.map((jcInfo) => (
-                                <button
-                                  key={jcInfo.jobCode}
-                                  type="button"
-                                  onClick={() => {
-                                    const fullJc = jobCards.find(j => j.id === jcInfo.jobCardId);
-                                    if (fullJc) setSelectedJobCardForDetail(fullJc);
-                                  }}
-                                  className="font-mono text-xs font-black text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-lg shadow-2xs inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
-                                  title={`Click to view Job Card ${jcInfo.jobCode} details`}
-                                >
-                                  <span>{jcInfo.jobCode}</span>
-                                  {item.jobCodes.length > 1 && (
-                                    <span className="text-[10px] font-bold text-blue-500">
-                                      ({formatWeight(jcInfo.weight)}kg)
-                                    </span>
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+                    {/* Table with horizontal scroll on mobile */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[560px] text-sm">
+                        <thead>
+                          <tr className="bg-slate-900 text-left">
+                            <th className="px-4 py-3 text-xs font-bold text-slate-300 uppercase tracking-wider w-6">#</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-300 uppercase tracking-wider">Size × Micron</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-300 uppercase tracking-wider">Job Card(s)</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-300 uppercase tracking-wider text-right">Weight</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-300 uppercase tracking-wider text-right">Rolls</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredList.map((item, i) => (
+                            <tr
+                              key={i}
+                              className={`transition-colors hover:bg-indigo-50/40 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}
+                            >
+                              {/* # */}
+                              <td className="px-4 py-3 text-xs font-bold text-slate-400">{i + 1}</td>
 
-                          <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                            <div className="text-left sm:text-center">
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Stock Weight</p>
-                              <p className="text-sm sm:text-base font-black text-emerald-700 font-mono">
-                                {formatWeight(item.weight)} <span className="text-xs font-bold text-emerald-500">KG</span>
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rolls</p>
-                              <p className="text-sm sm:text-base font-bold text-gray-700 font-mono">
-                                {item.count} <span className="text-xs font-normal text-gray-400">Rolls</span>
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                              {/* Size × Micron */}
+                              <td className="px-4 py-3">
+                                <span className="text-sm font-black text-gray-900 tracking-tight whitespace-nowrap">
+                                  {item.size} <span className="text-slate-400 font-normal">×</span> {item.micron} Mic
+                                </span>
+                              </td>
+
+                              {/* Job Card(s) */}
+                              <td className="px-4 py-3">
+                                <div className="flex flex-wrap gap-1.5">
+                                  {item.jobCardBreakdown.map((jcInfo) => (
+                                    <button
+                                      key={jcInfo.jobCode}
+                                      type="button"
+                                      onClick={() => {
+                                        const fullJc = jobCards.find(j => j.id === jcInfo.jobCardId);
+                                        if (fullJc) setSelectedJobCardForDetail(fullJc);
+                                      }}
+                                      title={`View Job Card ${jcInfo.jobCode}`}
+                                      className="inline-flex items-center gap-1 font-mono text-[11px] font-black text-blue-700 bg-blue-50 hover:bg-blue-100 active:scale-95 border border-blue-200 px-2 py-0.5 rounded-md transition-all cursor-pointer whitespace-nowrap"
+                                    >
+                                      {jcInfo.jobCode}
+                                      {item.jobCodes.length > 1 && (
+                                        <span className="text-[10px] text-blue-400 font-semibold">
+                                          ({formatWeight(jcInfo.weight)}kg)
+                                        </span>
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              </td>
+
+                              {/* Weight */}
+                              <td className="px-4 py-3 text-right">
+                                <span className="text-sm font-black text-emerald-700 font-mono whitespace-nowrap">
+                                  {formatWeight(item.weight)}
+                                  <span className="text-xs font-bold text-emerald-500 ml-0.5">KG</span>
+                                </span>
+                              </td>
+
+                              {/* Rolls */}
+                              <td className="px-4 py-3 text-right">
+                                <span className="text-sm font-bold text-gray-700 font-mono whitespace-nowrap">
+                                  {item.count}
+                                  <span className="text-xs font-normal text-gray-400 ml-0.5">Rolls</span>
+                                </span>
+                              </td>
+
+                              {/* Status */}
+                              <td className="px-4 py-3 text-center">
+                                {item.status === 'running' ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse whitespace-nowrap">
+                                    🔥 Running
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                                    ✓ Done
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+
+                        {/* Total Footer Row */}
+                        <tfoot>
+                          <tr className="bg-slate-900 border-t-2 border-indigo-500">
+                            <td colSpan={3} className="px-4 py-3 text-xs font-black text-slate-300 uppercase tracking-wider">
+                              Grand Total — {filteredList.length} Size{filteredList.length !== 1 ? 's' : ''}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="text-sm font-black text-emerald-400 font-mono">
+                                {formatWeight(filteredList.reduce((s, x) => s + x.weight, 0))}
+                                <span className="text-xs font-bold text-emerald-500 ml-0.5">KG</span>
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="text-sm font-bold text-indigo-300 font-mono">
+                                {filteredList.reduce((s, x) => s + x.count, 0)}
+                                <span className="text-xs font-normal text-indigo-400 ml-0.5">Rolls</span>
+                              </span>
+                            </td>
+                            <td className="px-4 py-3"></td>
+                          </tr>
+                        </tfoot>
+                      </table>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })()}
