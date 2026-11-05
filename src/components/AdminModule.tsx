@@ -1072,9 +1072,9 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                   </div>
                 </div>
 
-                {/* ── PROFESSIONAL TABLE ── */}
+                {/* ── EXCEL STYLE TABLE ── */}
                 {filteredList.length === 0 ? (
-                  <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-xs text-gray-400 shadow-xs">
+                  <div className="rounded-xl border border-gray-300 bg-white p-10 text-center text-xs text-gray-400">
                     {stockSearch
                       ? `No stock matching "${stockSearch}".`
                       : stockFilter === 'running'
@@ -1084,80 +1084,78 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                           : 'No stock available.'}
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-gray-200 bg-white shadow-xs overflow-hidden">
+                  <div className="rounded-xl border border-gray-400 bg-white overflow-hidden">
                     {/* Summary Stats Bar */}
-                    <div className="flex items-center gap-3 px-3 py-2 bg-slate-50 border-b border-gray-200 flex-wrap">
-                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                        {filteredList.length} Items
+                    <div className="flex items-center gap-3 px-3 py-2 bg-slate-100 border-b border-gray-400 flex-wrap">
+                      <span className="text-[11px] font-bold text-slate-600">{filteredList.length} Items</span>
+                      <span className="text-gray-400">|</span>
+                      <span className="text-[11px] font-black text-gray-900">
+                        Total: {formatWeight(filteredList.reduce((s, x) => s + x.weight, 0))} KG
                       </span>
-                      <span className="text-slate-300">|</span>
-                      <span className="text-[11px] font-black text-gray-800">
-                        ⚖️ {formatWeight(filteredList.reduce((s, x) => s + x.weight, 0))} KG Total
-                      </span>
-                      <span className="text-slate-300">|</span>
+                      <span className="text-gray-400">|</span>
                       <span className="text-[11px] font-bold text-gray-700">
-                        📦 {filteredList.reduce((s, x) => s + x.count, 0)} Rolls
+                        {filteredList.reduce((s, x) => s + x.count, 0)} Rolls
                       </span>
                     </div>
 
-                    {/* Full-width table — no horizontal scroll */}
-                    <table className="w-full table-fixed text-xs">
+                    {/* Excel-style table — fixed columns, no scroll */}
+                    <table className="w-full table-fixed border-collapse text-[11px]">
                       <colgroup>
-                        <col style={{ width: '5%' }} />
-                        <col style={{ width: '30%' }} />
+                        <col style={{ width: '18%' }} />
+                        <col style={{ width: '14%' }} />
                         <col style={{ width: '20%' }} />
-                        <col style={{ width: '20%' }} />
-                        <col style={{ width: '25%' }} />
+                        <col style={{ width: '12%' }} />
+                        <col style={{ width: '14%' }} />
+                        <col style={{ width: '22%' }} />
                       </colgroup>
                       <thead>
-                        <tr className="bg-slate-800 text-left">
-                          <th className="px-2 py-2.5 text-[10px] font-bold text-slate-400 uppercase">#</th>
-                          <th className="px-2 py-2.5 text-[10px] font-bold text-slate-300 uppercase">Size × Mic</th>
-                          <th className="px-2 py-2.5 text-[10px] font-bold text-slate-300 uppercase text-right">Weight</th>
-                          <th className="px-2 py-2.5 text-[10px] font-bold text-slate-300 uppercase text-center">Status</th>
-                          <th className="px-2 py-2.5 text-[10px] font-bold text-slate-300 uppercase text-right">Job Card</th>
+                        <tr className="bg-slate-700">
+                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-left uppercase">Size</th>
+                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Mic</th>
+                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-right uppercase">Weight</th>
+                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Rolls</th>
+                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Status</th>
+                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Job Card</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody>
                         {filteredList.map((item, i) => (
                           <tr
                             key={i}
-                            className={`transition-colors active:bg-indigo-50 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}`}
+                            className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}
                           >
-                            {/* # */}
-                            <td className="px-2 py-2.5 text-[10px] font-bold text-slate-400">{i + 1}</td>
+                            {/* Size */}
+                            <td className="border border-gray-300 px-1.5 py-2 font-black text-gray-900 truncate">
+                              {item.size}
+                            </td>
 
-                            {/* Size × Micron */}
-                            <td className="px-2 py-2.5">
-                              <span className="text-[11px] font-black text-gray-900 leading-tight block truncate">
-                                {item.size} × {item.micron}M
-                              </span>
+                            {/* Micron */}
+                            <td className="border border-gray-300 px-1.5 py-2 text-center font-bold text-gray-900">
+                              {item.micron}
                             </td>
 
                             {/* Weight */}
-                            <td className="px-2 py-2.5 text-right">
-                              <span className="text-[11px] font-black text-gray-900 font-mono block">
-                                {formatWeight(item.weight)}
-                              </span>
-                              <span className="text-[9px] font-bold text-gray-400 block">KG · {item.count} Rolls</span>
+                            <td className="border border-gray-300 px-1.5 py-2 text-right font-black text-gray-900 font-mono">
+                              {formatWeight(item.weight)}
+                            </td>
+
+                            {/* Rolls */}
+                            <td className="border border-gray-300 px-1.5 py-2 text-center font-bold text-gray-900">
+                              {item.count}
                             </td>
 
                             {/* Status */}
-                            <td className="px-2 py-2.5 text-center">
+                            <td className="border border-gray-300 px-1.5 py-2 text-center">
                               {item.status === 'running' ? (
-                                <span className="inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 animate-pulse leading-tight">
-                                  🔥
-                                </span>
+                                <span className="text-[9px] font-bold text-amber-800 animate-pulse">🔥 Run</span>
                               ) : (
-                                <span className="inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 leading-tight">
-                                  ✓
-                                </span>
+                                <span className="text-[9px] font-bold text-green-700">✓ Done</span>
                               )}
                             </td>
 
-                            {/* Job Card(s) — last column, only numbers */}
-                            <td className="px-2 py-2.5 text-right">
-                              <div className="flex flex-wrap gap-1 justify-end">
+                            {/* Job Card(s) */}
+                            <td className="border border-gray-300 px-1.5 py-2 text-center">
+                              <div className="flex flex-wrap gap-1 justify-center">
                                 {item.jobCardBreakdown.map((jcInfo) => (
                                   <button
                                     key={jcInfo.jobCode}
@@ -1167,7 +1165,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                                       if (fullJc) setSelectedJobCardForDetail(fullJc);
                                     }}
                                     title={`View ${jcInfo.jobCode}`}
-                                    className="font-mono text-[10px] font-black text-blue-700 bg-blue-50 active:bg-blue-200 border border-blue-200 px-1.5 py-0.5 rounded active:scale-95 transition-all leading-tight"
+                                    className="font-mono text-[10px] font-black text-blue-700 bg-blue-50 active:bg-blue-200 border border-blue-300 px-1.5 py-0.5 rounded active:scale-95 transition-all"
                                   >
                                     {jcInfo.jobCode}
                                   </button>
@@ -1178,21 +1176,19 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                         ))}
                       </tbody>
 
-                      {/* Total Footer */}
+                      {/* Grand Total Footer */}
                       <tfoot>
-                        <tr className="bg-slate-800 border-t-2 border-indigo-400">
-                          <td colSpan={2} className="px-2 py-2.5 text-[10px] font-black text-slate-300 uppercase tracking-wide">
-                            Total ({filteredList.length})
+                        <tr className="bg-slate-700">
+                          <td colSpan={2} className="border border-slate-500 px-1.5 py-2 text-[10px] font-black text-white uppercase">
+                            Total
                           </td>
-                          <td className="px-2 py-2.5 text-right">
-                            <span className="text-[11px] font-black text-white font-mono block">
-                              {formatWeight(filteredList.reduce((s, x) => s + x.weight, 0))}
-                            </span>
-                            <span className="text-[9px] font-bold text-slate-400 block">
-                              KG · {filteredList.reduce((s, x) => s + x.count, 0)} Rolls
-                            </span>
+                          <td className="border border-slate-500 px-1.5 py-2 text-right font-black text-white font-mono">
+                            {formatWeight(filteredList.reduce((s, x) => s + x.weight, 0))}
                           </td>
-                          <td colSpan={2} className="px-2 py-2.5"></td>
+                          <td className="border border-slate-500 px-1.5 py-2 text-center font-black text-white">
+                            {filteredList.reduce((s, x) => s + x.count, 0)}
+                          </td>
+                          <td colSpan={2} className="border border-slate-500 px-1.5 py-2"></td>
                         </tr>
                       </tfoot>
                     </table>
