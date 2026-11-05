@@ -1110,7 +1110,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                       </colgroup>
                       <thead>
                         <tr className="bg-slate-700">
-                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-left uppercase">Size</th>
+                          <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Size</th>
                           <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Mic</th>
                           <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-right uppercase">Weight</th>
                           <th className="border border-slate-500 px-1.5 py-2 text-[10px] font-bold text-white text-center uppercase">Rolls</th>
@@ -1125,7 +1125,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                             className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}
                           >
                             {/* Size */}
-                            <td className="border border-gray-300 px-1.5 py-2 font-black text-gray-900 truncate">
+                            <td className="border border-gray-300 px-1.5 py-2 text-center font-black text-gray-900 truncate">
                               {item.size}
                             </td>
 
