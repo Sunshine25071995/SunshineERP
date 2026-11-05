@@ -12,7 +12,7 @@ import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
   Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase, Activity,
   ClipboardList, Database, Wallet, Boxes, Recycle, History, CalendarDays, ArrowLeft,
-  Building
+  Building, Printer, Share2
 } from 'lucide-react';
 import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
 import { WastageAnalytics } from './WastageAnalytics';
@@ -47,6 +47,93 @@ const FormField: React.FC<{ label: string; children: React.ReactNode }> = ({ lab
 const inputCls = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 px-4 py-3 text-base text-gray-900 focus:outline-none focus:border-indigo-600 focus:bg-indigo-50/50 transition-colors";
 const selectCls = "w-full bg-slate-100 rounded-t-lg border-b-2 border-slate-400 px-4 py-3 text-base text-gray-900 focus:outline-none focus:border-indigo-600 focus:bg-indigo-50/50 transition-colors";
 
+interface StockBreakdown {
+  jobCode: string;
+  jobCardId: string;
+  weight: number;
+  count: number;
+  partyCode?: string;
+}
+
+interface StockGroupItem {
+  size: string;
+  micron: string;
+  weight: number;
+  count: number;
+  status: 'completed' | 'running';
+  jobCodes: string[];
+  jobCardBreakdown: StockBreakdown[];
+}
+
+export function computeFinishedStockList(jobCards: JobCard[], slitRolls: SlittingRoll[]): StockGroupItem[] {
+  const relevantJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed' || jc.slittingStatus === 'running');
+  const relevantSlitRolls = slitRolls.filter(r => relevantJobCards.some(jc => jc.id === r.jobCardId));
+  const stockGroups: Record<string, {
+    size: string;
+    micron: string;
+    weight: number;
+    count: number;
+    status: 'completed' | 'running';
+    jobCodes: string[];
+    breakdownMap: Record<string, StockBreakdown>;
+  }> = {};
+
+  relevantSlitRolls.forEach(roll => {
+    const jc = relevantJobCards.find(j => j.id === roll.jobCardId);
+    if (jc) {
+      let size = roll.coilSize || jc.size;
+      if (jc.coilSizes && jc.coilSizes.length === 1) {
+        size = jc.coilSizes[0];
+      } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
+        size = jc.coilSizes[0];
+      }
+      const status = jc.slittingStatus === 'running' ? 'running' : 'completed';
+      const key = `${size}-${jc.micron}-${status}`;
+      if (!stockGroups[key]) {
+        stockGroups[key] = {
+          size,
+          micron: jc.micron,
+          weight: 0,
+          count: 0,
+          status,
+          jobCodes: [],
+          breakdownMap: {},
+        };
+      }
+      const grp = stockGroups[key];
+      const w = roll.netWeight || 0;
+      grp.weight += w;
+      grp.count += 1;
+
+      const jcCode = jc.jobCode || 'Unknown';
+      if (!grp.jobCodes.includes(jcCode)) {
+        grp.jobCodes.push(jcCode);
+      }
+      if (!grp.breakdownMap[jcCode]) {
+        grp.breakdownMap[jcCode] = {
+          jobCode: jcCode,
+          jobCardId: jc.id,
+          weight: 0,
+          count: 0,
+          partyCode: jc.partyCode,
+        };
+      }
+      grp.breakdownMap[jcCode].weight += w;
+      grp.breakdownMap[jcCode].count += 1;
+    }
+  });
+
+  return Object.values(stockGroups).map(g => ({
+    size: g.size,
+    micron: g.micron,
+    weight: g.weight,
+    count: g.count,
+    status: g.status,
+    jobCodes: g.jobCodes,
+    jobCardBreakdown: Object.values(g.breakdownMap),
+  })).sort((a, b) => a.size.localeCompare(b.size));
+}
+
 export const AdminModule: React.FC<AdminModuleProps> = ({
   currentUser, users, jobCards, chemicals, purchases, usages, prodRolls, slitRolls, prodWastages, permissions,
 }) => {
@@ -56,6 +143,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   const [jobCardSearch, setJobCardSearch] = useState('');
   const [outstandingPayments, setOutstandingPayments] = useState(0);
   const [stockFilter, setStockFilter] = useState<'all' | 'completed' | 'running'>('all');
+  const [stockSearch, setStockSearch] = useState('');
 
   useEffect(() => {
     if (currentUser.department === 'admin') {
@@ -396,26 +484,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   };
 
   const handlePrintStock = () => {
-    const relevantJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed' || jc.slittingStatus === 'running');
-    const relevantSlitRolls = slitRolls.filter(r => relevantJobCards.some(jc => jc.id === r.jobCardId));
-    const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number, status: 'completed' | 'running' }> = {};
-    relevantSlitRolls.forEach(roll => {
-      const jc = relevantJobCards.find(j => j.id === roll.jobCardId);
-      if (jc) {
-        let size = roll.coilSize || jc.size;
-        if (jc.coilSizes && jc.coilSizes.length === 1) {
-          size = jc.coilSizes[0];
-        } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
-          size = jc.coilSizes[0];
-        }
-        const status = jc.slittingStatus === 'running' ? 'running' : 'completed';
-        const key = `${size}-${jc.micron}-${status}`;
-        if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0, status };
-        stockGroups[key].weight += (roll.netWeight || 0);
-        stockGroups[key].count += 1;
-      }
-    });
-    const stockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
+    const stockList = computeFinishedStockList(jobCards, slitRolls);
 
     const win = window.open('', '_blank');
     if (!win) {
@@ -425,14 +494,21 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
     const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-    const rows = stockList.map((item, idx) => `
+    const rows = stockList.map((item, idx) => {
+      const jcText = item.jobCodes.length === 1
+        ? item.jobCodes[0]
+        : item.jobCardBreakdown.map(b => `${b.jobCode} (${formatWeight(b.weight)}kg)`).join(', ');
+      return `
       <tr style="border-bottom: 1px solid #e2e8f0; ${item.status === 'running' ? 'background: #fffbeb;' : ''}">
         <td style="padding: 10px; font-weight: bold; width: 40px;">${idx + 1}</td>
-        <td style="padding: 10px; font-weight: bold; font-family: monospace;">${item.size} x ${item.micron} Mic ${item.status === 'running' ? '<span style="color: #d97706; font-size: 11px;">(🔥 Running)</span>' : ''}</td>
+        <td style="padding: 10px; font-family: monospace;">
+          <div style="font-weight: bold; font-size: 14px;">${item.size} x ${item.micron} Mic ${item.status === 'running' ? '<span style="color: #d97706; font-size: 11px;">(🔥 Running)</span>' : ''}</div>
+          <div style="font-size: 11px; color: #1d4ed8; font-weight: bold; margin-top: 3px;">📋 Job Card: ${jcText}</div>
+        </td>
         <td style="padding: 10px; text-align: right; font-weight: bold; color: #047857;">${formatWeight(item.weight)} KG</td>
         <td style="padding: 10px; text-align: right; font-weight: bold;">${item.count} Rolls</td>
       </tr>
-    `).join('');
+    `;}).join('');
 
     const totalKg = stockList.reduce((s, i) => s + i.weight, 0);
     const totalRolls = stockList.reduce((s, i) => s + i.count, 0);
@@ -875,150 +951,194 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
               <h2 className="text-xl font-black text-gray-900">Finished Stock</h2>
               <p className="text-sm text-gray-500 mt-0.5">Inventory from Running & Completed Job Cards</p>
             </div>
-            <button
-              onClick={async () => {
-                const relevantJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed' || jc.slittingStatus === 'running');
-                const relevantSlitRolls = slitRolls.filter(r => relevantJobCards.some(jc => jc.id === r.jobCardId));
-                const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number, status: 'completed' | 'running' }> = {};
-                relevantSlitRolls.forEach(roll => {
-                  const jc = relevantJobCards.find(j => j.id === roll.jobCardId);
-                  if (jc) {
-                    let size = roll.coilSize || jc.size;
-                    if (jc.coilSizes && jc.coilSizes.length === 1) {
-                      size = jc.coilSizes[0];
-                    } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
-                      size = jc.coilSizes[0];
-                    }
-                    const status = jc.slittingStatus === 'running' ? 'running' : 'completed';
-                    const key = `${size}-${jc.micron}-${status}`;
-                    if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0, status };
-                    stockGroups[key].weight += (roll.netWeight || 0);
-                    stockGroups[key].count += 1;
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handlePrintStock}
+                className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-colors btn-press shadow-xs"
+                title="Print Stock Inventory Report"
+              >
+                <Printer className="w-4 h-4 text-gray-600" />
+                <span>Print Report</span>
+              </button>
+              <button
+                onClick={async () => {
+                  const stockList = computeFinishedStockList(jobCards, slitRolls);
+                  
+                  let msg = `📦 *FINISHED STOCK INVENTORY*\n━━━━━━━━━━━━━━━━━━━━\n\n`;
+                  if (stockList.length === 0) {
+                    msg += `No stock available.\n`;
+                  } else {
+                    stockList.forEach(item => {
+                      const tag = item.status === 'running' ? ' *(🔥 Running)*' : '';
+                      const jcText = item.jobCodes.length === 1
+                        ? item.jobCodes[0]
+                        : item.jobCardBreakdown.map(b => `${b.jobCode} (${formatWeight(b.weight)}kg)`).join(', ');
+                      msg += `📐 *${item.size} x ${item.micron} Mic*${tag}\n`;
+                      msg += `📋 *Job Card:* ${jcText}\n`;
+                      msg += `⚖️ *${formatWeight(item.weight)} Kg*  |  📦 *${item.count} Rolls*\n`;
+                      msg += `----------------------------\n`;
+                    });
                   }
-                });
-                const stockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
-                
-                let msg = `📦 *FINISHED STOCK INVENTORY*\n━━━━━━━━━━━━━━━━━━━━\n\n`;
-                if (stockList.length === 0) {
-                  msg += `No stock available.\n`;
-                } else {
-                  stockList.forEach(item => {
-                    const tag = item.status === 'running' ? ' *(🔥 Running)*' : '';
-                    msg += `📐 *${item.size} x ${item.micron} Mic*${tag}\n`;
-                    msg += `⚖️ *${formatWeight(item.weight)} Kg*  |  📦 *${item.count} Rolls*\n`;
-                    msg += `----------------------------\n`;
-                  });
-                }
-                msg += `\n_Generated via Sunshine ERP_`;
+                  msg += `\n_Generated via Sunshine ERP_`;
 
-                if (navigator.share) {
-                  try {
-                    await navigator.share({ text: msg });
-                  } catch {
+                  if (navigator.share) {
+                    try {
+                      await navigator.share({ text: msg });
+                    } catch {
+                      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                    }
+                  } else {
                     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                   }
-                } else {
-                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-                }
-              }}
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-colors btn-press shadow-sm self-start sm:self-auto"
-            >
-              <span>Share to WhatsApp</span>
-            </button>
+                }}
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-colors btn-press shadow-sm"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share to WhatsApp</span>
+              </button>
+            </div>
           </div>
 
           {(() => {
-            const relevantJobCards = jobCards.filter(jc => jc.slittingStatus === 'completed' || jc.slittingStatus === 'running');
-            const relevantSlitRolls = slitRolls.filter(r => relevantJobCards.some(jc => jc.id === r.jobCardId));
-            const stockGroups: Record<string, { size: string, micron: string, weight: number, count: number, status: 'completed' | 'running' }> = {};
-            relevantSlitRolls.forEach(roll => {
-              const jc = relevantJobCards.find(j => j.id === roll.jobCardId);
-              if (jc) {
-                let size = roll.coilSize || jc.size;
-                if (jc.coilSizes && jc.coilSizes.length === 1) {
-                  size = jc.coilSizes[0];
-                } else if (jc.coilSizes && jc.coilSizes.length > 0 && roll.coilSize && !jc.coilSizes.includes(roll.coilSize)) {
-                  size = jc.coilSizes[0];
-                }
-                const status = jc.slittingStatus === 'running' ? 'running' : 'completed';
-                const key = `${size}-${jc.micron}-${status}`;
-                if (!stockGroups[key]) stockGroups[key] = { size, micron: jc.micron, weight: 0, count: 0, status };
-                stockGroups[key].weight += (roll.netWeight || 0);
-                stockGroups[key].count += 1;
-              }
-            });
-            const allStockList = Object.values(stockGroups).sort((a, b) => a.size.localeCompare(b.size));
+            const allStockList = computeFinishedStockList(jobCards, slitRolls);
             const completedCount = allStockList.filter(s => s.status === 'completed').length;
             const runningCount = allStockList.filter(s => s.status === 'running').length;
 
+            const q = stockSearch.toLowerCase().trim();
             const filteredList = allStockList.filter(item => {
-              if (stockFilter === 'completed') return item.status === 'completed';
-              if (stockFilter === 'running') return item.status === 'running';
+              if (stockFilter === 'completed' && item.status !== 'completed') return false;
+              if (stockFilter === 'running' && item.status !== 'running') return false;
+              if (q) {
+                const matchSize = item.size.toLowerCase().includes(q);
+                const matchMicron = item.micron.toLowerCase().includes(q);
+                const matchJc = item.jobCodes.some(c => c.toLowerCase().includes(q));
+                return matchSize || matchMicron || matchJc;
+              }
               return true;
             });
 
             return (
               <div className="space-y-3">
-                {/* Filter Pills */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                  <button
-                    onClick={() => setStockFilter('all')}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                      stockFilter === 'all'
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    All ({allStockList.length})
-                  </button>
-                  <button
-                    onClick={() => setStockFilter('completed')}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      stockFilter === 'completed'
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
-                    }`}
-                  >
-                    <span>Completed ({completedCount})</span>
-                  </button>
-                  <button
-                    onClick={() => setStockFilter('running')}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      stockFilter === 'running'
-                        ? 'bg-amber-500 text-white shadow-sm'
-                        : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
-                    }`}
-                  >
-                    <span>🔥 Running ({runningCount})</span>
-                  </button>
+                {/* Search & Filter Bar */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search stock by size, micron, or Job Card (e.g. JC-94)..."
+                      value={stockSearch}
+                      onChange={e => setStockSearch(e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-9 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
+                    />
+                    {stockSearch && (
+                      <button onClick={() => setStockSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                    <button
+                      onClick={() => setStockFilter('all')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                        stockFilter === 'all'
+                          ? 'bg-slate-900 text-white shadow-sm'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      All ({allStockList.length})
+                    </button>
+                    <button
+                      onClick={() => setStockFilter('completed')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                        stockFilter === 'completed'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
+                      }`}
+                    >
+                      <span>Completed ({completedCount})</span>
+                    </button>
+                    <button
+                      onClick={() => setStockFilter('running')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                        stockFilter === 'running'
+                          ? 'bg-amber-500 text-white shadow-sm'
+                          : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
+                      }`}
+                    >
+                      <span>🔥 Running ({runningCount})</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="app-card overflow-hidden">
                   {filteredList.length === 0 ? (
                     <div className="p-8 text-center text-sm text-gray-400">
-                      {stockFilter === 'running' ? 'No running stock currently.' : stockFilter === 'completed' ? 'No completed stock available.' : 'No stock available.'}
+                      {stockSearch 
+                        ? `No stock matching "${stockSearch}".`
+                        : stockFilter === 'running' 
+                          ? 'No running stock currently.' 
+                          : stockFilter === 'completed' 
+                            ? 'No completed stock available.' 
+                            : 'No stock available.'}
                     </div>
                   ) : (
-                    <div className="flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white">
+                    <div className="flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white divide-y divide-gray-100">
                       {filteredList.map((item, i) => (
-                        <div key={i} className={`flex items-center justify-between p-4 ${i !== filteredList.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                          <div className="w-1/3 text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2 flex-wrap">
-                            <span>{item.size} x {item.micron} Mic</span>
-                            {item.status === 'running' ? (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1 animate-pulse">
-                                🔥 Running
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                Completed
-                              </span>
-                            )}
+                        <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-slate-50/50 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-base font-black text-gray-900">{item.size} x {item.micron} Mic</span>
+                              {item.status === 'running' ? (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1 animate-pulse">
+                                  🔥 Running
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  Completed
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Job Card Numbers with breakdown */}
+                            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                              <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Job Card{item.jobCodes.length > 1 ? 's' : ''}:</span>
+                              {item.jobCardBreakdown.map((jcInfo) => (
+                                <button
+                                  key={jcInfo.jobCode}
+                                  type="button"
+                                  onClick={() => {
+                                    const fullJc = jobCards.find(j => j.id === jcInfo.jobCardId);
+                                    if (fullJc) setSelectedJobCardForDetail(fullJc);
+                                  }}
+                                  className="font-mono text-xs font-black text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-lg shadow-2xs inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                                  title={`Click to view Job Card ${jcInfo.jobCode} details`}
+                                >
+                                  <span>{jcInfo.jobCode}</span>
+                                  {item.jobCodes.length > 1 && (
+                                    <span className="text-[10px] font-bold text-blue-500">
+                                      ({formatWeight(jcInfo.weight)}kg)
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                          <div className="w-1/3 text-center text-sm sm:text-base font-black text-emerald-700">
-                            {formatWeight(item.weight)} KG
-                          </div>
-                          <div className="w-1/3 text-right text-sm sm:text-base font-bold text-gray-500">
-                            {item.count} Rolls
+
+                          <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                            <div className="text-left sm:text-center">
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Stock Weight</p>
+                              <p className="text-sm sm:text-base font-black text-emerald-700 font-mono">
+                                {formatWeight(item.weight)} <span className="text-xs font-bold text-emerald-500">KG</span>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rolls</p>
+                              <p className="text-sm sm:text-base font-bold text-gray-700 font-mono">
+                                {item.count} <span className="text-xs font-normal text-gray-400">Rolls</span>
+                              </p>
+                            </div>
                           </div>
                         </div>
                       ))}
