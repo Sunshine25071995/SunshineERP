@@ -417,8 +417,8 @@ export function Bills() {
 
       {/* Modals - Clean Center Positioning with Keyboard Support */}
       {(isAddModalOpen || editingBill) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-sm transition-all overflow-y-auto">
-          <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col animate-scale-in my-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-sm transition-all overflow-y-auto pt-4 sm:pt-10">
+          <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-scale-in mb-4">
             <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
               <h3 className="text-lg font-black text-slate-900">{editingBill ? 'Edit Sales Bill' : 'Add Sales Bill'}</h3>
               <button type="button" onClick={() => { setIsAddModalOpen(false); setEditingBill(null); }} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-full bg-slate-50 transition-colors">
