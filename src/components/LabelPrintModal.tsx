@@ -126,8 +126,8 @@ function printLabelsDirect(labels: LabelData[], jobCode: string, widthMm: number
   const boxH = +(heightMm - padY * 2).toFixed(2);
   const topH = +(boxH * 0.275).toFixed(2);
   const rowH = +((boxH - topH) / 7).toFixed(2);
-  const baseHeaderPt = Math.max(20, Math.round(heightMm * 0.56));
-  const rowFontPt = Math.max(8.5, +(heightMm * 0.175).toFixed(1));
+  const baseHeaderPt = Math.max(22, Math.round(heightMm * 0.6));
+  const rowFontPt = Math.max(9, +(heightMm * 0.185).toFixed(1));
 
   const pagesHtml = labels.map((lbl) => {
     const rollPt = getHeaderFontPt(lbl.rollNoText, baseHeaderPt);
@@ -184,7 +184,8 @@ function printLabelsDirect(labels: LabelData[], jobCode: string, widthMm: number
       padding: 0;
       background: #ffffff;
       color: #000000;
-      font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif;
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      font-weight: 900;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -205,7 +206,7 @@ function printLabelsDirect(labels: LabelData[], jobCode: string, widthMm: number
       height: ${boxH}mm;
       border-collapse: collapse;
       table-layout: fixed;
-      border: 2.2pt solid #000000;
+      border: 3.5pt solid #000000;
     }
     .header-row {
       height: ${topH}mm;
@@ -215,13 +216,15 @@ function printLabelsDirect(labels: LabelData[], jobCode: string, widthMm: number
       height: ${topH}mm;
       text-align: center;
       vertical-align: middle;
-      font-weight: 800;
+      font-family: 'Arial Black', 'Segoe UI', Arial, sans-serif;
+      font-weight: 900;
+      -webkit-text-stroke: 0.35pt #000000;
       line-height: 1;
-      border-bottom: 2.2pt solid #000000;
+      border-bottom: 3.5pt solid #000000;
       color: #000000;
     }
     .header-left {
-      border-right: 1.5pt solid #000000;
+      border-right: 2.5pt solid #000000;
     }
     .data-row {
       height: ${rowH}mm;
@@ -231,18 +234,20 @@ function printLabelsDirect(labels: LabelData[], jobCode: string, widthMm: number
       text-align: left;
       vertical-align: middle;
       padding-left: 5mm;
-      font-weight: 700;
-      border-right: 1.5pt solid #000000;
-      border-bottom: 1.1pt solid #000000;
+      font-weight: 900;
+      -webkit-text-stroke: 0.18pt #000000;
+      border-right: 2.5pt solid #000000;
+      border-bottom: 2.2pt solid #000000;
       color: #000000;
-      letter-spacing: 0.2pt;
+      letter-spacing: 0.25pt;
     }
     .cell-val {
       width: 50%;
       text-align: center;
       vertical-align: middle;
-      font-weight: 700;
-      border-bottom: 1.1pt solid #000000;
+      font-weight: 900;
+      -webkit-text-stroke: 0.18pt #000000;
+      border-bottom: 2.2pt solid #000000;
       color: #000000;
     }
     .last-row .cell-key,
@@ -280,43 +285,45 @@ function downloadLabelsPdf(labels: LabelData[], jobCode: string, widthMm: number
   const keyX = x0 + Math.max(3.5, boxW * 0.055);
   const valX = x0 + boxW * 0.75;
   const leftCenterX = x0 + boxW * 0.25;
-  const baseHeaderPt = Math.max(20, topH * 2.15);
-  const rowFontPt = Math.max(8.5, Math.min(12.5, rowH * 1.8));
+  const baseHeaderPt = Math.max(22, topH * 2.3);
+  const rowFontPt = Math.max(9, Math.min(13, rowH * 1.9));
 
   labels.forEach((lbl, idx) => {
     if (idx > 0) doc.addPage([widthMm, heightMm], orientation);
 
     doc.setDrawColor(0, 0, 0);
+    doc.setFillColor(0, 0, 0);
     doc.setTextColor(0, 0, 0);
 
-    // Outer thick border
-    doc.setLineWidth(0.75);
+    // Extra bold outer border
+    doc.setLineWidth(1.15);
     doc.rect(x0, y0, boxW, boxH);
 
-    // Header bottom thick divider
+    // Extra bold header bottom divider
     doc.line(x0, y0 + topH, x0 + boxW, y0 + topH);
 
-    // Vertical center divider (top to bottom)
-    doc.setLineWidth(0.5);
+    // Extra bold vertical center divider (top to bottom)
+    doc.setLineWidth(0.85);
     doc.line(midX, y0, midX, y0 + boxH);
 
-    // Horizontal dividers for 7 data rows
-    doc.setLineWidth(0.35);
+    // Extra bold horizontal dividers for 7 data rows
+    doc.setLineWidth(0.75);
     for (let r = 1; r < 7; r++) {
       const yLine = y0 + topH + r * rowH;
       doc.line(x0, yLine, x0 + boxW, yLine);
     }
 
-    // Top Header Text (Roll No. & Party Code)
+    // Top Header Text (Roll No. & Party Code) — Extra Bold fillThenStroke
     doc.setFont('helvetica', 'bold');
+    doc.setLineWidth(0.45);
     const topMidY = y0 + topH / 2 + 0.5;
     doc.setFontSize(getHeaderFontPt(lbl.rollNoText, baseHeaderPt));
-    doc.text(lbl.rollNoText, leftCenterX, topMidY, { align: 'center', baseline: 'middle' });
+    doc.text(lbl.rollNoText, leftCenterX, topMidY, { align: 'center', baseline: 'middle', renderingMode: 'fillThenStroke' });
 
     doc.setFontSize(getHeaderFontPt(lbl.partyCode, baseHeaderPt));
-    doc.text(lbl.partyCode, valX, topMidY, { align: 'center', baseline: 'middle' });
+    doc.text(lbl.partyCode, valX, topMidY, { align: 'center', baseline: 'middle', renderingMode: 'fillThenStroke' });
 
-    // 7 Data Rows
+    // 7 Data Rows — Extra Bold
     const specRows: [string, string][] = [
       ['DATE', lbl.dateStr],
       ['SIZE', lbl.size],
@@ -328,10 +335,11 @@ function downloadLabelsPdf(labels: LabelData[], jobCode: string, widthMm: number
     ];
 
     doc.setFontSize(rowFontPt);
+    doc.setLineWidth(0.16);
     specRows.forEach(([k, v], rIdx) => {
       const cy = y0 + topH + (rIdx + 0.5) * rowH + 0.2;
-      doc.text(k, keyX, cy, { align: 'left', baseline: 'middle' });
-      doc.text(v, valX, cy, { align: 'center', baseline: 'middle' });
+      doc.text(k, keyX, cy, { align: 'left', baseline: 'middle', renderingMode: 'fillThenStroke' });
+      doc.text(v, valX, cy, { align: 'center', baseline: 'middle', renderingMode: 'fillThenStroke' });
     });
   });
 
@@ -749,13 +757,19 @@ export const LabelPrintModal: React.FC<LabelPrintModalProps> = ({ jobCard, slitR
                       className="bg-white shadow-md w-full max-w-[360px] p-2.5"
                       style={{ aspectRatio: `${labelWidthMm} / ${labelHeightMm}` }}
                     >
-                      <table className="w-full h-full border-collapse table-fixed border-[2.5px] border-black text-black">
+                      <table className="w-full h-full border-collapse table-fixed border-[3.5px] border-black text-black">
                         <tbody>
                           <tr className="h-[27.5%]">
-                            <td className={`w-1/2 border-r-[2px] border-b-[2.5px] border-black text-center align-middle font-black leading-none ${activePreview.rollNoText.length > 3 ? 'text-xl sm:text-2xl' : 'text-3xl sm:text-4xl'}`}>
+                            <td
+                              className={`w-1/2 border-r-[3px] border-b-[3.5px] border-black text-center align-middle font-black leading-none ${activePreview.rollNoText.length > 3 ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}
+                              style={{ WebkitTextStroke: '0.6px #000' }}
+                            >
                               {activePreview.rollNoText}
                             </td>
-                            <td className={`w-1/2 border-b-[2.5px] border-black text-center align-middle font-black leading-none ${activePreview.partyCode.length > 3 ? 'text-xl sm:text-2xl' : 'text-3xl sm:text-4xl'}`}>
+                            <td
+                              className={`w-1/2 border-b-[3.5px] border-black text-center align-middle font-black leading-none ${activePreview.partyCode.length > 3 ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}
+                              style={{ WebkitTextStroke: '0.6px #000' }}
+                            >
                               {activePreview.partyCode}
                             </td>
                           </tr>
@@ -770,12 +784,14 @@ export const LabelPrintModal: React.FC<LabelPrintModalProps> = ({ jobCard, slitR
                           ].map(([k, v], i, arr) => (
                             <tr key={k} className="h-[10.35%]">
                               <td
-                                className={`w-1/2 border-r-[2px] border-black ${i < arr.length - 1 ? 'border-b-[1.5px]' : ''} pl-3 sm:pl-4 text-left align-middle font-bold text-[11px] sm:text-xs leading-none`}
+                                className={`w-1/2 border-r-[3px] border-black ${i < arr.length - 1 ? 'border-b-[2.5px]' : ''} pl-3 sm:pl-4 text-left align-middle font-black text-xs sm:text-[13px] leading-none`}
+                                style={{ WebkitTextStroke: '0.25px #000' }}
                               >
                                 {k}
                               </td>
                               <td
-                                className={`w-1/2 border-black ${i < arr.length - 1 ? 'border-b-[1.5px]' : ''} text-center align-middle font-bold text-[11px] sm:text-xs leading-none`}
+                                className={`w-1/2 border-black ${i < arr.length - 1 ? 'border-b-[2.5px]' : ''} text-center align-middle font-black text-xs sm:text-[13px] leading-none`}
+                                style={{ WebkitTextStroke: '0.25px #000' }}
                               >
                                 {v}
                               </td>
