@@ -2,7 +2,7 @@ import React from 'react';
 import { JobCard, ProductionRoll, SlittingRoll, ProductionWastage } from '../types';
 import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { getPartyName } from '../utils/parties';
-import { X, Layers, Scissors, Scale, Trash2 } from 'lucide-react';
+import { X, Layers, Scissors, Scale, Trash2, Printer } from 'lucide-react';
 
 const formatToDDMM = (dateStr: string) => {
   if (!dateStr) return '—';
@@ -18,6 +18,7 @@ interface JobCardDetailModalProps {
   prodWastages: ProductionWastage[];
   onClose: () => void;
   onDelete?: (jobCard: JobCard) => void;
+  onPrintLabels?: (jobCard: JobCard) => void;
 }
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -43,6 +44,7 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
   prodWastages,
   onClose,
   onDelete,
+  onPrintLabels,
 }) => {
   const wastageSummary = calculateJobCardWastage(jobCard.id, prodRolls, slitRolls, prodWastages);
   const jcProdRolls = prodRolls.filter((r) => r.jobCardId === jobCard.id);
@@ -222,9 +224,21 @@ export const JobCardDetailModal: React.FC<JobCardDetailModalProps> = ({
 
           {/* Slitting Rolls */}
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Scissors className="w-3.5 h-3.5 text-blue-600" /> Slitting Output ({jcSlitRolls.length})
-            </p>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Scissors className="w-3.5 h-3.5 text-blue-600" /> Slitting Output ({jcSlitRolls.length})
+              </p>
+              {onPrintLabels && jcSlitRolls.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onPrintLabels(jobCard)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg font-bold text-xs transition-colors btn-press"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Labels</span>
+                </button>
+              )}
+            </div>
             {jcSlitRolls.length === 0 ? (
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center text-sm text-gray-400">
                 No slitting rolls recorded yet.

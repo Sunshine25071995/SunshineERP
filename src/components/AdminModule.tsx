@@ -7,12 +7,13 @@ import { formatWeight, calculateJobCardWastage } from '../utils/formatters';
 import { PARTIES, getPartyName, useJobCardParties } from '../utils/parties';
 import { JobCardDetailModal } from './JobCardDetailModal';
 import { RollPDFModal } from './RollPDFModal';
+import { LabelPrintModal } from './LabelPrintModal';
 import { PartyManagementModal } from './PartyManagementModal';
 import {
   Users, FileText, FlaskConical, Plus, Edit2, Trash2, Eye, X,
   Search, Layers, Scissors, Check, RefreshCw, CreditCard, Briefcase, Activity,
   ClipboardList, Database, Wallet, Boxes, Recycle, History, CalendarDays, ArrowLeft,
-  Building, Printer, Share2
+  Building, Printer, Share2, Tag
 } from 'lucide-react';
 import { PaymentTrackerModule } from '../payment-tracker/PaymentTrackerModule';
 import { WastageAnalytics } from './WastageAnalytics';
@@ -197,6 +198,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
   const { parties: jobCardPartiesList } = useJobCardParties();
   const [selectedJobCardForDetail, setSelectedJobCardForDetail] = useState<JobCard | null>(null);
   const [pdfModalJobCard, setPdfModalJobCard] = useState<JobCard | null>(null);
+  const [labelModalJobCard, setLabelModalJobCard] = useState<JobCard | null>(null);
   const [showJobCardModal, setShowJobCardModal] = useState(false);
   const [editingJobCard, setEditingJobCard] = useState<JobCard | null>(null);
   const [deletingJobCard, setDeletingJobCard] = useState<JobCard | null>(null);
@@ -733,10 +735,14 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
                     )}
 
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <button onClick={(e) => { e.stopPropagation(); setPdfModalJobCard(jc); }}
                           className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 rounded-lg font-bold text-xs btn-press">
                           <FileText className="w-4 h-4" /><span>Generate PDF</span>
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); setLabelModalJobCard(jc); }}
+                          className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-bold text-xs btn-press border border-indigo-200/70">
+                          <Tag className="w-3.5 h-3.5" /><span>Print Labels</span>
                         </button>
                       </div>
                       {canEdit && (
@@ -1542,6 +1548,7 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
           prodRolls={prodRolls} slitRolls={slitRolls} prodWastages={prodWastages}
           onClose={() => setSelectedJobCardForDetail(null)}
           onDelete={jc => { setSelectedJobCardForDetail(null); setDeletingJobCard(jc); }}
+          onPrintLabels={jc => { setSelectedJobCardForDetail(null); setLabelModalJobCard(jc); }}
         />
       )}
 
@@ -1552,6 +1559,15 @@ export const AdminModule: React.FC<AdminModuleProps> = ({
           prodRolls={prodRolls}
           slitRolls={slitRolls}
           onClose={() => setPdfModalJobCard(null)}
+        />
+      )}
+
+      {/* ── MODAL: BATCH LABEL PRINT (Sheet3 Format) ───────────── */}
+      {labelModalJobCard && (
+        <LabelPrintModal
+          jobCard={labelModalJobCard}
+          slitRolls={slitRolls}
+          onClose={() => setLabelModalJobCard(null)}
         />
       )}
 
